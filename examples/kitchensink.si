@@ -1,5 +1,5 @@
 // This file showcases every single syntactic feature in the language.
-
+template <typename T, typename B>
 fun array_add (a: Int[]): Int
 {
     fun add (a: Int, b: Int): Int {
@@ -60,6 +60,10 @@ validate5(sum_pair($Pair(2, 3)))
 
 fun use_array (array: Int[]) {}
 
+template <typename T>
+fun check_param (a: T, b: Int){
+
+}
 var intArray: Int[] = []
 var stringArray: String[] = []
 use_array([])

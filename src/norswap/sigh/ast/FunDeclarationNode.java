@@ -8,13 +8,20 @@ public class FunDeclarationNode extends DeclarationNode
 {
     public final String name;
     public final List<ParameterNode> parameters;
+    public final List<TemplateParameterNode> templateParameters;
     public final TypeNode returnType;
     public final BlockNode block;
 
     @SuppressWarnings("unchecked")
     public FunDeclarationNode
-            (Span span, Object name, Object parameters, Object returnType, Object block) {
+            (Span span, Object templateParameters, Object name, Object parameters, Object returnType, Object block) {
         super(span);
+        /*System.out.println(templateParameters+ " " + name);*/
+        if (templateParameters != null){
+            this.templateParameters = Util.cast(templateParameters, List.class);
+        }else{
+            this.templateParameters = null;
+        }
         this.name = Util.cast(name, String.class);
         this.parameters = Util.cast(parameters, List.class);
         this.returnType = returnType == null

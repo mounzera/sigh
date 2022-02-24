@@ -122,10 +122,12 @@ public final class SemanticAnalysis
         walker.register(UnaryExpressionNode.class,      PRE_VISIT,  analysis::unaryExpression);
         walker.register(BinaryExpressionNode.class,     PRE_VISIT,  analysis::binaryExpression);
         walker.register(AssignmentNode.class,           PRE_VISIT,  analysis::assignment);
-
+        //C++ templates
+        walker.register(TemplateTypeNode.class, PRE_VISIT, analysis::templateType);
         // types
         walker.register(SimpleTypeNode.class,           PRE_VISIT,  analysis::simpleType);
         walker.register(ArrayTypeNode.class,            PRE_VISIT,  analysis::arrayType);
+
 
         // declarations & scopes
         walker.register(RootNode.class,                 PRE_VISIT,  analysis::root);
@@ -133,6 +135,8 @@ public final class SemanticAnalysis
         walker.register(VarDeclarationNode.class,       PRE_VISIT,  analysis::varDecl);
         walker.register(FieldDeclarationNode.class,     PRE_VISIT,  analysis::fieldDecl);
         walker.register(ParameterNode.class,            PRE_VISIT,  analysis::parameter);
+        //C++ templates
+        walker.register(TemplateParameterNode.class, PRE_VISIT, analysis::templateParameter);
         walker.register(FunDeclarationNode.class,       PRE_VISIT,  analysis::funDecl);
         walker.register(StructDeclarationNode.class,    PRE_VISIT,  analysis::structDecl);
 
@@ -173,6 +177,12 @@ public final class SemanticAnalysis
     }
 
     // ---------------------------------------------------------------------------------------------
+    //C++ templates
+    private void templateType (TemplateTypeNode node) {
+        R.set(node, "type", TemplateType.INSTANCE);
+    }
+
+    // ---------------------------------------------------------------------------------------------
 
     private void reference (ReferenceNode node)
     {
@@ -182,6 +192,7 @@ public final class SemanticAnalysis
         // functions or types. By looking up now, we can report looked up variables later
         // as being used before being defined.
         DeclarationContext maybeCtx = scope.lookup(node.name);
+        System.out.println(scope);
 
         if (maybeCtx != null) {
             R.set(node, "decl",  maybeCtx.declaration);
@@ -772,14 +783,34 @@ public final class SemanticAnalysis
     }
 
     // ---------------------------------------------------------------------------------------------
+    //C++ templates
+    private void templateParameter (TemplateParameterNode node)
+    {
+        R.set(node, "scope", scope);
+        scope.declare(node.parameter, node); // scope pushed by FunDeclarationNode
+        R.rule(node, "type").using(node.type, "type")
+            .by(Rule::copyFirst);
+    }
+    // ---------------------------------------------------------------------------------------------
 
     private void funDecl (FunDeclarationNode node)
     {
         scope.declare(node.name, node);
         scope = new Scope(node, scope);
         R.set(node, "scope", scope);
+        Attribute[] dependencies;
+        if (node.templateParameters != null){
+            int size = node.parameters.size() + 1 + node.templateParameters.size();
+            dependencies = new Attribute[size];
+            int tempIdx = 0;
+            for (int i = node.parameters.size() + 1; i<size; i++){
+                dependencies[i] = node.templateParameters.get(tempIdx).attr("type");
+                tempIdx++;
+            }
+        }else{
+            dependencies = new Attribute[node.parameters.size() + 1];
+        }
 
-        Attribute[] dependencies = new Attribute[node.parameters.size() + 1];
         dependencies[0] = node.returnType.attr("value");
         forEachIndexed(node.parameters, (i, param) ->
             dependencies[i + 1] = param.attr("type"));
@@ -792,7 +823,6 @@ public final class SemanticAnalysis
                 paramTypes[i] = r.get(i + 1);
             r.set(0, new FunType(r.get(0), paramTypes));
         });
-
         R.rule()
         .using(node.block.attr("returns"), node.returnType.attr("value"))
         .by(r -> {

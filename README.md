@@ -11,7 +11,7 @@ analysis library [Uranium], as well as [ASM] for bytecode generation.
 
 Key files:
 - [`SighGrammar`](/src/norswap/sigh/SighGrammar.java)
-- [`SemanticAnalysis`](/src/norswap/sigh/SemanticAnalysis.java) (1)
+- [`SemanticAnalysisCalculator`](/src/norswap/sigh/SemanticAnalysisCalculator.java) (1)
 - [`Interpreter`](/src/norswap/sigh/interpreter/Interpreter.java)
 - [`BytecodeCompiler`](/src/norswap/sigh/bytecode/BytecodeCompiler.java)
 

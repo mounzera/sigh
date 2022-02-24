@@ -51,6 +51,7 @@ public class SighGrammar extends Grammar
     public rule DOT             = word(".");
     public rule DOLLAR          = word("$");
     public rule COMMA           = word(",");
+    public rule alphaCap = range('A', 'Z');
 
     public rule _var            = reserved("var");
     public rule _fun            = reserved("fun");
@@ -59,6 +60,8 @@ public class SighGrammar extends Grammar
     public rule _else           = reserved("else");
     public rule _while          = reserved("while");
     public rule _return         = reserved("return");
+    public rule _template = reserved("template");
+    public rule _typename = reserved("typename");
 
     public rule number =
         seq(opt('-'), choice('0', digit.at_least(1)));
@@ -242,9 +245,22 @@ public class SighGrammar extends Grammar
     public rule maybe_return_type =
         seq(COLON, type).or_push_null();
 
+    //Template C++
+    //To add -> posibility to make T1, T2 (add number to name of param)
+    public rule identifierCap =
+            identifier(seq(choice(alphaCap, '_'), id_part.at_least(0)))
+                    .push($ -> $.str());
+
+    public rule templateParameter =         seq(_typename, identifierCap).push($ -> new TemplateParameterNode($.span(), $.$[0], new TemplateTypeNode($.span())));
+
+    public rule templateParameters =         templateParameter.at_least(1).sep(0, COMMA).as_list(TemplateParameterNode.class);
+
+
+    public rule template = seq(_template, LANGLE, templateParameters, RANGLE).or_push_null();
+
     public rule fun_decl =
-        seq(_fun, identifier, LPAREN, parameters, RPAREN, maybe_return_type, block)
-        .push($ -> new FunDeclarationNode($.span(), $.$[0], $.$[1], $.$[2], $.$[3]));
+        seq(opt(template), _fun, identifier, LPAREN, parameters, RPAREN, maybe_return_type, block)
+        .push($ -> new FunDeclarationNode($.span(), $.$[0], $.$[1], $.$[2], $.$[3], $.$[4]));
 
     public rule field_decl =
         seq(_var, identifier, COLON, type)

@@ -21,6 +21,7 @@ public final class Test
         String file = "kitchensink.si";
         String path = Paths.get("examples/", file).toAbsolutePath().toString();
         String src = IO.slurp(path);
+        System.out.println(src);
         SighGrammar grammar = new SighGrammar();
         ParseOptions options = ParseOptions.builder().recordCallStack(true).get();
         ParseResult result = Autumn.parse(grammar.root, src, options);

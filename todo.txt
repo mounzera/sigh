@@ -1,0 +1,7 @@
+
+1. add numbers to the template name so that we can use T1, T2, T3
+2. create templates for a list of functions
+
+Problemes:
+
+- check parameter that has a type T having template type as simple type

@@ -7,23 +7,23 @@ import java.util.List;
 
 public class TemplateParameterNode extends DeclarationNode{
 
-    public final String parameter;
+    public final String name;
     public final TemplateTypeNode type;
 
     public TemplateParameterNode(Span span, Object parameters, Object type) {
         super(span);
-        this.parameter = Util.cast(parameters, String.class);
+        this.name = Util.cast(parameters, String.class);
         this.type = Util.cast(type, TemplateTypeNode.class);
     }
 
     @Override
     public String contents() {
-        return "template " + parameter;
+        return name;
     }
 
     @Override
     public String name() {
-        return parameter;
+        return name;
     }
 
     @Override

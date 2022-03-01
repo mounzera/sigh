@@ -127,9 +127,10 @@ public class SighGrammar extends Grammar
         string,
         paren_expression,
         array);
-
+    //C++ templates add opt call func
+    public rule template_args = seq(LANGLE, seq(identifier).at_least(1).sep(0, COMMA).as_list(SimpleTypeNode.class) ,RANGLE).or_push_null();
     public rule function_args =
-        seq(LPAREN, expressions, RPAREN);
+        seq(opt(template_args), LPAREN, expressions, RPAREN);
 
     public rule suffix_expression = left_expression()
         .left(basic_expression)
@@ -138,7 +139,7 @@ public class SighGrammar extends Grammar
         .suffix(seq(LSQUARE, lazy(() -> this.expression), RSQUARE),
             $ -> new ArrayAccessNode($.span(), $.$[0], $.$[1]))
         .suffix(function_args,
-            $ -> new FunCallNode($.span(), $.$[0], $.$[1]));
+            $ -> new FunCallNode($.span(), $.$[0], $.$[1], $.$[2]));
 
     public rule prefix_expression = right_expression()
         .operand(suffix_expression)

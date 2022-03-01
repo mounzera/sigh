@@ -192,7 +192,6 @@ public final class SemanticAnalysis
         // functions or types. By looking up now, we can report looked up variables later
         // as being used before being defined.
         DeclarationContext maybeCtx = scope.lookup(node.name);
-        System.out.println(scope);
 
         if (maybeCtx != null) {
             R.set(node, "decl",  maybeCtx.declaration);
@@ -644,8 +643,13 @@ public final class SemanticAnalysis
 
     private static boolean isTypeDecl (DeclarationNode decl)
     {
-        if (decl instanceof StructDeclarationNode) return true;
-        if (!(decl instanceof SyntheticDeclarationNode)) return false;
+        if (decl instanceof StructDeclarationNode)
+            return true;
+        if (!(decl instanceof SyntheticDeclarationNode)){
+            System.out.println("je suis dedans " + decl);
+            return false;
+        }
+
         SyntheticDeclarationNode synthetic = cast(decl);
         return synthetic.kind() == DeclarationKind.TYPE;
     }
@@ -776,7 +780,6 @@ public final class SemanticAnalysis
     {
         R.set(node, "scope", scope);
         scope.declare(node.name, node); // scope pushed by FunDeclarationNode
-
         R.rule(node, "type")
         .using(node.type, "value")
         .by(Rule::copyFirst);
@@ -787,7 +790,7 @@ public final class SemanticAnalysis
     private void templateParameter (TemplateParameterNode node)
     {
         R.set(node, "scope", scope);
-        scope.declare(node.parameter, node); // scope pushed by FunDeclarationNode
+        scope.declare(node.name, node); // scope pushed by FunDeclarationNode
         R.rule(node, "type").using(node.type, "type")
             .by(Rule::copyFirst);
     }
@@ -814,7 +817,6 @@ public final class SemanticAnalysis
         dependencies[0] = node.returnType.attr("value");
         forEachIndexed(node.parameters, (i, param) ->
             dependencies[i + 1] = param.attr("type"));
-
         R.rule(node, "type")
         .using(dependencies)
         .by (r -> {
@@ -822,6 +824,7 @@ public final class SemanticAnalysis
             for (int i = 0; i < paramTypes.length; ++i)
                 paramTypes[i] = r.get(i + 1);
             r.set(0, new FunType(r.get(0), paramTypes));
+            System.out.println(Arrays.toString(paramTypes));
         });
         R.rule()
         .using(node.block.attr("returns"), node.returnType.attr("value"))

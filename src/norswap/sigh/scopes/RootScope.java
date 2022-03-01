@@ -50,6 +50,7 @@ public final class RootScope extends Scope
         reactor.set(String, "type",       TypeType.INSTANCE);
         reactor.set(Void,   "type",       TypeType.INSTANCE);
         reactor.set(Type,   "type",       TypeType.INSTANCE);
+        reactor.set(Template,   "type",       TypeType.INSTANCE);
 
         reactor.set(Bool,   "declared",   BoolType.INSTANCE);
         reactor.set(Int,    "declared",    IntType.INSTANCE);
@@ -57,6 +58,7 @@ public final class RootScope extends Scope
         reactor.set(String, "declared", StringType.INSTANCE);
         reactor.set(Void,   "declared",   VoidType.INSTANCE);
         reactor.set(Type,   "declared",   TypeType.INSTANCE);
+        reactor.set(Template,   "declared",   TemplateType.INSTANCE);
 
         reactor.set(_true,  "type",       BoolType.INSTANCE);
         reactor.set(_false, "type",       BoolType.INSTANCE);

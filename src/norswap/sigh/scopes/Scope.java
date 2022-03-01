@@ -1,5 +1,6 @@
 package norswap.sigh.scopes;
 
+import com.sun.org.apache.xalan.internal.xsltc.trax.XSLTCSource;
 import norswap.sigh.ast.DeclarationNode;
 import norswap.sigh.ast.SighNode;
 import java.util.HashMap;
@@ -23,7 +24,7 @@ public class Scope
 
     // ---------------------------------------------------------------------------------------------
 
-    private final HashMap<String, DeclarationNode> declarations = new HashMap<>();
+    public final HashMap<String, DeclarationNode> declarations = new HashMap<>();
 
     // ---------------------------------------------------------------------------------------------
 
@@ -49,12 +50,19 @@ public class Scope
      */
     public DeclarationContext lookup (String name)
     {
-        DeclarationNode declaration = declarations.get(name);
+        DeclarationNode declaration;
+        if (name.equals("T")){
+            declaration = declarations.get("Template");
+        }else{
+            declaration = declarations.get(name);
+        }
         return declaration != null
-                ? new DeclarationContext(this, declaration)
-                : parent != null
-                    ? parent.lookup(name)
-                    : null;
+            ? new DeclarationContext(this, declaration)
+            : parent != null
+            ? parent.lookup(name)
+            : null;
+
+
     }
 
     // ---------------------------------------------------------------------------------------------

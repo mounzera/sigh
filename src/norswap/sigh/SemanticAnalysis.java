@@ -12,6 +12,7 @@ import norswap.uranium.Reactor;
 import norswap.uranium.Rule;
 import norswap.utils.visitors.ReflectiveFieldWalker;
 import norswap.utils.visitors.Walker;
+import org.w3c.dom.Attr;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -405,8 +406,18 @@ public final class SemanticAnalysis
     private void funCall (FunCallNode node)
     {
         this.inferenceContext = node;
+        Attribute[] dependencies;
+        if (node.templateArgs == null){
+            dependencies = new Attribute[node.arguments.size() + 1];
+        }else{
+            dependencies = new Attribute[node.arguments.size() + 1 + node.templateArgs.size()];
+            forEachIndexed(node.templateArgs, (i, arg) -> {
+                dependencies[i + 1 + node.arguments.size()] = arg.attr("value");
+                R.set(arg, "index", i + node.arguments.size());
+            });
 
-        Attribute[] dependencies = new Attribute[node.arguments.size() + 1];
+        }
+
         dependencies[0] = node.function.attr("type");
         forEachIndexed(node.arguments, (i, arg) -> {
             dependencies[i + 1] = arg.attr("type");
@@ -422,12 +433,19 @@ public final class SemanticAnalysis
                 r.error("trying to call a non-function expression: " + node.function, node.function);
                 return;
             }
-
             FunType funType = cast(maybeFunType);
             r.set(0, funType.returnType);
 
             Type[] params = funType.paramTypes;
+            int idx = node.arguments.size()+1;
+            for (int i = 0; i<params.length; i++){
+                if (params[i] instanceof TemplateType){
+                    Type ex = r.get(idx);
+                    params[i] = ex;
+                }
+            }
             List<ExpressionNode> args = node.arguments;
+            List<TypeNode> templateArgs = node.templateArgs;
 
             if (params.length != args.size())
                 r.errorFor(format("wrong number of arguments, expected %d but got %d",
@@ -646,7 +664,6 @@ public final class SemanticAnalysis
         if (decl instanceof StructDeclarationNode)
             return true;
         if (!(decl instanceof SyntheticDeclarationNode)){
-            System.out.println("je suis dedans " + decl);
             return false;
         }
 
@@ -744,6 +761,7 @@ public final class SemanticAnalysis
     {
         this.inferenceContext = node;
 
+
         scope.declare(node.name, node);
         R.set(node, "scope", scope);
 
@@ -802,29 +820,19 @@ public final class SemanticAnalysis
         scope = new Scope(node, scope);
         R.set(node, "scope", scope);
         Attribute[] dependencies;
-        if (node.templateParameters != null){
-            int size = node.parameters.size() + 1 + node.templateParameters.size();
-            dependencies = new Attribute[size];
-            int tempIdx = 0;
-            for (int i = node.parameters.size() + 1; i<size; i++){
-                dependencies[i] = node.templateParameters.get(tempIdx).attr("type");
-                tempIdx++;
-            }
-        }else{
-            dependencies = new Attribute[node.parameters.size() + 1];
-        }
-
+        dependencies = new Attribute[node.parameters.size() + 1];
         dependencies[0] = node.returnType.attr("value");
         forEachIndexed(node.parameters, (i, param) ->
             dependencies[i + 1] = param.attr("type"));
         R.rule(node, "type")
         .using(dependencies)
         .by (r -> {
-            Type[] paramTypes = new Type[node.parameters.size()];
-            for (int i = 0; i < paramTypes.length; ++i)
+            Type[] paramTypes;
+            paramTypes = new Type[node.parameters.size()];
+            for (int i = 0; i < paramTypes.length; ++i){
                 paramTypes[i] = r.get(i + 1);
+            }
             r.set(0, new FunType(r.get(0), paramTypes));
-            System.out.println(Arrays.toString(paramTypes));
         });
         R.rule()
         .using(node.block.attr("returns"), node.returnType.attr("value"))

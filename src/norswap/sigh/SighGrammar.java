@@ -107,6 +107,14 @@ public class SighGrammar extends Grammar
         identifier
         .push($ -> new SimpleTypeNode($.span(), $.$[0]));
 
+    public rule array_type = left_expression()
+        .left(simple_type)
+        .suffix(seq(LSQUARE, RSQUARE),
+            $ -> new ArrayTypeNode($.span(), $.$[0]));
+
+    public rule type =
+        seq(array_type);
+
     public rule paren_expression = lazy(() ->
         seq(LPAREN, this.expression, RPAREN)
         .push($ -> new ParenthesizedNode($.span(), $.$[0])));
@@ -128,7 +136,7 @@ public class SighGrammar extends Grammar
         paren_expression,
         array);
     //C++ templates add opt call func
-    public rule template_args = seq(LANGLE, seq(identifier).at_least(1).sep(0, COMMA).as_list(SimpleTypeNode.class) ,RANGLE).or_push_null();
+    public rule template_args = seq(LANGLE, seq(type).at_least(1).sep(0, COMMA).as_list(TypeNode.class) ,RANGLE).or_push_null();
     public rule function_args =
         seq(opt(template_args), LPAREN, expressions, RPAREN);
 
@@ -205,13 +213,6 @@ public class SighGrammar extends Grammar
             return true;
         });
 
-    public rule array_type = left_expression()
-        .left(simple_type)
-        .suffix(seq(LSQUARE, RSQUARE),
-            $ -> new ArrayTypeNode($.span(), $.$[0]));
-
-    public rule type =
-        seq(array_type);
 
     public rule statement = lazy(() -> choice(
         this.block,

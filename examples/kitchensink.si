@@ -23,7 +23,9 @@ fun array_add (a: Int[]): Int
 
     return result
 }
-
+*/
+//var total: Int = 3
+/*
 var total: Int = array_add([1, 2, 3])
 var float_total: Float = total + 0.0
 
@@ -64,7 +66,7 @@ template <typename T>
 fun check_param ( a: T, b: Int){
 
 }
-check_param<Int>(2, 2);
+check_param<String>("hey", 2);
 /*var intArray: Int[] = []
 var stringArray: String[] = []
 use_array([])*/

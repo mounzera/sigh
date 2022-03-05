@@ -9,7 +9,6 @@ public final class SimpleTypeNode extends TypeNode
 
     public SimpleTypeNode (Span span, Object name) {
         super(span);
-        System.out.println(name);
         this.name = Util.cast(name, String.class);
     }
 

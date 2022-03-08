@@ -8,6 +8,7 @@ public class ReturnNode extends StatementNode
     public final ExpressionNode expression;
 
     public ReturnNode (Span span, Object expression) {
+
         super(span);
         this.expression = expression == null
             ? null

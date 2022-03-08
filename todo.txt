@@ -1,7 +1,18 @@
 
-1. add numbers to the template name so that we can use T1, T2, T3
-2. create templates for a list of functions
+1. add numbers to the template name so that we can use T1, T2, T3 -OK
+2. create templates for a list of functions declarations
 
 Problemes:
 
-- check parameter that has a type T having template type as simple type
+-  modify scope during funcall to reassign the type of a vairable declared in funDecl
+-  and check in semantic analysis all errors related to template types
+-  declare templates typenames not used -> error
+-  function f -> error
+
+Important files:
+- semantic analysis
+- sigh grammar
+- all ast implementing declaration node
+- Templatetype
+- tests
+- examples

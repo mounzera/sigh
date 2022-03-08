@@ -253,7 +253,7 @@ public class SighGrammar extends Grammar
             identifier(seq(choice(alphaCap, '_'), id_part.at_least(0)))
                     .push($ -> $.str());
 
-    public rule templateParameter =         seq(_typename, identifierCap).push($ -> new TemplateParameterNode($.span(), $.$[0], new TemplateTypeNode($.span())));
+    public rule templateParameter =         seq(_typename, identifierCap).push($ -> new TemplateParameterNode($.span(), $.$[0], new TemplateTypeNode($.span(), $.$0())));
 
     public rule templateParameters =         templateParameter.at_least(1).sep(0, COMMA).as_list(TemplateParameterNode.class);
 

@@ -1,6 +1,8 @@
 package norswap.sigh.scopes;
 
 import norswap.sigh.ast.DeclarationNode;
+import norswap.sigh.ast.TemplateParameterNode;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -14,11 +16,13 @@ public final class SyntheticDeclarationNode extends DeclarationNode
 {
     private final String name;
     private final DeclarationKind kind;
+    private String template;
 
     public SyntheticDeclarationNode(String name, DeclarationKind kind) {
         super(null);
         this.name = name;
         this.kind = kind;
+        this.template = null;
     }
 
     @Override public String name () {
@@ -33,7 +37,20 @@ public final class SyntheticDeclarationNode extends DeclarationNode
         return name;
     }
 
+    public void setTemplate(String template){
+        this.template = template;
+    }
+
+    public String getTemplate(){
+        return this.template;
+    }
+
     @Override public String declaredThing () {
         return "built-in " + kind.name().toLowerCase(Locale.ROOT);
+    }
+
+    @Override
+    public List<TemplateParameterNode> getTemplateParameters () {
+        return null;
     }
 }

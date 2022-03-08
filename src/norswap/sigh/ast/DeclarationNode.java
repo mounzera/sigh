@@ -1,6 +1,7 @@
 package norswap.sigh.ast;
 
 import norswap.autumn.positions.Span;
+import java.util.List;
 
 public abstract class DeclarationNode extends StatementNode
 {
@@ -17,4 +18,6 @@ public abstract class DeclarationNode extends StatementNode
      * Return the name of the thing declared (e.g. "function").
      */
     public abstract String declaredThing();
+
+    public abstract List<TemplateParameterNode> getTemplateParameters();
 }

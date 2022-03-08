@@ -103,7 +103,7 @@ public class GrammarTests extends AutumnTestFixture {
                 new FieldDeclarationNode(null, "y", new SimpleTypeNode(null, "Int")))));
 
         successExpect("fun f (x: Int): Int { return 1 }",
-            new FunDeclarationNode(null, "f",
+            new FunDeclarationNode(null, null, "f",
                 asList(new ParameterNode(null, "x", new SimpleTypeNode(null, "Int"))),
                 new SimpleTypeNode(null, "Int"),
                 new BlockNode(null, asList(new ReturnNode(null, intlit(1))))));
@@ -117,7 +117,7 @@ public class GrammarTests extends AutumnTestFixture {
         successExpect("return", new ReturnNode(null, null));
         successExpect("return 1", new ReturnNode(null, intlit(1)));
         successExpect("print(1)", new ExpressionStatementNode(null,
-            new FunCallNode(null, new ReferenceNode(null, "print"), asList(intlit(1)))));
+            new FunCallNode(null, null, new ReferenceNode(null, "print"), asList(intlit(1)))));
         successExpect("{ return }", new BlockNode(null, asList(new ReturnNode(null, null))));
 
 

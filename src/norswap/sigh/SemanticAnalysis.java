@@ -1,5 +1,6 @@
 package norswap.sigh;
 
+import jdk.nashorn.internal.objects.Global;
 import norswap.sigh.ast.*;
 import norswap.sigh.scopes.DeclarationContext;
 import norswap.sigh.scopes.DeclarationKind;
@@ -12,8 +13,12 @@ import norswap.uranium.Reactor;
 import norswap.uranium.Rule;
 import norswap.utils.visitors.ReflectiveFieldWalker;
 import norswap.utils.visitors.Walker;
+import org.graalvm.compiler.lir.LIRInstruction.Temp;
 import org.w3c.dom.Attr;
+import javax.management.openmbean.SimpleType;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.IntStream;
@@ -89,6 +94,7 @@ public final class SemanticAnalysis
 
     /** Index of the current function argument. */
     private int argumentIndex;
+
 
     // ---------------------------------------------------------------------------------------------
 
@@ -188,6 +194,7 @@ public final class SemanticAnalysis
     private void reference (ReferenceNode node)
     {
         final Scope scope = this.scope;
+
 
         // Try to lookup immediately. This must succeed for variables, but not necessarily for
         // functions or types. By looking up now, we can report looked up variables later
@@ -407,28 +414,24 @@ public final class SemanticAnalysis
     {
         this.inferenceContext = node;
         Attribute[] dependencies;
-        if (node.templateArgs == null){
-            dependencies = new Attribute[node.arguments.size() + 1];
-        }else{
-            dependencies = new Attribute[node.arguments.size() + 1 + node.templateArgs.size()];
-            forEachIndexed(node.templateArgs, (i, arg) -> {
-                dependencies[i + 1 + node.arguments.size()] = arg.attr("value");
-                R.set(arg, "index", i + node.arguments.size());
-            });
-
+        dependencies = new Attribute[node.arguments.size() + 1];
+        HashMap<String, TypeNode> templateParametersDictionnary = new HashMap<>();
+        if (node.templateArgs != null){
+            int tempIdx = 0;
+            for (TemplateParameterNode templateName : scope.declarations.get(node.function.contents()).getTemplateParameters()){
+                templateParametersDictionnary.put(templateName.name, node.templateArgs.get(tempIdx));
+                tempIdx++;
+            }
         }
-
         dependencies[0] = node.function.attr("type");
         forEachIndexed(node.arguments, (i, arg) -> {
             dependencies[i + 1] = arg.attr("type");
             R.set(arg, "index", i);
         });
-
         R.rule(node, "type")
         .using(dependencies)
         .by(r -> {
             Type maybeFunType = r.get(0);
-
             if (!(maybeFunType instanceof FunType)) {
                 r.error("trying to call a non-function expression: " + node.function, node.function);
                 return;
@@ -438,10 +441,47 @@ public final class SemanticAnalysis
 
             Type[] params = funType.paramTypes;
             int idx = node.arguments.size()+1;
+            List<String> actualTemplateList = new ArrayList<>();
+            if (scope != null){
+                System.out.println(scope.declarations);
+            }
+            int templateNameIdx = 0;
             for (int i = 0; i<params.length; i++){
                 if (params[i] instanceof TemplateType){
-                    Type ex = r.get(idx);
-                    params[i] = ex;
+                    String paramName = ((TemplateType) params[i]).getParamName(templateNameIdx);
+                    String actualType = templateParametersDictionnary.get(paramName).contents();
+                    Type template;
+                    actualTemplateList.add(paramName);
+                    switch (actualType){
+                        case "Int":
+                            template = IntType.INSTANCE;
+                            templateNameIdx++;
+                            break;
+                        case "Float":
+                            template = FloatType.INSTANCE;
+                            templateNameIdx++;
+                            break;
+                        case "String":
+                            template = StringType.INSTANCE;
+                            templateNameIdx++;
+                            break;
+                        case "Bool":
+                            template = BoolType.INSTANCE;
+                            templateNameIdx++;
+                            break;
+                        default:
+                            r.errorFor(format("This type %s is not allowed for the Template function", actualType), node);
+                            template = null;
+                    }
+
+                    params[i] = template;
+                    idx++;
+                }
+            }
+            if (node.templateArgs != null){
+                templateParametersDictionnary.clear();
+                for (String nameToDestroy : actualTemplateList){
+                    TemplateType.INSTANCE.templateList.remove(nameToDestroy);
                 }
             }
             List<ExpressionNode> args = node.arguments;
@@ -453,11 +493,11 @@ public final class SemanticAnalysis
                     node);
 
             int checkedArgs = Math.min(params.length, args.size());
-
             for (int i = 0; i < checkedArgs; ++i) {
                 Type argType = r.get(i + 1);
                 Type paramType = funType.paramTypes[i];
-                if (!isAssignableTo(argType, paramType))
+                    System.out.println(argType);
+                if (!isAssignableTo(argType, paramType) && !(argType instanceof TemplateType))
                     r.errorFor(format(
                             "incompatible argument provided for argument %d: expected %s but got %s",
                             i, paramType, argType),
@@ -477,7 +517,7 @@ public final class SemanticAnalysis
         .using(node.operand, "type")
         .by(r -> {
             Type opType = r.get(0);
-            if (!(opType instanceof BoolType))
+            if (!(opType instanceof BoolType) && !(opType instanceof TemplateType))
                 r.error("Trying to negate type: " + opType, node);
         });
     }
@@ -494,8 +534,9 @@ public final class SemanticAnalysis
         .by(r -> {
             Type left  = r.get(0);
             Type right = r.get(1);
+            if ((left instanceof TemplateType) || (right instanceof TemplateType)){;}
 
-            if (node.operator == ADD && (left instanceof StringType || right instanceof StringType))
+            else if (node.operator == ADD && (left instanceof StringType || right instanceof StringType))
                 r.set(0, StringType.INSTANCE);
             else if (isArithmetic(node.operator))
                 binaryArithmetic(r, node, left, right);
@@ -558,10 +599,10 @@ public final class SemanticAnalysis
     {
         r.set(0, BoolType.INSTANCE);
 
-        if (!(left instanceof IntType) && !(left instanceof FloatType))
+        if (!(left instanceof IntType) && !(left instanceof FloatType) && !(left instanceof TemplateType))
             r.errorFor("Attempting to perform arithmetic comparison on non-numeric type: " + left,
                 node.left);
-        if (!(right instanceof IntType) && !(right instanceof FloatType))
+        if (!(right instanceof IntType) && !(right instanceof FloatType) && !(right instanceof TemplateType))
             r.errorFor("Attempting to perform arithmetic comparison on non-numeric type: " + right,
                 node.right);
     }
@@ -572,7 +613,7 @@ public final class SemanticAnalysis
     {
         r.set(0, BoolType.INSTANCE);
 
-        if (!isComparableTo(left, right))
+        if (!isComparableTo(left, right) && !(left instanceof TemplateType) && !(right instanceof TemplateType))
             r.errorFor(format("Trying to compare incomparable types %s and %s", left, right),
                 node);
     }
@@ -583,10 +624,10 @@ public final class SemanticAnalysis
     {
         r.set(0, BoolType.INSTANCE);
 
-        if (!(left instanceof BoolType))
+        if (!(left instanceof BoolType) && !(left instanceof TemplateType))
             r.errorFor("Attempting to perform binary logic on non-boolean type: " + left,
                 node.left);
-        if (!(right instanceof BoolType))
+        if (!(right instanceof BoolType) && !(right instanceof TemplateType))
             r.errorFor("Attempting to perform binary logic on non-boolean type: " + right,
                 node.right);
     }
@@ -606,7 +647,7 @@ public final class SemanticAnalysis
             if (node.left instanceof ReferenceNode
             ||  node.left instanceof FieldAccessNode
             ||  node.left instanceof ArrayAccessNode) {
-                if (!isAssignableTo(right, left))
+                if (!isAssignableTo(right, left) && !(left instanceof TemplateType) && !(right instanceof TemplateType))
                     r.errorFor("Trying to assign a value to a non-compatible lvalue.", node);
             }
             else
@@ -775,11 +816,17 @@ public final class SemanticAnalysis
             Type expected = r.get(0);
             Type actual = r.get(1);
 
-            if (!isAssignableTo(actual, expected))
+            if (!isAssignableTo(actual, expected) && !(actual instanceof TemplateType))
                 r.error(format(
                     "incompatible initializer type provided for variable `%s`: expected %s but got %s",
                     node.name, expected, actual),
                     node.initializer);
+            else if (expected instanceof TemplateType){
+                r.error(format(
+                    "Try to declare wrong initializer type: %s",
+                    expected),
+                    node.initializer);
+            }
         });
     }
 
@@ -824,6 +871,11 @@ public final class SemanticAnalysis
         dependencies[0] = node.returnType.attr("value");
         forEachIndexed(node.parameters, (i, param) ->
             dependencies[i + 1] = param.attr("type"));
+        for (ParameterNode param : node.parameters){
+            if (param.type.contents().equals("T") || param.type.contents().charAt(0) == ('T') && Character.isDigit(param.type.contents().charAt(1)))
+                TemplateType.INSTANCE.pushParamName(param.type.contents());
+        }
+
         R.rule(node, "type")
         .using(dependencies)
         .by (r -> {
@@ -834,6 +886,7 @@ public final class SemanticAnalysis
             }
             r.set(0, new FunType(r.get(0), paramTypes));
         });
+
         R.rule()
         .using(node.block.attr("returns"), node.returnType.attr("value"))
         .by(r -> {
@@ -863,7 +916,7 @@ public final class SemanticAnalysis
         .using(node.condition, "type")
         .by(r -> {
             Type type = r.get(0);
-            if (!(type instanceof BoolType)) {
+            if (!(type instanceof BoolType) && !(type instanceof TemplateType)) {
                 r.error("If statement with a non-boolean condition of type: " + type,
                     node.condition);
             }
@@ -882,7 +935,7 @@ public final class SemanticAnalysis
         .using(node.condition, "type")
         .by(r -> {
             Type type = r.get(0);
-            if (!(type instanceof BoolType)) {
+            if (!(type instanceof BoolType) && !(type instanceof TemplateType)) {
                 r.error("While statement with a non-boolean condition of type: " + type,
                     node.condition);
             }
@@ -915,7 +968,7 @@ public final class SemanticAnalysis
                 Type actual = r.get(1);
                 if (formal instanceof VoidType)
                     r.error("Return with value in a Void function.", node);
-                else if (!isAssignableTo(actual, formal)) {
+                else if (!isAssignableTo(actual, formal) && !(formal instanceof TemplateType)) {
                     r.errorFor(format(
                         "Incompatible return type, expected %s but got %s", formal, actual),
                         node.expression);

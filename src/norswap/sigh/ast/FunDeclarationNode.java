@@ -34,6 +34,10 @@ public class FunDeclarationNode extends DeclarationNode
         return name;
     }
 
+    @Override public List<TemplateParameterNode> getTemplateParameters(){
+        return this.templateParameters;
+    }
+
     @Override public String contents () {
         return "fun " + name;
     }

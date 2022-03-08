@@ -2,6 +2,7 @@ package norswap.sigh.ast;
 
 import norswap.autumn.positions.Span;
 import norswap.utils.Util;
+import java.util.List;
 
 public final class FieldDeclarationNode extends DeclarationNode
 {
@@ -24,5 +25,10 @@ public final class FieldDeclarationNode extends DeclarationNode
 
     @Override public String declaredThing () {
         return "field";
+    }
+
+    @Override
+    public List<TemplateParameterNode> getTemplateParameters () {
+        return null;
     }
 }

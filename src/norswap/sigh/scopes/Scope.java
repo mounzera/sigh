@@ -51,7 +51,7 @@ public class Scope
     public DeclarationContext lookup (String name)
     {
         DeclarationNode declaration;
-        if (name.equals("T")){
+        if (name.equals("T") || name.charAt(0) == ('T') && Character.isDigit(name.charAt(1))){
             declaration = declarations.get("Template");
         }else{
             declaration = declarations.get(name);

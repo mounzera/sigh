@@ -5,9 +5,11 @@ import norswap.sigh.types.TemplateType;
 
 public class TemplateTypeNode extends TypeNode {
     public TemplateType type;
-    public TemplateTypeNode(Span span) {
+    public String name;
+    public TemplateTypeNode(Span span, String name) {
         super(span);
         this.type = TemplateType.INSTANCE;
+        this.name = name;
     }
 
     @Override

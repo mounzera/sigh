@@ -28,6 +28,11 @@ public class TemplateParameterNode extends DeclarationNode{
 
     @Override
     public String declaredThing() {
-        return "Template parameter";
+        return "Template" + type;
+    }
+
+    @Override
+    public List<TemplateParameterNode> getTemplateParameters () {
+        return null;
     }
 }

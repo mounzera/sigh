@@ -2,6 +2,7 @@ package norswap.sigh.ast;
 
 import norswap.autumn.positions.Span;
 import norswap.utils.Util;
+import java.util.List;
 
 public final class ParameterNode extends DeclarationNode
 {
@@ -22,7 +23,14 @@ public final class ParameterNode extends DeclarationNode
         return name;
     }
 
+    public TypeNode getType(){return this.type;}
+
     @Override public String declaredThing () {
         return "parameter";
+    }
+
+    @Override
+    public List<TemplateParameterNode> getTemplateParameters () {
+        return null;
     }
 }

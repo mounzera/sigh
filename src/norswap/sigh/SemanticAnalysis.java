@@ -41,7 +41,8 @@ import static norswap.utils.visitors.WalkVisitType.PRE_VISIT;
  * <ul>
  *     <li>Every {@link DeclarationNode} instance must have its {@code type} attribute to an
  *     instance of {@link Type} which is the type of the value declared (note that for struct
- *     declaration, this is always {@link TypeType}.</li>
+ *     declaration, this is always {@link TypeType}). Template type was introduced to be able
+ *     to give an abstract type to parameters with template type</li>
  *
  *     <li>Additionally, {@link StructDeclarationNode} (and default
  *     {@link SyntheticDeclarationNode} for types) must have their {@code declared} attribute set to
@@ -69,6 +70,8 @@ import static norswap.utils.visitors.WalkVisitType.PRE_VISIT;
  *     <li>Every {@link ReturnNode}, {@link BlockNode} and {@link IfNode} must have its {@code
  *     returns} attribute set to a boolean to indicate whether its execution causes
  *     unconditional exit from the surrounding function or main script.</li>
+ *
+ *     <li>Every {@link TemplateParameterNode} contains the name of the parameters given in the template statement (template<typename T>)</li>
  *
  *     <li>The rules check typing constraints: assignment of values to variables, of arguments to
  *     parameters, checking that if/while conditions are booleans, and array indices are

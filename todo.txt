@@ -8,6 +8,8 @@ Problemes:
 -  and check in semantic analysis all errors related to template types
 -  declare templates typenames not used -> error
 -  function f -> error
+-  failureInput("template <typename T,typename T1> fun f (x: T):T { return x}; f<Int> (2)");
+-  2 successive call to fun_param1 fail
 
 Important files:
 - semantic analysis

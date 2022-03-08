@@ -1,6 +1,6 @@
 package norswap.sigh;
 
-import jdk.nashorn.internal.objects.Global;
+//import jdk.nashorn.internal.objects.Global;
 import norswap.sigh.ast.*;
 import norswap.sigh.scopes.DeclarationContext;
 import norswap.sigh.scopes.DeclarationKind;
@@ -13,9 +13,9 @@ import norswap.uranium.Reactor;
 import norswap.uranium.Rule;
 import norswap.utils.visitors.ReflectiveFieldWalker;
 import norswap.utils.visitors.Walker;
-import org.graalvm.compiler.lir.LIRInstruction.Temp;
+/*import org.graalvm.compiler.lir.LIRInstruction.Temp;
 import org.w3c.dom.Attr;
-import javax.management.openmbean.SimpleType;
+import javax.management.openmbean.SimpleType;*/
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;

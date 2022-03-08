@@ -4,17 +4,17 @@ fun check_param (r: T, a: T1, b: Int, c: T){
     print(a)
 }
 check_param<Int, String>(2, "hey", 2, 2);
+//check_param<Int, String>(2, "hey", 2, 2);
 
-
-/*template <typename T,typename T1>
-fun check_param1 (x: T) :T{
-    return x*/
-/*print(r)
+template <typename T,typename T1>
+fun check_param1 (x: T, y: T1) :T{
+    print(y)
     return 2
 }
-check_param1<Int>(2);*/
-//check_param<Int, String>(2, "hey", 2, 2);
-/*
+//check_param1<Int, Int>(2, 3);
+//check_param<Int, String>(2, "hey", 2, 1);
+check_param1<Int, String>(2, "hey");
+
 //no template test (if what already existed is still working)
 fun check_param_no_template ( a: String, c: Int, b: Int){
     print(a)
@@ -25,9 +25,9 @@ template <typename T>
 fun check_param_template_not_used ( a: String, c: Int, b: Int){
     print(a)
 }
-*/
+
 //Template with multiple parameters
-/*template <typename T, typename T1>
+template <typename T, typename T1>
 fun check_param_multiple_template( a: T, c: T1, b: Int){
 }
-check_param_multiple_template<String, Int>("hey", 2, 3);*/
+check_param_multiple_template<String, Int>("hey", 2, 3);

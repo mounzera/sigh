@@ -84,5 +84,8 @@ public class TemplateGrammarTests extends AutumnTestFixture {
                 new SimpleTypeNode(null, "Int"),
                 new BlockNode(null, asList(new ReturnNode(null, new ReferenceNode(null,"x") )))));
 
+        failure(" template <typename T> fun max (a: T, b:T); max<double, int>(2.6, 1);");
+        failure(" template <typename T> fun max (a: T, b:T2); max<double>(2.6, 1);");
+
     }
 }

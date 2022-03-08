@@ -10,6 +10,8 @@ Problemes:
 -  function f -> error
 -  failureInput("template <typename T,typename T1> fun f (x: T):T { return x}; f<Int> (2)");
 -  2 successive call to fun_param1 fail
+    successInput("template <typename T,typename T1> fun f (x: T1, y:T, z:Int, a: T1):T { return x}; f<Int,Int>(1,2,3,4)") ;
+    successInput("template <typename T> fun f2 (x: T) {} ; f2<String> (\"hey\")" );//+
 
 Important files:
 - semantic analysis

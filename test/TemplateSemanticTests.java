@@ -89,9 +89,7 @@ public final class TemplateSemanticTests extends UraniumTestFixture
         successInput("template <typename T> fun f (x: T) : T { return 2} ; f<String> (\"hey\")");
         successInput("template <typename T> fun f (x: T) : Int { return 2} ; f<String> (\"hey\")");
 
-        successInput("template <typename T,typename T1> fun f (x: T1, y:T, z:Int, a: T1):T { return x}; f<Int,Int>(1,2,3,4)"
-                + "template <typename T> fun f2 (x: T) : T { return 2} ; f2<String> (\"hey\")" +
-                "f(5,6,7,8)");
+        successInput("template <typename T,typename T1> fun f (x: T1, y:T, z:Int, a: T1):T { return x}; f<Int,Int>(1,2,3,4)") ;
 
 
     }

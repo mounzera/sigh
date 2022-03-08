@@ -1,16 +1,17 @@
 //Basic template param test
-/*template <typename T, typename T1>
+template <typename T, typename T1>
 fun check_param (r: T, a: T1, b: Int, c: T){
     print(a)
 }
 check_param<Int, String>(2, "hey", 2, 2);
-*/
+
 template <typename T>
 fun check_param1 (r: T): T{
 print(r)
     return 2
 }
 check_param1<Int>(2);
+check_param<Int, String>(2, "hey", 2, 2);
 /*
 //no template test (if what already existed is still working)
 fun check_param_no_template ( a: String, c: Int, b: Int){

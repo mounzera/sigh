@@ -442,9 +442,6 @@ public final class SemanticAnalysis
             Type[] params = funType.paramTypes;
             int idx = node.arguments.size()+1;
             List<String> actualTemplateList = new ArrayList<>();
-            if (scope != null){
-                System.out.println(scope.declarations);
-            }
             int templateNameIdx = 0;
             for (int i = 0; i<params.length; i++){
                 if (params[i] instanceof TemplateType){
@@ -496,7 +493,6 @@ public final class SemanticAnalysis
             for (int i = 0; i < checkedArgs; ++i) {
                 Type argType = r.get(i + 1);
                 Type paramType = funType.paramTypes[i];
-                    System.out.println(argType);
                 if (!isAssignableTo(argType, paramType) && !(argType instanceof TemplateType))
                     r.errorFor(format(
                             "incompatible argument provided for argument %d: expected %s but got %s",

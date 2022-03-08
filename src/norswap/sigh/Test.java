@@ -48,9 +48,9 @@ public final class Test
         String file = "template.si";
         String path = Paths.get("examples/", file).toAbsolutePath().toString();
         String src = IO.slurp(path);
-        ParseResult res = Test.parserTemplateTest(src, path);
-        Reactor reactor = Test.semanticTemplateTest(res);
-        /*SighGrammar grammar = new SighGrammar();
+        //ParseResult res = Test.parserTemplateTest(src, path);
+        //Reactor reactor = Test.semanticTemplateTest(res);
+        SighGrammar grammar = new SighGrammar();
         ParseOptions options = ParseOptions.builder().recordCallStack(true).get();
         ParseResult result = Autumn.parse(grammar.root, src, options);
         LineMap lineMap = new LineMapString(path, src);
@@ -77,6 +77,6 @@ public final class Test
 
         Interpreter interpreter = new Interpreter(reactor);
         interpreter.interpret(tree);
-        System.out.println("success");*/
+        System.out.println("success");
     }
 }

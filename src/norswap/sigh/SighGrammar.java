@@ -60,6 +60,7 @@ public class SighGrammar extends Grammar
     public rule _else           = reserved("else");
     public rule _while          = reserved("while");
     public rule _return         = reserved("return");
+    //C++ templates
     public rule _template = reserved("template");
     public rule _typename = reserved("typename");
 
@@ -232,21 +233,6 @@ public class SighGrammar extends Grammar
         seq(LBRACE, statements, RBRACE)
         .push($ -> new BlockNode($.span(), $.$[0]));
 
-    public rule var_decl =
-        seq(_var, identifier, COLON, type, EQUALS, expression)
-        .push($ -> new VarDeclarationNode($.span(), $.$[0], $.$[1], $.$[2]));
-
-    public rule parameter =
-        seq(identifier, COLON, type)
-        .push($ -> new ParameterNode($.span(), $.$[0], $.$[1]));
-
-    public rule parameters =
-        parameter.sep(0, COMMA)
-        .as_list(ParameterNode.class);
-
-    public rule maybe_return_type =
-        seq(COLON, type).or_push_null();
-
     //Template C++
     //To add -> posibility to make T1, T2 (add number to name of param)
     public rule identifierCap =
@@ -260,6 +246,23 @@ public class SighGrammar extends Grammar
 
     public rule template = seq(_template, LANGLE, templateParameters, RANGLE).or_push_null();
 
+    public rule var_decl =
+        seq(opt(template),_var, identifier, COLON, type, EQUALS, expression)
+        .push($ -> new VarDeclarationNode($.span(), $.$[0], $.$[1], $.$[2],$.$[3]));
+
+    public rule parameter =
+        seq(identifier, COLON, type)
+        .push($ -> new ParameterNode($.span(), $.$[0], $.$[1]));
+
+    public rule parameters =
+        parameter.sep(0, COMMA)
+        .as_list(ParameterNode.class);
+
+    public rule maybe_return_type =
+        seq(COLON, type).or_push_null();
+
+
+    //C++ templates functions
     public rule fun_decl =
         seq(opt(template), _fun, identifier, LPAREN, parameters, RPAREN, maybe_return_type, block)
         .push($ -> new FunDeclarationNode($.span(), $.$[0], $.$[1], $.$[2], $.$[3], $.$[4]));

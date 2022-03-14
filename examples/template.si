@@ -1,5 +1,5 @@
 //Basic template param test
-template <typename T, typename T1>
+/*template <typename T, typename T1>
 fun check_param (r: T, a: T1, b: Int, c: T){
     print(a)
 }
@@ -30,4 +30,18 @@ fun check_param_template_not_used ( a: String, c: Int, b: Int){
 template <typename T, typename T1>
 fun check_param_multiple_template( a: T, c: T1, b: Int){
 }
-check_param_multiple_template<String, Int>("hey", 2, 3);
+check_param_multiple_template<String, Int>("hey", 2, 3);*/
+
+var intArray: Int[] = [5]
+fun array_print_int(x: Int[]){
+    print("" + x[0])
+}
+array_print_int(intArray)
+
+template <typename T, typename T1>
+var tempArray: T1[] = []
+//var tempArray: T1[] = [6]
+fun array_print(x: T[]){
+    //print("" + x[0])
+}
+array_print(tempArray)

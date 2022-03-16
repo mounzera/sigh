@@ -38,7 +38,6 @@ fun array_print_int(x: Int[]){
 }
 array_print_int(intArray)
 
-template <typename T, typename T1>
 var tempArray: T1[] = []
 //var tempArray: T1[] = [6]
 fun array_print(x: T[]){

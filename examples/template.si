@@ -44,9 +44,10 @@ fun array_print(b: T1, a: T){
 }
 array_print<Int, Int>(3, 2)*/
 
-template <typename T, typename T1>
-fun array_print(b: T1, a: T[]){
-    print(a)
+var tempArray: T1[] = []
+//var tempArray: T1[] = [6]
+fun array_print(x: T[]){
+    //print("" + x[0])
 }
 /*array_print2<String, String>("hey", "hola")*/
 

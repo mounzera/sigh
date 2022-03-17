@@ -298,9 +298,10 @@ public final class SemanticAnalysis
             }
             return;
         }
-
+        boolean templateArray =!(((ArrayTypeNode) ((VarDeclarationNode)this.inferenceContext).type).contents().equals("Template[]"));
         Attribute[] dependencies =
             node.components.stream().map(it -> it.attr("type")).toArray(Attribute[]::new);
+
 
         R.rule(node, "type")
         .using(dependencies)
@@ -318,7 +319,7 @@ public final class SemanticAnalysis
                     supertype = type;
                 else {
                     supertype = commonSupertype(supertype, type);
-                    if (supertype == null) {
+                    if (supertype == null && templateArray) {
                         r.error("Could not find common supertype in array literal.", node);
                         return;
                     }
@@ -326,7 +327,7 @@ public final class SemanticAnalysis
                 ++i;
             }
 
-            if (supertype == null)
+            if (supertype == null  && templateArray)
                 r.error(
                     "Could not find common supertype in array literal: all members have Void type.",
                     node);
@@ -405,8 +406,10 @@ public final class SemanticAnalysis
         .using(node.array, "type")
         .by(r -> {
             Type type = r.get(0);
-            if (type instanceof ArrayType)
+            if (type instanceof ArrayType){
                 r.set(0, ((ArrayType) type).componentType);
+
+            }
             else
                 r.error("Trying to index a non-array expression of type " + type, node);
         });
@@ -559,9 +562,9 @@ public final class SemanticAnalysis
         .by(r -> {
             Type left  = r.get(0);
             Type right = r.get(1);
-            if ((left instanceof TemplateType) || (right instanceof TemplateType)){;}
+            //if ((left instanceof TemplateType) || (right instanceof TemplateType)){;} //TODO check if ok ???
 
-            else if (node.operator == ADD && (left instanceof StringType || right instanceof StringType))
+            if (node.operator == ADD && (left instanceof StringType || right instanceof StringType))
                 r.set(0, StringType.INSTANCE);
             else if (isArithmetic(node.operator))
                 binaryArithmetic(r, node, left, right);
@@ -840,18 +843,20 @@ public final class SemanticAnalysis
         .by(r -> {
             Type expected = r.get(0);
             Type actual = r.get(1);
-
-            if (!isAssignableTo(actual, expected) && !(actual instanceof TemplateType))
-                r.error(format(
-                    "incompatible initializer type provided for variable `%s`: expected %s but got %s",
-                    node.name, expected, actual),
-                    node.initializer);
-            else if (expected instanceof TemplateType){
-                r.error(format(
-                    "Try to declare wrong initializer type: %s",
-                    expected),
-                    node.initializer);
+            if (! (expected.name().equals("Template[]"))){
+                if (!isAssignableTo(actual, expected) && !(actual instanceof TemplateType))
+                    r.error(format(
+                                    "incompatible initializer type provided for variable `%s`: expected %s but got %s",
+                                    node.name, expected, actual),
+                            node.initializer);
+                else if (expected instanceof TemplateType){
+                    r.error(format(
+                                    "Try to declare wrong initializer type: %s",
+                                    expected),
+                            node.initializer);
+                }
             }
+
         });
     }
 

@@ -7,7 +7,7 @@ import java.util.List;
 public class TemplateType extends Type{
 
     public static final TemplateType INSTANCE = new TemplateType();
-    public List<String> templateList = new ArrayList<>();
+    public HashMap<String, List<String>> templateList = new HashMap<>();
     private TemplateType () {
 
     }
@@ -15,12 +15,14 @@ public class TemplateType extends Type{
     @Override public boolean isPrimitive () {
         return false;
     }
-    public String getParamName(int index){
-        return templateList.get(index);
+    public String getParamName(String key, int index){
+        List<String> tempList = templateList.get(key);
+        return tempList.get(index);
     }
 
-    public void pushParamName(String name){
-        this.templateList.add(name);
+    public void pushParamName(String funName, String param){
+        List<String> tempList = this.templateList.computeIfAbsent(funName, k -> new ArrayList<>());
+        tempList.add(param);
     }
     @Override
     public String name() {

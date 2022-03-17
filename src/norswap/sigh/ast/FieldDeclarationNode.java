@@ -26,9 +26,4 @@ public final class FieldDeclarationNode extends DeclarationNode
     @Override public String declaredThing () {
         return "field";
     }
-
-    @Override
-    public List<TemplateParameterNode> getTemplateParameters () {
-        return null;
-    }
 }

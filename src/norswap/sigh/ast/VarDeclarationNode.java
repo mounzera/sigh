@@ -39,9 +39,4 @@ public final class VarDeclarationNode extends DeclarationNode
     @Override public String declaredThing () {
         return "variable";
     }
-
-    @Override
-    public List<TemplateParameterNode> getTemplateParameters () {
-        return null;
-    }
 }

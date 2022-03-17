@@ -48,9 +48,4 @@ public final class SyntheticDeclarationNode extends DeclarationNode
     @Override public String declaredThing () {
         return "built-in " + kind.name().toLowerCase(Locale.ROOT);
     }
-
-    @Override
-    public List<TemplateParameterNode> getTemplateParameters () {
-        return null;
-    }
 }

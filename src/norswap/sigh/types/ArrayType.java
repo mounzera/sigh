@@ -2,10 +2,12 @@ package norswap.sigh.types;
 
 public final class ArrayType extends Type
 {
-    public final Type componentType;
+    public Type componentType;
+    public final String templateName;
 
-    public ArrayType (Type componentType) {
+    public ArrayType (Type componentType, String templateName) {
         this.componentType = componentType;
+        this.templateName = templateName;
     }
 
     @Override public String name() {

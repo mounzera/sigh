@@ -18,6 +18,4 @@ public abstract class DeclarationNode extends StatementNode
      * Return the name of the thing declared (e.g. "function").
      */
     public abstract String declaredThing();
-
-    public abstract List<TemplateParameterNode> getTemplateParameters();
 }

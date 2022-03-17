@@ -30,9 +30,4 @@ public class TemplateParameterNode extends DeclarationNode{
     public String declaredThing() {
         return "Template" + type;
     }
-
-    @Override
-    public List<TemplateParameterNode> getTemplateParameters () {
-        return null;
-    }
 }

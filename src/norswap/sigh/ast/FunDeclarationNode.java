@@ -2,6 +2,7 @@ package norswap.sigh.ast;
 
 import norswap.autumn.positions.Span;
 import norswap.utils.Util;
+import java.util.HashMap;
 import java.util.List;
 
 public class FunDeclarationNode extends DeclarationNode
@@ -16,7 +17,6 @@ public class FunDeclarationNode extends DeclarationNode
     public FunDeclarationNode
             (Span span, Object templateParameters, Object name, Object parameters, Object returnType, Object block) {
         super(span);
-        /*System.out.println(templateParameters+ " " + name);*/
         if (templateParameters != null){
             this.templateParameters = Util.cast(templateParameters, List.class);
         }else{
@@ -34,9 +34,10 @@ public class FunDeclarationNode extends DeclarationNode
         return name;
     }
 
-    @Override public List<TemplateParameterNode> getTemplateParameters(){
+    public List<TemplateParameterNode> getTemplateParameters(){
         return this.templateParameters;
     }
+
 
     @Override public String contents () {
         return "fun " + name;

@@ -28,9 +28,4 @@ public final class ParameterNode extends DeclarationNode
     @Override public String declaredThing () {
         return "parameter";
     }
-
-    @Override
-    public List<TemplateParameterNode> getTemplateParameters () {
-        return null;
-    }
 }

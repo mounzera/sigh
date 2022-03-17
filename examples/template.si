@@ -32,16 +32,33 @@ fun check_param_multiple_template( a: T, c: T1, b: Int){
 }
 check_param_multiple_template<String, Int>("hey", 2, 3);*/
 
-var intArray: Int[] = [5]
+/*var intArray: Int[] = [5]
 fun array_print_int(x: Int[]){
     print("" + x[0])
 }
-array_print_int(intArray)
+array_print_int(intArray)*/
+
+/*template <typename T, typename T1>
+fun array_print(b: T1, a: T){
+
+}
+array_print<Int, Int>(3, 2)*/
 
 template <typename T, typename T1>
-var tempArray: T1[] = []
-//var tempArray: T1[] = [6]
-fun array_print(x: T[]){
-    //print("" + x[0])
+fun array_print(b: T1, a: T[]){
+    print(a)
 }
-array_print(tempArray)
+/*array_print2<String, String>("hey", "hola")*/
+
+var intArray: Int[] = [5]
+array_print<Int, Int>(3, intArray)
+/*var intArray: String[] = ["hey"]
+array_print<String, Int>(5, intArray, "hey")*/
+
+/*fun test(a: String){
+    print(a)
+}
+test("2")
+test("3")*/
+
+//var tempArray: Template[] = [6, "Marie", 2.3]

@@ -7,10 +7,13 @@ public final class FunType extends Type
 {
     public final Type returnType;
     public final Type[] paramTypes;
+    public Type[] changingParamTypes;
 
     public FunType (Type returnType, Type... paramTypes) {
         this.returnType = returnType;
         this.paramTypes = paramTypes;
+        this.changingParamTypes = new Type[paramTypes.length];
+        System.arraycopy(this.paramTypes, 0, this.changingParamTypes, 0, paramTypes.length);
     }
 
     @Override public String name() {

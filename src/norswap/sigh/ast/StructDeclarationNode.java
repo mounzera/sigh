@@ -27,9 +27,4 @@ public class StructDeclarationNode extends DeclarationNode
     @Override public String declaredThing () {
         return "struct";
     }
-
-    @Override
-    public List<TemplateParameterNode> getTemplateParameters () {
-        return null;
-    }
 }

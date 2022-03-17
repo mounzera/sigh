@@ -11,11 +11,13 @@ import norswap.sigh.types.*;
 import norswap.uranium.Attribute;
 import norswap.uranium.Reactor;
 import norswap.uranium.Rule;
+import norswap.uranium.SemanticError;
 import norswap.utils.visitors.ReflectiveFieldWalker;
 import norswap.utils.visitors.Walker;
 /*import org.graalvm.compiler.lir.LIRInstruction.Temp;
 import org.w3c.dom.Attr;
 import javax.management.openmbean.SimpleType;*/
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -198,7 +200,6 @@ public final class SemanticAnalysis
     {
         final Scope scope = this.scope;
 
-
         // Try to lookup immediately. This must succeed for variables, but not necessarily for
         // functions or types. By looking up now, we can report looked up variables later
         // as being used before being defined.
@@ -330,7 +331,7 @@ public final class SemanticAnalysis
                     "Could not find common supertype in array literal: all members have Void type.",
                     node);
             else
-                r.set(0, new ArrayType(supertype));
+                r.set(0, new ArrayType(supertype, ""));
         });
     }
 
@@ -418,19 +419,21 @@ public final class SemanticAnalysis
         this.inferenceContext = node;
         Attribute[] dependencies;
         dependencies = new Attribute[node.arguments.size() + 1];
-        HashMap<String, TypeNode> templateParametersDictionnary = new HashMap<>();
-        if (node.templateArgs != null){
-            int tempIdx = 0;
-            for (TemplateParameterNode templateName : scope.declarations.get(node.function.contents()).getTemplateParameters()){
-                templateParametersDictionnary.put(templateName.name, node.templateArgs.get(tempIdx));
-                tempIdx++;
-            }
-        }
         dependencies[0] = node.function.attr("type");
         forEachIndexed(node.arguments, (i, arg) -> {
             dependencies[i + 1] = arg.attr("type");
             R.set(arg, "index", i);
         });
+        final FunDeclarationNode currFun = ((FunDeclarationNode) scope.declarations.get(node.function.contents()));
+        System.out.println(currFun);
+        HashMap<String, TypeNode> templateParametersDictionnary = new HashMap<>();
+        if (node.templateArgs != null){
+            int tempIdx = 0;
+            for (TemplateParameterNode templateName : currFun.getTemplateParameters()){
+                templateParametersDictionnary.put(templateName.name, node.templateArgs.get(tempIdx));
+                tempIdx++;
+            }
+        }
         R.rule(node, "type")
         .using(dependencies)
         .by(r -> {
@@ -441,17 +444,16 @@ public final class SemanticAnalysis
             }
             FunType funType = cast(maybeFunType);
             r.set(0, funType.returnType);
-
             Type[] params = funType.paramTypes;
+            Type[] paramsToChange = funType.changingParamTypes;
             int idx = node.arguments.size()+1;
-            List<String> actualTemplateList = new ArrayList<>();
             int templateNameIdx = 0;
             for (int i = 0; i<params.length; i++){
                 if (params[i] instanceof TemplateType){
-                    String paramName = ((TemplateType) params[i]).getParamName(templateNameIdx);
+                    System.out.println(params[i] + " " + ((TemplateType) params[i]).templateList);
+                    String paramName = ((TemplateType) params[i]).getParamName(node.function.contents(), templateNameIdx);
                     String actualType = templateParametersDictionnary.get(paramName).contents();
                     Type template;
-                    actualTemplateList.add(paramName);
                     switch (actualType){
                         case "Int":
                             template = IntType.INSTANCE;
@@ -474,19 +476,43 @@ public final class SemanticAnalysis
                             template = null;
                     }
 
-                    params[i] = template;
+                    paramsToChange[i] = template;
                     idx++;
                 }
-            }
-            if (node.templateArgs != null){
-                templateParametersDictionnary.clear();
-                for (String nameToDestroy : actualTemplateList){
-                    TemplateType.INSTANCE.templateList.remove(nameToDestroy);
+                else if(params[i] instanceof ArrayType){
+                    ArrayType arrType = (ArrayType) params[i];
+                    String actualType = templateParametersDictionnary.get((arrType).templateName).contents();
+                    Type template = null;
+                    switch (actualType){
+                        case "Int":
+                            template = new ArrayType(IntType.INSTANCE, arrType.templateName);
+                            templateNameIdx++;
+                            break;
+                        case "Float":
+                            template = new ArrayType(FloatType.INSTANCE, arrType.templateName);
+                            templateNameIdx++;
+                            break;
+                        case "String":
+                            template = new ArrayType(StringType.INSTANCE, arrType.templateName);
+                            templateNameIdx++;
+                            break;
+                        case "Bool":
+                            template = new ArrayType(BoolType.INSTANCE, arrType.templateName);
+                            templateNameIdx++;
+                            break;
+                        default:
+                            r.errorFor(format("This type %s is not allowed for the Template function", actualType), node);
+                            //template = null;
+                    }
+                    paramsToChange[i] = template;
                 }
             }
+            System.out.println("After: " + Arrays.toString(paramsToChange));
+            System.out.println("After: " + Arrays.toString(params));
             List<ExpressionNode> args = node.arguments;
             List<TypeNode> templateArgs = node.templateArgs;
-
+            //if (node.templateArgs != null){templateParametersDictionnary.clear();}
+            //System.out.println(templateParametersDictionnary);
             if (params.length != args.size())
                 r.errorFor(format("wrong number of arguments, expected %d but got %d",
                         params.length, args.size()),
@@ -495,7 +521,7 @@ public final class SemanticAnalysis
             int checkedArgs = Math.min(params.length, args.size());
             for (int i = 0; i < checkedArgs; ++i) {
                 Type argType = r.get(i + 1);
-                Type paramType = funType.paramTypes[i];
+                Type paramType = paramsToChange[i];
                 if (!isAssignableTo(argType, paramType) && !(argType instanceof TemplateType))
                     r.errorFor(format(
                             "incompatible argument provided for argument %d: expected %s but got %s",
@@ -694,7 +720,7 @@ public final class SemanticAnalysis
     {
         R.rule(node, "value")
         .using(node.componentType, "value")
-        .by(r -> r.set(0, new ArrayType(r.get(0))));
+        .by(r -> r.set(0, new ArrayType(r.get(0), node.templateName)));
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -870,14 +896,23 @@ public final class SemanticAnalysis
         dependencies[0] = node.returnType.attr("value");
         forEachIndexed(node.parameters, (i, param) ->
             dependencies[i + 1] = param.attr("type"));
-        for (ParameterNode param : node.parameters){
-            if (param.type.contents().equals("T") || param.type.contents().charAt(0) == ('T') && Character.isDigit(param.type.contents().charAt(1)))
-                TemplateType.INSTANCE.pushParamName(param.type.contents());
-        }
-
         R.rule(node, "type")
         .using(dependencies)
         .by (r -> {
+            for (ParameterNode param : node.parameters) {
+                String paramTypeName = param.type.contents();
+                if (paramTypeName.contains("[")){
+                    paramTypeName = paramTypeName.substring(0, paramTypeName.length()-2);
+                }
+                if (paramTypeName.equals("T") || param.type.contents().charAt(0) == ('T') && Character.isDigit(paramTypeName.charAt(1))) {
+                    if (node.templateParameters == null) {
+                        r.errorFor("No template declaration was made", node);
+                    } else if (!node.templateParameters.contains(new TemplateParameterNode(node.span, paramTypeName, new TemplateTypeNode(node.span, paramTypeName)))) {
+                        r.errorFor("Wrong template declaration " + paramTypeName + " was not found", node);
+                    }
+                    TemplateType.INSTANCE.pushParamName(node.name, paramTypeName);
+                }
+            }
             Type[] paramTypes;
             paramTypes = new Type[node.parameters.size()];
             for (int i = 0; i < paramTypes.length; ++i){

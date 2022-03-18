@@ -7,7 +7,7 @@ import java.util.List;
 public final class ParameterNode extends DeclarationNode
 {
     public final String name;
-    public final TypeNode type;
+    public TypeNode type;
 
     public ParameterNode (Span span, Object name, Object type) {
         super(span);

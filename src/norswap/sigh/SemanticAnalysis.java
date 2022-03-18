@@ -200,6 +200,11 @@ public final class SemanticAnalysis
     {
         final Scope scope = this.scope;
 
+        if (scope.parent != null){
+            ((ParameterNode) scope.parent.declarations.get("x")).type = new SimpleTypeNode(node.span, "String");
+            System.out.println(((ParameterNode) scope.parent.declarations.get("x")).type);
+        }
+
         // Try to lookup immediately. This must succeed for variables, but not necessarily for
         // functions or types. By looking up now, we can report looked up variables later
         // as being used before being defined.
@@ -427,16 +432,7 @@ public final class SemanticAnalysis
             dependencies[i + 1] = arg.attr("type");
             R.set(arg, "index", i);
         });
-        final FunDeclarationNode currFun = ((FunDeclarationNode) scope.declarations.get(node.function.contents()));
-        System.out.println(currFun);
-        HashMap<String, TypeNode> templateParametersDictionnary = new HashMap<>();
-        if (node.templateArgs != null){
-            int tempIdx = 0;
-            for (TemplateParameterNode templateName : currFun.getTemplateParameters()){
-                templateParametersDictionnary.put(templateName.name, node.templateArgs.get(tempIdx));
-                tempIdx++;
-            }
-        }
+        final Scope scopeFunction = this.scope;
         R.rule(node, "type")
         .using(dependencies)
         .by(r -> {
@@ -444,6 +440,24 @@ public final class SemanticAnalysis
             if (!(maybeFunType instanceof FunType)) {
                 r.error("trying to call a non-function expression: " + node.function, node.function);
                 return;
+            }
+            final FunDeclarationNode currFun = ((FunDeclarationNode) scopeFunction.declarations.get(node.function.contents()));
+            HashMap<String, TypeNode> templateParametersDictionnary = new HashMap<>();
+            if (currFun != null) {
+                if (node.templateArgs != null) {
+                    if (currFun.getTemplateParameters() == null) {
+                        r.error("Trying to use template that were not declared: " + node.function, node.function);
+                        return;
+                    }
+                    int tempIdx = 0;
+                    for (TemplateParameterNode templateName : currFun.getTemplateParameters()) {
+                        templateParametersDictionnary.put(templateName.name, node.templateArgs.get(tempIdx));
+                        tempIdx++;
+                    }
+                } else if (currFun.getTemplateParameters() != null) {
+                    r.error("Trying to call template function without giving any types in arg: " + node.function, node.function);
+                    return;
+                }
             }
             FunType funType = cast(maybeFunType);
             r.set(0, funType.returnType);
@@ -453,7 +467,6 @@ public final class SemanticAnalysis
             int templateNameIdx = 0;
             for (int i = 0; i<params.length; i++){
                 if (params[i] instanceof TemplateType){
-                    System.out.println(params[i] + " " + ((TemplateType) params[i]).templateList);
                     String paramName = ((TemplateType) params[i]).getParamName(node.function.contents(), templateNameIdx);
                     String actualType = templateParametersDictionnary.get(paramName).contents();
                     Type template;
@@ -482,7 +495,7 @@ public final class SemanticAnalysis
                     paramsToChange[i] = template;
                     idx++;
                 }
-                else if(params[i] instanceof ArrayType){
+                else if(params[i] instanceof ArrayType && templateParametersDictionnary.size() != 0){
                     ArrayType arrType = (ArrayType) params[i];
                     String actualType = templateParametersDictionnary.get((arrType).templateName).contents();
                     Type template = null;
@@ -510,12 +523,8 @@ public final class SemanticAnalysis
                     paramsToChange[i] = template;
                 }
             }
-            System.out.println("After: " + Arrays.toString(paramsToChange));
-            System.out.println("After: " + Arrays.toString(params));
             List<ExpressionNode> args = node.arguments;
             List<TypeNode> templateArgs = node.templateArgs;
-            //if (node.templateArgs != null){templateParametersDictionnary.clear();}
-            //System.out.println(templateParametersDictionnary);
             if (params.length != args.size())
                 r.errorFor(format("wrong number of arguments, expected %d but got %d",
                         params.length, args.size()),
@@ -901,6 +910,7 @@ public final class SemanticAnalysis
         dependencies[0] = node.returnType.attr("value");
         forEachIndexed(node.parameters, (i, param) ->
             dependencies[i + 1] = param.attr("type"));
+        System.out.println(((ReferenceNode) ((BinaryExpressionNode) ((VarDeclarationNode) node.block.statements.get(0)).initializer).left).name);
         R.rule(node, "type")
         .using(dependencies)
         .by (r -> {
@@ -909,11 +919,14 @@ public final class SemanticAnalysis
                 if (paramTypeName.contains("[")){
                     paramTypeName = paramTypeName.substring(0, paramTypeName.length()-2);
                 }
-                if (paramTypeName.equals("T") || param.type.contents().charAt(0) == ('T') && Character.isDigit(paramTypeName.charAt(1))) {
+                if (paramTypeName.equals("T") || paramTypeName.charAt(0) == ('T') && Character.isDigit(paramTypeName.charAt(1))) {
                     if (node.templateParameters == null) {
-                        r.errorFor("No template declaration was made", node);
+
+                        r.error("No template declaration was made", node);
+                        return;
                     } else if (!node.templateParameters.contains(new TemplateParameterNode(node.span, paramTypeName, new TemplateTypeNode(node.span, paramTypeName)))) {
-                        r.errorFor("Wrong template declaration " + paramTypeName + " was not found", node);
+                        r.error("Wrong template declaration " + paramTypeName + " was not found", node);
+                        return;
                     }
                     TemplateType.INSTANCE.pushParamName(node.name, paramTypeName);
                 }

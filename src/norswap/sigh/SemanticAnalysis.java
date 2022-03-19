@@ -585,10 +585,17 @@ public final class SemanticAnalysis
                 binaryLogic(r, node, left, right);
             else if (isEquality(node.operator))
                 binaryEquality(r, node, left, right);
+            else if (isArrayOp(node.operator))
+                arrayArithmetic(r,node,left,right,node.array_operator);
         });
     }
 
     // ---------------------------------------------------------------------------------------------
+    //Template[]
+
+    private boolean isArrayOp (BinaryOperator op){
+        return op == ARRAY_OP;
+    }
 
     private boolean isArithmetic (BinaryOperator op) {
         return op == ADD || op == MULTIPLY || op == SUBTRACT || op == DIVIDE || op == REMAINDER;
@@ -607,7 +614,19 @@ public final class SemanticAnalysis
     }
 
     // ---------------------------------------------------------------------------------------------
+    //Template[]
+    private void arrayArithmetic (Rule r, BinaryExpressionNode node, Type left, Type right,BinaryOperator op)
+    {
 
+        if (!(left instanceof ArrayType)|| !(right instanceof ArrayType)){
+            r.error("Trying to use @ between non ArrayTypes",node);
+            return;
+        }
+
+        ArrayType arrayType = (ArrayType) left;
+        //System.out.println("name "+arrayType.name());
+        r.set(0,arrayType.componentType);
+    }
     private void binaryArithmetic (Rule r, BinaryExpressionNode node, Type left, Type right)
     {
         if (left instanceof IntType)

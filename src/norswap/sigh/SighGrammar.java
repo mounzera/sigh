@@ -25,7 +25,8 @@ public class SighGrammar extends Grammar
         ws = ws_item.at_least(0);
         id_part = choice(alphanum, '_');
     }
-
+    //Template[]
+    public rule AT              = word("@");
     public rule STAR            = word("*");
     public rule SLASH           = word("/");
     public rule PERCENT         = word("%");
@@ -63,6 +64,7 @@ public class SighGrammar extends Grammar
     //C++ templates
     public rule _template = reserved("template");
     public rule _typename = reserved("typename");
+
 
     public rule number =
         seq(opt('-'), choice('0', digit.at_least(1)));
@@ -164,6 +166,7 @@ public class SighGrammar extends Grammar
         PLUS        .as_val(BinaryOperator.ADD),
         MINUS       .as_val(BinaryOperator.SUBTRACT));
 
+
     public rule cmp_op = choice(
         EQUALS_EQUALS.as_val(BinaryOperator.EQUALITY),
         BANG_EQUAL  .as_val(BinaryOperator.NOT_EQUALS),
@@ -172,30 +175,43 @@ public class SighGrammar extends Grammar
         LANGLE      .as_val(BinaryOperator.LOWER),
         RANGLE      .as_val(BinaryOperator.GREATER));
 
+
+
     public rule mult_expr = left_expression()
         .operand(prefix_expression)
         .infix(mult_op,
-            $ -> new BinaryExpressionNode($.span(), $.$[0], $.$[1], $.$[2]));
+            $ -> new BinaryExpressionNode($.span(), $.$[0], $.$[1], $.$[2],null));
 
     public rule add_expr = left_expression()
         .operand(mult_expr)
         .infix(add_op,
-            $ -> new BinaryExpressionNode($.span(), $.$[0], $.$[1], $.$[2]));
+            $ -> new BinaryExpressionNode($.span(), $.$[0], $.$[1], $.$[2],null));
 
     public rule order_expr = left_expression()
         .operand(add_expr)
         .infix(cmp_op,
-            $ -> new BinaryExpressionNode($.span(), $.$[0], $.$[1], $.$[2]));
+            $ -> new BinaryExpressionNode($.span(), $.$[0], $.$[1], $.$[2],null));
+
+    //Template[]
+
+    public rule array_op = seq(
+        AT.as_val(BinaryOperator.ARRAY_OP) , LANGLE, choice(add_op,mult_op,cmp_op),
+        RANGLE
+    );
+    public rule array_expr = left_expression()
+        .operand(order_expr)
+        .infix(array_op,
+            $ -> new BinaryExpressionNode($.span(),$.$[0],$.$[1],$.$[3], $.$[2]));
 
     public rule and_expression = left_expression()
-        .operand(order_expr)
+        .operand(array_expr)
         .infix(AMP_AMP.as_val(BinaryOperator.AND),
-            $ -> new BinaryExpressionNode($.span(), $.$[0], $.$[1], $.$[2]));
+            $ -> new BinaryExpressionNode($.span(), $.$[0], $.$[1], $.$[2],null));
 
     public rule or_expression = left_expression()
         .operand(and_expression)
         .infix(BAR_BAR.as_val(BinaryOperator.OR),
-            $ -> new BinaryExpressionNode($.span(), $.$[0], $.$[1], $.$[2]));
+            $ -> new BinaryExpressionNode($.span(), $.$[0], $.$[1], $.$[2],null));
 
     public rule assignment_expression = right_expression()
         .operand(or_expression)

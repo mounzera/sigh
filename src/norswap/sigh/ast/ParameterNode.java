@@ -15,6 +15,7 @@ public final class ParameterNode extends DeclarationNode
         this.type = Util.cast(type, TypeNode.class);
     }
 
+
     @Override public String name () {
         return name;
     }
@@ -22,8 +23,6 @@ public final class ParameterNode extends DeclarationNode
     @Override public String contents () {
         return name;
     }
-
-    public TypeNode getType(){return this.type;}
 
     @Override public String declaredThing () {
         return "parameter";

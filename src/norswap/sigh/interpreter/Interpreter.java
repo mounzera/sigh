@@ -8,6 +8,7 @@ import norswap.sigh.scopes.SyntheticDeclarationNode;
 import norswap.sigh.types.FloatType;
 import norswap.sigh.types.IntType;
 import norswap.sigh.types.StringType;
+import norswap.sigh.types.TemplateType;
 import norswap.sigh.types.Type;
 import norswap.uranium.Reactor;
 import norswap.utils.Util;
@@ -171,13 +172,27 @@ public final class Interpreter
 
         Object left  = get(node.left);
         Object right = get(node.right);
-
+        try{
+            double test = (double) right;
+            rightType = FloatType.INSTANCE;
+        }catch (Exception e){}
+        try{
+            double test = (double) left;
+            leftType = FloatType.INSTANCE;
+        }catch (Exception e){}
+        try{
+            String test = (String) left;
+            leftType = StringType.INSTANCE;
+        }catch (Exception e){}
+        try{
+            String test = (String) right;
+            rightType = StringType.INSTANCE;
+        }catch (Exception e){}
         if (node.operator == BinaryOperator.ADD
                 && (leftType instanceof StringType || rightType instanceof StringType))
             return convertToString(left) + convertToString(right);
-
         boolean floating = leftType instanceof FloatType || rightType instanceof FloatType;
-        boolean numeric  = floating || leftType instanceof IntType;
+        boolean numeric  = floating || leftType instanceof IntType || leftType instanceof TemplateType || rightType instanceof TemplateType;
 
         if (numeric)
             return numericOp(node, floating, (Number) left, (Number) right);

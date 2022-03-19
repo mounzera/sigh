@@ -4,14 +4,16 @@
 
 Problemes:
 
--  modify scope during funcall to reassign the type of a vairable declared in funDecl
+-  modify scope during funcall to reassign the type of a vairable declared in funDecl -> impossible for now
 -  and check in semantic analysis all errors related to template types
--  declare templates typenames not used -> error -> OK BUT doesn't stop the walker if triggers the error, doe we have to check every time if they are null statement???
+-  declare templates typenames not used -> error -> OK BUT doesn't stop the walker if triggers the error, do we have to check every time if they are null statement???
 -  function f -> error
 -  failureInput("template <typename T,typename T1> fun f (x: T):T { return x}; f<Int> (2)");
 -  2 successive call to fun_param1 fail
     successInput("template <typename T,typename T1> fun f (x: T1, y:T, z:Int, a: T1):T { return x}; f<Int,Int>(1,2,3,4)") ;
     successInput("template <typename T> fun f2 (x: T) {} ; f2<String> (\"hey\")" );//+ -> OK
+- Array template are ArrayType so have to check this in addition to "if instance of TemplateType"
+- return element should not be template (do the same as in binary operator)
 
 Important files:
 - semantic analysis

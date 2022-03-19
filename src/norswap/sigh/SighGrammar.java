@@ -243,7 +243,6 @@ public class SighGrammar extends Grammar
 
     public rule templateParameters =         templateParameter.at_least(1).sep(0, COMMA).as_list(TemplateParameterNode.class);
 
-
     public rule template = seq(_template, LANGLE, templateParameters, RANGLE).or_push_null();
 
     public rule var_decl =

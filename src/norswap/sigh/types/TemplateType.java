@@ -8,9 +8,7 @@ public class TemplateType extends Type{
 
     public static final TemplateType INSTANCE = new TemplateType();
     public HashMap<String, List<String>> templateList = new HashMap<>();
-    private TemplateType () {
 
-    }
 
     @Override public boolean isPrimitive () {
         return false;

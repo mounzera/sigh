@@ -1,6 +1,5 @@
 package norswap.sigh.scopes;
 
-import com.sun.org.apache.xalan.internal.xsltc.trax.XSLTCSource;
 import norswap.sigh.ast.DeclarationNode;
 import norswap.sigh.ast.SighNode;
 import java.util.HashMap;

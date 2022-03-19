@@ -14,15 +14,12 @@ import norswap.uranium.Rule;
 import norswap.uranium.SemanticError;
 import norswap.utils.visitors.ReflectiveFieldWalker;
 import norswap.utils.visitors.Walker;
+import org.w3c.dom.Attr;
 /*import org.graalvm.compiler.lir.LIRInstruction.Temp;
 import org.w3c.dom.Attr;
 import javax.management.openmbean.SimpleType;*/
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.IntStream;
 
 import static java.lang.String.format;
@@ -99,6 +96,13 @@ public final class SemanticAnalysis
 
     /** Index of the current function argument. */
     private int argumentIndex;
+
+
+    /**Test for template C++
+     * globalTypeDictionary = hashmap with key = function name, value = hashmap with key = paramater, value = real type*/
+    private HashMap<String, List<HashMap<String, Type>>> globalTypeDictionary = new HashMap<>();
+    private HashMap<String, HashMap<String, String>> variableToTemplate = new HashMap<>();
+
 
 
     // ---------------------------------------------------------------------------------------------
@@ -200,10 +204,6 @@ public final class SemanticAnalysis
     {
         final Scope scope = this.scope;
 
-        if (scope.parent != null){
-            ((ParameterNode) scope.parent.declarations.get("x")).type = new SimpleTypeNode(node.span, "String");
-            System.out.println(((ParameterNode) scope.parent.declarations.get("x")).type);
-        }
 
         // Try to lookup immediately. This must succeed for variables, but not necessarily for
         // functions or types. By looking up now, we can report looked up variables later
@@ -225,7 +225,6 @@ public final class SemanticAnalysis
         .by(r -> {
             DeclarationContext ctx = scope.lookup(node.name);
             DeclarationNode decl = ctx == null ? null : ctx.declaration;
-
             if (ctx == null) {
                 r.errorFor("Could not resolve: " + node.name,
                     node, node.attr("decl"), node.attr("scope"), node.attr("type"));
@@ -239,9 +238,10 @@ public final class SemanticAnalysis
                         node, node.attr("type"));
                 else
                     R.rule(node, "type")
-                    .using(decl, "type")
-                    .by(Rule::copyFirst);
+                        .using(decl, "type")
+                        .by(Rule::copyFirst);
             }
+
         });
     }
 
@@ -432,7 +432,63 @@ public final class SemanticAnalysis
             dependencies[i + 1] = arg.attr("type");
             R.set(arg, "index", i);
         });
-        final Scope scopeFunction = this.scope;
+        FunDeclarationNode tempCurrFun = null;
+        if (scope.declarations.get(node.function.contents()) instanceof FunDeclarationNode){
+            tempCurrFun = ((FunDeclarationNode) scope.declarations.get(node.function.contents()));
+        }
+        final FunDeclarationNode currFun = tempCurrFun;
+        HashMap<String, Type> templateParametersDictionnary = new HashMap<>();
+        if (currFun != null) {
+            if (node.templateArgs != null) {
+                int tempIdx = 0;
+                int templateNameIdx = 0;
+                for (TemplateParameterNode templateName : currFun.getTemplateParameters()) {
+                    Type template;
+                    switch (node.templateArgs.get(tempIdx).contents()){
+                        case "Int":
+                            template = IntType.INSTANCE;
+                            templateNameIdx++;
+                            break;
+                        case "Float":
+                            template = FloatType.INSTANCE;
+                            templateNameIdx++;
+                            break;
+                        case "String":
+                            template = StringType.INSTANCE;
+                            templateNameIdx++;
+                            break;
+                        case "Bool":
+                            template = BoolType.INSTANCE;
+                            templateNameIdx++;
+                            break;
+                        default:
+                            //r.errorFor(format("This type %s is not allowed for the Template function", actualType), node);
+                            template = null;
+                    }
+                    templateParametersDictionnary.put(templateName.name, template);
+                    tempIdx++;
+                }
+                if (globalTypeDictionary.get(node.function.contents()) == null){
+                    List<HashMap<String, Type>> tempList = new ArrayList<>();
+                    tempList.add(templateParametersDictionnary);
+                    globalTypeDictionary.put(node.function.contents(), tempList);
+                }else{
+                    globalTypeDictionary.get(node.function.contents()).add(templateParametersDictionnary);
+                }
+
+                /*List<ParameterNode> actualParamList = currFun.parameters;
+                for (int i = 0; i < actualParamList.size(); i++) {
+                    ParameterNode currNode = actualParamList.get(i);
+                    String actType = currNode.type.contents();
+                    if (templateParametersDictionnary.containsKey(actType)){
+                        currNode.type = templateParametersDictionnary.get(actType);
+                        scope.declare(actType, currNode);
+                    }
+                }
+                currFun.isTemplate = Boolean.FALSE;
+                funDecl(currFun);*/
+            }
+        }
         R.rule(node, "type")
         .using(dependencies)
         .by(r -> {
@@ -441,20 +497,13 @@ public final class SemanticAnalysis
                 r.error("trying to call a non-function expression: " + node.function, node.function);
                 return;
             }
-            final FunDeclarationNode currFun = ((FunDeclarationNode) scopeFunction.declarations.get(node.function.contents()));
-            HashMap<String, TypeNode> templateParametersDictionnary = new HashMap<>();
             if (currFun != null) {
                 if (node.templateArgs != null) {
                     if (currFun.getTemplateParameters() == null) {
                         r.error("Trying to use template that were not declared: " + node.function, node.function);
                         return;
                     }
-                    int tempIdx = 0;
-                    for (TemplateParameterNode templateName : currFun.getTemplateParameters()) {
-                        templateParametersDictionnary.put(templateName.name, node.templateArgs.get(tempIdx));
-                        tempIdx++;
-                    }
-                } else if (currFun.getTemplateParameters() != null) {
+                }else if (currFun.getTemplateParameters() != null) {
                     r.error("Trying to call template function without giving any types in arg: " + node.function, node.function);
                     return;
                 }
@@ -468,8 +517,9 @@ public final class SemanticAnalysis
             for (int i = 0; i<params.length; i++){
                 if (params[i] instanceof TemplateType){
                     String paramName = ((TemplateType) params[i]).getParamName(node.function.contents(), templateNameIdx);
-                    String actualType = templateParametersDictionnary.get(paramName).contents();
-                    Type template;
+                    Type actualType = templateParametersDictionnary.get(paramName);
+                    templateNameIdx++;
+                    /*Type template;
                     switch (actualType){
                         case "Int":
                             template = IntType.INSTANCE;
@@ -490,15 +540,15 @@ public final class SemanticAnalysis
                         default:
                             r.errorFor(format("This type %s is not allowed for the Template function", actualType), node);
                             template = null;
-                    }
-
-                    paramsToChange[i] = template;
+                    }*/
+                    paramsToChange[i] = actualType;
                     idx++;
                 }
                 else if(params[i] instanceof ArrayType && templateParametersDictionnary.size() != 0){
                     ArrayType arrType = (ArrayType) params[i];
-                    String actualType = templateParametersDictionnary.get((arrType).templateName).contents();
-                    Type template = null;
+                    Type actualType = templateParametersDictionnary.get((arrType).templateName);
+                    templateNameIdx++;
+                    /*Type template = null;
                     switch (actualType){
                         case "Int":
                             template = new ArrayType(IntType.INSTANCE, arrType.templateName);
@@ -519,8 +569,8 @@ public final class SemanticAnalysis
                         default:
                             r.errorFor(format("This type %s is not allowed for the Template function", actualType), node);
                             //template = null;
-                    }
-                    paramsToChange[i] = template;
+                    }*/
+                    paramsToChange[i] = actualType;
                 }
             }
             List<ExpressionNode> args = node.arguments;
@@ -566,23 +616,43 @@ public final class SemanticAnalysis
 
     private void binaryExpression (BinaryExpressionNode node)
     {
+
+        final FunDeclarationNode scopeFunc = (FunDeclarationNode) scope.parent.node;
         R.rule(node, "type")
         .using(node.left.attr("type"), node.right.attr("type"))
         .by(r -> {
+
             Type left  = r.get(0);
             Type right = r.get(1);
-            //if ((left instanceof TemplateType) || (right instanceof TemplateType)){;} //TODO check if ok ???
-
-            if (node.operator == ADD && (left instanceof StringType || right instanceof StringType))
-                r.set(0, StringType.INSTANCE);
-            else if (isArithmetic(node.operator))
-                binaryArithmetic(r, node, left, right);
-            else if (isComparison(node.operator))
-                binaryComparison(r, node, left, right);
-            else if (isLogic(node.operator))
-                binaryLogic(r, node, left, right);
-            else if (isEquality(node.operator))
-                binaryEquality(r, node, left, right);
+            String templateFromVarleft = variableToTemplate.get(scopeFunc.name).get(node.left.contents());
+            String templateFromVarRight = variableToTemplate.get(scopeFunc.name).get(node.right.contents());
+            if (templateFromVarleft == null && templateFromVarRight == null){
+                if (node.operator == ADD && (left instanceof StringType || right instanceof StringType))
+                    r.set(0, StringType.INSTANCE);
+                else if (isArithmetic(node.operator))
+                    binaryArithmetic(r, node, left, right);
+                else if (isComparison(node.operator))
+                    binaryComparison(r, node, left, right);
+                else if (isLogic(node.operator))
+                    binaryLogic(r, node, left, right);
+                else if (isEquality(node.operator))
+                    binaryEquality(r, node, left, right);
+            }else{
+                for (HashMap<String, Type> localHashmap : globalTypeDictionary.get(scopeFunc.name)){
+                    left = templateFromVarleft == null ? left : localHashmap.get(templateFromVarleft);
+                    right = templateFromVarRight == null ? left : localHashmap.get(templateFromVarRight);
+                    if (node.operator == ADD && (left instanceof StringType || right instanceof StringType))
+                        r.set(0, StringType.INSTANCE);
+                    else if (isArithmetic(node.operator))
+                        binaryArithmetic(r, node, left, right);
+                    else if (isComparison(node.operator))
+                        binaryComparison(r, node, left, right);
+                    else if (isLogic(node.operator))
+                        binaryLogic(r, node, left, right);
+                    else if (isEquality(node.operator))
+                        binaryEquality(r, node, left, right);
+                }
+            }
         });
     }
 
@@ -636,10 +706,10 @@ public final class SemanticAnalysis
     {
         r.set(0, BoolType.INSTANCE);
 
-        if (!(left instanceof IntType) && !(left instanceof FloatType) && !(left instanceof TemplateType))
+        if (!(left instanceof IntType) && !(left instanceof FloatType))
             r.errorFor("Attempting to perform arithmetic comparison on non-numeric type: " + left,
                 node.left);
-        if (!(right instanceof IntType) && !(right instanceof FloatType) && !(right instanceof TemplateType))
+        if (!(right instanceof IntType) && !(right instanceof FloatType))
             r.errorFor("Attempting to perform arithmetic comparison on non-numeric type: " + right,
                 node.right);
     }
@@ -649,10 +719,10 @@ public final class SemanticAnalysis
     private void binaryEquality (Rule r, BinaryExpressionNode node, Type left, Type right)
     {
         r.set(0, BoolType.INSTANCE);
-
-        if (!isComparableTo(left, right) && !(left instanceof TemplateType) && !(right instanceof TemplateType))
+        if (!isComparableTo(left, right))
             r.errorFor(format("Trying to compare incomparable types %s and %s", left, right),
                 node);
+
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -661,10 +731,10 @@ public final class SemanticAnalysis
     {
         r.set(0, BoolType.INSTANCE);
 
-        if (!(left instanceof BoolType) && !(left instanceof TemplateType))
+        if (!(left instanceof BoolType))
             r.errorFor("Attempting to perform binary logic on non-boolean type: " + left,
                 node.left);
-        if (!(right instanceof BoolType) && !(right instanceof TemplateType))
+        if (!(right instanceof BoolType))
             r.errorFor("Attempting to perform binary logic on non-boolean type: " + right,
                 node.right);
     }
@@ -902,52 +972,67 @@ public final class SemanticAnalysis
 
     private void funDecl (FunDeclarationNode node)
     {
+        //scope = new Scope(node, scope);
         scope.declare(node.name, node);
         scope = new Scope(node, scope);
         R.set(node, "scope", scope);
+        variableToTemplate.put(node.name, new HashMap<>());
+        HashMap<String, String> tempVariableToTemplate = variableToTemplate.get(node.name);
+        for (ParameterNode param : node.parameters){
+            String type = param.type.contents();
+            if (type.equals("T") || type.charAt(0) == ('T') && Character.isDigit(type.charAt(1))){
+                tempVariableToTemplate.put(param.name, type);
+            }
+        }
         Attribute[] dependencies;
         dependencies = new Attribute[node.parameters.size() + 1];
         dependencies[0] = node.returnType.attr("value");
         forEachIndexed(node.parameters, (i, param) ->
+            //dependencies[i + 1] = new Attribute(param, "type"));
             dependencies[i + 1] = param.attr("type"));
-        System.out.println(((ReferenceNode) ((BinaryExpressionNode) ((VarDeclarationNode) node.block.statements.get(0)).initializer).left).name);
+
         R.rule(node, "type")
-        .using(dependencies)
-        .by (r -> {
-            for (ParameterNode param : node.parameters) {
-                String paramTypeName = param.type.contents();
-                if (paramTypeName.contains("[")){
-                    paramTypeName = paramTypeName.substring(0, paramTypeName.length()-2);
-                }
-                if (paramTypeName.equals("T") || paramTypeName.charAt(0) == ('T') && Character.isDigit(paramTypeName.charAt(1))) {
-                    if (node.templateParameters == null) {
-
-                        r.error("No template declaration was made", node);
-                        return;
-                    } else if (!node.templateParameters.contains(new TemplateParameterNode(node.span, paramTypeName, new TemplateTypeNode(node.span, paramTypeName)))) {
-                        r.error("Wrong template declaration " + paramTypeName + " was not found", node);
-                        return;
+            .using(dependencies)
+            .by (r -> {
+                for (ParameterNode param : node.parameters) {
+                    String paramTypeName = param.type.contents();
+                    if (paramTypeName.contains("[")){
+                        paramTypeName = paramTypeName.substring(0, paramTypeName.length()-2);
                     }
-                    TemplateType.INSTANCE.pushParamName(node.name, paramTypeName);
-                }
-            }
-            Type[] paramTypes;
-            paramTypes = new Type[node.parameters.size()];
-            for (int i = 0; i < paramTypes.length; ++i){
-                paramTypes[i] = r.get(i + 1);
-            }
-            r.set(0, new FunType(r.get(0), paramTypes));
-        });
+                    if (paramTypeName.equals("T") || paramTypeName.charAt(0) == ('T') && Character.isDigit(paramTypeName.charAt(1))) {
+                        if (node.templateParameters == null) {
 
+                            r.error("No template declaration was made", node);
+                            return;
+                        } else if (!node.templateParameters.contains(new TemplateParameterNode(node.span, paramTypeName, new TemplateTypeNode(node.span, paramTypeName)))) {
+                            r.error("Wrong template declaration " + paramTypeName + " was not found", node);
+                            return;
+                        }
+                        TemplateType.INSTANCE.pushParamName(node.name, paramTypeName);
+                    }
+                }
+                Type[] paramTypes;
+                paramTypes = new Type[node.parameters.size()];
+                for (int i = 0; i < paramTypes.length; ++i){
+                    paramTypes[i] = r.get(i + 1);
+                    //paramTypes[i] = IntType.INSTANCE;
+                }
+                r.set(0, new FunType(r.get(0), paramTypes));
+            });
         R.rule()
-        .using(node.block.attr("returns"), node.returnType.attr("value"))
-        .by(r -> {
-            boolean returns = r.get(0);
-            Type returnType = r.get(1);
-            if (!returns && !(returnType instanceof VoidType))
-                r.error("Missing return in function.", node);
-            // NOTE: The returned value presence & type is checked in returnStmt().
-        });
+            .using(node.block.attr("returns"), node.returnType.attr("value"))
+            .by(r -> {
+                boolean returns = r.get(0);
+                Type returnType = r.get(1);
+                if (!returns && !(returnType instanceof VoidType))
+                    r.error("Missing return in function.", node);
+                // NOTE: The returned value presence & type is checked in returnStmt().
+            });
+
+        //System.out.println(((ReferenceNode) ((BinaryExpressionNode) ((VarDeclarationNode) node.block.statements.get(0)).initializer).left).name);
+
+
+
     }
 
     // ---------------------------------------------------------------------------------------------

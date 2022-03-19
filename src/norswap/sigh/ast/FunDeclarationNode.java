@@ -10,6 +10,7 @@ public class FunDeclarationNode extends DeclarationNode
     public final String name;
     public final List<ParameterNode> parameters;
     public final List<TemplateParameterNode> templateParameters;
+    public Boolean isTemplate;
     public final TypeNode returnType;
     public final BlockNode block;
 
@@ -19,8 +20,10 @@ public class FunDeclarationNode extends DeclarationNode
         super(span);
         if (templateParameters != null){
             this.templateParameters = Util.cast(templateParameters, List.class);
+            isTemplate = Boolean.TRUE;
         }else{
             this.templateParameters = null;
+            isTemplate = Boolean.FALSE;
         }
         this.name = Util.cast(name, String.class);
         this.parameters = Util.cast(parameters, List.class);

@@ -101,6 +101,9 @@ public final class SemanticAnalysis
     /**Test for template C++
      * globalTypeDictionary = hashmap with key = function name, value = hashmap with key = paramater, value = real type*/
     private HashMap<String, List<HashMap<String, Type>>> globalTypeDictionary = new HashMap<>();
+
+    /** variableToTemplate
+     * = hashmap with key = function name, value = hashmap with key = parameter, value = type templateParameter */
     private HashMap<String, HashMap<String, String>> variableToTemplate = new HashMap<>();
 
 
@@ -616,16 +619,15 @@ public final class SemanticAnalysis
 
     private void binaryExpression (BinaryExpressionNode node)
     {
-
-        final FunDeclarationNode scopeFunc = (FunDeclarationNode) scope.parent.node;
+        final FunDeclarationNode scopeFunc = scope.parent != null ? (FunDeclarationNode) scope.parent.node : null;
         R.rule(node, "type")
             .using(node.left.attr("type"), node.right.attr("type"))
             .by(r -> {
 
                 Type left  = r.get(0);
                 Type right = r.get(1);
-                String templateFromVarleft = variableToTemplate.get(scopeFunc.name).get(node.left.contents());
-                String templateFromVarRight = variableToTemplate.get(scopeFunc.name).get(node.right.contents());
+                String templateFromVarleft = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.left.contents()) : null;
+                String templateFromVarRight = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.right.contents()): null;
                 if (templateFromVarleft == null && templateFromVarRight == null){
                     if (node.operator == ADD && (left instanceof StringType || right instanceof StringType))
                         r.set(0, StringType.INSTANCE);
@@ -637,10 +639,12 @@ public final class SemanticAnalysis
                         binaryLogic(r, node, left, right);
                     else if (isEquality(node.operator))
                         binaryEquality(r, node, left, right);
+                    else if (isArrayOp(node.operator))
+                        arrayArithmetic(r,node,left,right,node.array_operator);
                 }else{
                     for (HashMap<String, Type> localHashmap : globalTypeDictionary.get(scopeFunc.name)){
                         left = templateFromVarleft == null ? left : localHashmap.get(templateFromVarleft);
-                        right = templateFromVarRight == null ? left : localHashmap.get(templateFromVarRight);
+                        right = templateFromVarRight == null ? right : localHashmap.get(templateFromVarRight);
                         if (node.operator == ADD && (left instanceof StringType || right instanceof StringType))
                             r.set(0, StringType.INSTANCE);
                         else if (isArithmetic(node.operator))
@@ -651,6 +655,8 @@ public final class SemanticAnalysis
                             binaryLogic(r, node, left, right);
                         else if (isEquality(node.operator))
                             binaryEquality(r, node, left, right);
+                        else if (isArrayOp(node.operator))
+                            arrayArithmetic(r,node,left,right,node.array_operator);
                     }
                 }
             });
@@ -672,6 +678,12 @@ public final class SemanticAnalysis
 
     private boolean isEquality (BinaryOperator op) {
         return op == EQUALITY || op == NOT_EQUALS;
+    }
+
+    //Template[]
+
+    private boolean isArrayOp (BinaryOperator op){
+        return op == ARRAY_OP;
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -739,22 +751,42 @@ public final class SemanticAnalysis
                 node.right);
     }
 
+    //Template[]
+    private void arrayArithmetic (Rule r, BinaryExpressionNode node, Type left, Type right,BinaryOperator op)
+    {
+
+        if (!(left instanceof ArrayType)|| !(right instanceof ArrayType)){
+            r.error("Trying to use @ between non ArrayTypes",node);
+            return;
+        }
+
+        ArrayType arrayType = (ArrayType) left;
+        //System.out.println("name "+arrayType.name());
+        r.set(0,arrayType.componentType);
+    }
+
     // ---------------------------------------------------------------------------------------------
 
     private void assignment (AssignmentNode node)
     {
+        final FunDeclarationNode scopeFunc = scope.parent != null ? (FunDeclarationNode) scope.parent.node : null;
         R.rule(node, "type")
             .using(node.left.attr("type"), node.right.attr("type"))
             .by(r -> {
                 Type left  = r.get(0);
                 Type right = r.get(1);
-
+                String templateFromVarRight = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.right.contents()): null;
+                if (templateFromVarRight != null){
+                    for (HashMap<String, Type> localHashmap : globalTypeDictionary.get(scopeFunc.name)) {
+                        right = localHashmap.get(templateFromVarRight);
+                    }
+                }
                 r.set(0, r.get(0)); // the type of the assignment is the left-side type
 
                 if (node.left instanceof ReferenceNode
                     ||  node.left instanceof FieldAccessNode
                     ||  node.left instanceof ArrayAccessNode) {
-                    if (!isAssignableTo(right, left) && !(left instanceof TemplateType) && !(right instanceof TemplateType))
+                    if (!isAssignableTo(right, left))
                         r.errorFor("Trying to assign a value to a non-compatible lvalue.", node);
                 }
                 else

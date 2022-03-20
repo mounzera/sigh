@@ -18,6 +18,8 @@ Problemes:
 - assignement should not be template (do the same as in binary operator)
 - var declaration should not be template (do the same as in binary operator)
 - field declaration should not be template (do the same as in binary operator)
+- Division of 2 int casted to float does not give the right anwser
+- recheck interpretor try and catch
 
 Question:
 - Working with struct ??

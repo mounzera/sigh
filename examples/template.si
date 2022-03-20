@@ -56,18 +56,41 @@ fun array_print(x: T, a: T1): T{
 //var intArray: Int[] = [5]
 array_print<Int, Int>(2, 3)*/
 
-template<typename T1, typename T, typename T2>
+/*template<typename T1, typename T, typename T2>
 fun array_print2(a: T, x: T1, b: T2, c: Int): String{
-    //print(x)
-    var test: Int = x / b
+    print("" + x)
+    print("" + b)
+    var test: Float = x / b
     print(test + "")
     print("" + a + c)
     return "" + b
-}
+}*/
 //var stringArr: String[] = ["hey"]
-array_print2<Int, String, Int>("hey", 3, 2, 6)
+//array_print2<Float, String, Float>("hey", 3.0, 2.0, 6)
 //print(array_print2<Float>(3.5))
+template<typename T, typename T1>
+fun max(a: T, b: T1): T{
+    if(a > b){
+        return a
+    }else{
+        return b
+    }
+}
+print("" + max<Float, Int>(4.5, 3))
+//var test: Bool = 6 == 4
+template<typename T>
+fun assign(a: T){
+    var b : String = a
+    print(b)
+}
+assign<Int>(7)
 
+var arr : Template[] = [5, "Marie"]
+print("" + arr)
+
+var arrInt: Int[] = [5]
+var arrInt2: Int[] = [1]
+//var res: Int = arrInt@<+>arrInt2
 
 /*fun test(a: String): String{
     return a

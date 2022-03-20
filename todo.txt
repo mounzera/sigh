@@ -21,6 +21,8 @@ Problemes:
 - Division of 2 int casted to float does not give the right anwser
 - recheck interpretor try and catch
 
+- verify ArrayType templatename utility
+
 Question:
 - Working with struct ??
 

@@ -43,37 +43,37 @@ public class GrammarTests extends AutumnTestFixture {
 
     @Test
     public void testNumericBinary () {
-        successExpect("1 + 2", new BinaryExpressionNode(null, intlit(1), ADD, intlit(2)));
-        successExpect("2 - 1", new BinaryExpressionNode(null, intlit(2), SUBTRACT,  intlit(1)));
-        successExpect("2 * 3", new BinaryExpressionNode(null, intlit(2), MULTIPLY, intlit(3)));
-        successExpect("2 / 3", new BinaryExpressionNode(null, intlit(2), DIVIDE, intlit(3)));
-        successExpect("2 % 3", new BinaryExpressionNode(null, intlit(2), REMAINDER, intlit(3)));
+        successExpect("1 + 2", new BinaryExpressionNode(null, intlit(1),  ADD, intlit(2),null));
+        successExpect("2 - 1", new BinaryExpressionNode(null, intlit(2), SUBTRACT,  intlit(1),null));
+        successExpect("2 * 3", new BinaryExpressionNode(null, intlit(2),  MULTIPLY, intlit(3),null));
+        successExpect("2 / 3", new BinaryExpressionNode(null, intlit(2),  DIVIDE, intlit(3),null));
+        successExpect("2 % 3", new BinaryExpressionNode(null, intlit(2),  REMAINDER, intlit(3),null));
 
-        successExpect("1.0 + 2.0", new BinaryExpressionNode(null, floatlit(1), ADD, floatlit(2)));
-        successExpect("2.0 - 1.0", new BinaryExpressionNode(null, floatlit(2), SUBTRACT, floatlit(1)));
-        successExpect("2.0 * 3.0", new BinaryExpressionNode(null, floatlit(2), MULTIPLY, floatlit(3)));
-        successExpect("2.0 / 3.0", new BinaryExpressionNode(null, floatlit(2), DIVIDE, floatlit(3)));
-        successExpect("2.0 % 3.0", new BinaryExpressionNode(null, floatlit(2), REMAINDER, floatlit(3)));
+        successExpect("1.0 + 2.0", new BinaryExpressionNode(null, floatlit(1),  ADD, floatlit(2),null));
+        successExpect("2.0 - 1.0", new BinaryExpressionNode(null, floatlit(2),  SUBTRACT, floatlit(1),null));
+        successExpect("2.0 * 3.0", new BinaryExpressionNode(null, floatlit(2),  MULTIPLY, floatlit(3),null));
+        successExpect("2.0 / 3.0", new BinaryExpressionNode(null, floatlit(2),  DIVIDE, floatlit(3),null));
+        successExpect("2.0 % 3.0", new BinaryExpressionNode(null, floatlit(2),  REMAINDER, floatlit(3),null));
 
         successExpect("2 * (4-1) * 4.0 / 6 % (2+1)", new BinaryExpressionNode(null,
             new BinaryExpressionNode(null,
                 new BinaryExpressionNode(null,
                     new BinaryExpressionNode(null,
                         intlit(2),
-                        MULTIPLY,
+                         MULTIPLY,
                         new ParenthesizedNode(null, new BinaryExpressionNode(null,
                             intlit(4),
-                            SUBTRACT,
-                            intlit(1)))),
-                    MULTIPLY,
-                    floatlit(4d)),
-                DIVIDE,
-                intlit(6)),
-            REMAINDER,
+                             SUBTRACT,
+                            intlit(1),null)),null),
+                     MULTIPLY,
+                    floatlit(4d),null),
+                 DIVIDE,
+                intlit(6),null),
+             REMAINDER,
             new ParenthesizedNode(null, new BinaryExpressionNode(null,
                 intlit(2),
-                ADD,
-                intlit(1)))));
+                 ADD,
+                intlit(1),null)),null));
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -133,7 +133,7 @@ public class GrammarTests extends AutumnTestFixture {
                     new ReturnNode(null, intlit(3)))));
 
         successExpect("while 1 < 2 { return } ", new WhileNode(null,
-            new BinaryExpressionNode(null, intlit(1), LOWER, intlit(2)),
+            new BinaryExpressionNode(null, intlit(1),  LOWER, intlit(2),null),
             new BlockNode(null, asList(new ReturnNode(null, null)))));
     }
 

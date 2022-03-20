@@ -8,6 +8,8 @@ public final class ArrayType extends Type
     public ArrayType (Type componentType, String templateName) {
         this.componentType = componentType;
         this.templateName = templateName;
+        //System.out.println(this.componentType.getClass());
+        //System.out.println(this.templateName.getClass());
     }
 
     @Override public String name() {

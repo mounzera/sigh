@@ -180,28 +180,27 @@ public class SighGrammar extends Grammar
     public rule mult_expr = left_expression()
         .operand(prefix_expression)
         .infix(mult_op,
-            $ -> new BinaryExpressionNode($.span(), $.$[0], $.$[1], $.$[2],null));
+            $ -> new BinaryExpressionNode($.span(), $.$[0],  $.$[1], $.$[2],null));
 
     public rule add_expr = left_expression()
         .operand(mult_expr)
         .infix(add_op,
-            $ -> new BinaryExpressionNode($.span(), $.$[0], $.$[1], $.$[2],null));
+            $ -> new BinaryExpressionNode($.span(), $.$[0],  $.$[1], $.$[2],null));
 
     public rule order_expr = left_expression()
         .operand(add_expr)
         .infix(cmp_op,
-            $ -> new BinaryExpressionNode($.span(), $.$[0], $.$[1], $.$[2],null));
+            $ -> new BinaryExpressionNode($.span(), $.$[0],  $.$[1], $.$[2],null));
 
     //Template[]
-
     public rule array_op = seq(
-        AT.as_val(BinaryOperator.ARRAY_OP) , LANGLE, choice(add_op,mult_op,cmp_op),
-        RANGLE
+        AT.as_val(BinaryOperator.ARRAY_OP) , LPAREN, choice(add_op,mult_op,cmp_op),
+        RPAREN
     );
     public rule array_expr = left_expression()
         .operand(order_expr)
         .infix(array_op,
-            $ -> new BinaryExpressionNode($.span(),$.$[0],$.$[1],$.$[3], $.$[2]));
+            $ -> new BinaryExpressionNode($.span(),$.$[0],  $.$[1],$.$[3], $.$[2]));
 
     public rule and_expression = left_expression()
         .operand(array_expr)
@@ -211,7 +210,7 @@ public class SighGrammar extends Grammar
     public rule or_expression = left_expression()
         .operand(and_expression)
         .infix(BAR_BAR.as_val(BinaryOperator.OR),
-            $ -> new BinaryExpressionNode($.span(), $.$[0], $.$[1], $.$[2],null));
+            $ -> new BinaryExpressionNode($.span(), $.$[0],  $.$[1], $.$[2],null));
 
     public rule assignment_expression = right_expression()
         .operand(or_expression)

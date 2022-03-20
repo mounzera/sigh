@@ -5,20 +5,20 @@ import norswap.sigh.scopes.DeclarationKind;
 import norswap.sigh.scopes.RootScope;
 import norswap.sigh.scopes.Scope;
 import norswap.sigh.scopes.SyntheticDeclarationNode;
-import norswap.sigh.types.FloatType;
-import norswap.sigh.types.IntType;
-import norswap.sigh.types.StringType;
-import norswap.sigh.types.TemplateType;
-import norswap.sigh.types.Type;
+import norswap.sigh.types.*;
 import norswap.uranium.Reactor;
 import norswap.utils.Util;
 import norswap.utils.exceptions.Exceptions;
 import norswap.utils.exceptions.NoStackException;
 import norswap.utils.visitors.ValuedVisitor;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import static norswap.sigh.ast.BinaryOperator.*;
+import static norswap.sigh.ast.BinaryOperator.LOWER_EQUAL;
 import static norswap.utils.Util.cast;
 import static norswap.utils.Vanilla.coIterate;
 import static norswap.utils.Vanilla.map;
@@ -158,18 +158,10 @@ public final class Interpreter
     }
 
     // ---------------------------------------------------------------------------------------------
+    private Type[] returnType(BinaryExpressionNode node){
 
-    private Object binaryExpression (BinaryExpressionNode node)
-    {
         Type leftType  = reactor.get(node.left, "type");
         Type rightType = reactor.get(node.right, "type");
-
-        // Cases where both operands should not be evaluated.
-        switch (node.operator) {
-            case OR:  return booleanOp(node, false);
-            case AND: return booleanOp(node, true);
-        }
-
         Object left  = get(node.left);
         Object right = get(node.right);
         try{
@@ -188,8 +180,49 @@ public final class Interpreter
             String test = (String) right;
             rightType = StringType.INSTANCE;
         }catch (Exception e){}
+
+        Type[] ret_types = {leftType,rightType};
+        return ret_types;
+
+    }
+    private Boolean isFloat(Type leftType,Type rightType){
+        return leftType instanceof FloatType || rightType instanceof FloatType;
+    }
+
+    private Object literalBinaryExpression(BinaryExpressionNode node){
+        /*Type leftType  = reactor.get(node.left, "type");
+        Type rightType = reactor.get(node.right, "type");*/
+
+        // Cases where both operands should not be evaluated.
+        /*switch (node.operator) {
+            case OR:  return booleanOp(node, false);
+            case AND: return booleanOp(node, true);
+        }*/
+
+        Object left  = get(node.left);
+        Object right = get(node.right);
+        /*try{
+            double test = (double) right;
+            rightType = FloatType.INSTANCE;
+        }catch (Exception e){}
+        try{
+            double test = (double) left;
+            leftType = FloatType.INSTANCE;
+        }catch (Exception e){}
+        try{
+            String test = (String) left;
+            leftType = StringType.INSTANCE;
+        }catch (Exception e){}
+        try{
+            String test = (String) right;
+            rightType = StringType.INSTANCE;
+        }catch (Exception e){}
+        */
+        Type[] ret_types = returnType(node);
+        Type leftType = ret_types[0];
+        Type rightType = ret_types[1];
         if (node.operator == BinaryOperator.ADD
-                && (leftType instanceof StringType || rightType instanceof StringType))
+            && (leftType instanceof StringType || rightType instanceof StringType))
             return convertToString(left) + convertToString(right);
         boolean floating = leftType instanceof FloatType || rightType instanceof FloatType;
         boolean numeric  = floating || leftType instanceof IntType || leftType instanceof TemplateType || rightType instanceof TemplateType;
@@ -205,6 +238,60 @@ public final class Interpreter
         }
 
         throw new Error("should not reach here");
+    }
+    //Template[]
+    private boolean isComparison (BinaryOperator op) {
+        return op == GREATER || op == GREATER_EQUAL || op == LOWER || op == LOWER_EQUAL;
+    }
+    private Object binaryExpression (BinaryExpressionNode node)
+    {
+        // Normal Binary expression
+        if (!(node.operator.equals(BinaryOperator.ARRAY_OP))){
+            return literalBinaryExpression(node);
+        }
+        // Array Binary expression
+        Scope scope = reactor.get(node.left, "scope");
+        String left_name = ((ReferenceNode) node.left).name;
+        String right_name =((ReferenceNode) node.right).name;
+        ArrayLiteralNode left_arr =  (ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(left_name)).initializer);
+        ArrayLiteralNode right_arr = (ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(right_name)).initializer);
+        //TODO check span
+
+        //result computation
+        List<ExpressionNode> result = new ArrayList<>();
+        for (int i=0; i< left_arr.components.size();i++){
+            BinaryExpressionNode new_node = new BinaryExpressionNode(null,left_arr.components.get(i),node.array_operator,right_arr.components.get(i),null);
+            if(isComparison(node.array_operator)){
+                result.add(new ReferenceNode(null, String.valueOf(literalBinaryExpression(new_node))));
+            }else {
+                Type[] ret_types=returnType(new_node);
+                boolean floating = isFloat(ret_types[0],ret_types[1]);
+                switch (node.array_operator) {
+                    case OR:
+                        result.add(new ReferenceNode(null, String.valueOf(booleanOp(new_node, false))));
+                    case AND:
+                        result.add(new ReferenceNode(null, String.valueOf(booleanOp(new_node, true))));
+                    default:
+                        if (floating){
+                            result.add(new FloatLiteralNode(null, ((Double) literalBinaryExpression(new_node))));
+                        }else if( ret_types[0]==StringType.INSTANCE){
+                            result.add(new StringLiteralNode(null, (String) literalBinaryExpression(new_node)));
+                        }
+                        else{
+                            result.add(new IntLiteralNode(null, (long) literalBinaryExpression(new_node)));
+                        }
+                }
+
+            }
+
+
+
+        }
+        ArrayLiteralNode resultNode = new ArrayLiteralNode(null,result);
+        return resultNode;
+
+
+
     }
 
     // ---------------------------------------------------------------------------------------------

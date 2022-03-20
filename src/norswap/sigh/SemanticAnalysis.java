@@ -464,6 +464,9 @@ public final class SemanticAnalysis
                             template = BoolType.INSTANCE;
                             templateNameIdx++;
                             break;
+                        /*case "Array":
+                            TODO
+                         */
                         default:
                             //r.errorFor(format("This type %s is not allowed for the Template function", actualType), node);
                             template = null;
@@ -478,18 +481,6 @@ public final class SemanticAnalysis
                 }else{
                     globalTypeDictionary.get(node.function.contents()).add(templateParametersDictionnary);
                 }
-
-                /*List<ParameterNode> actualParamList = currFun.parameters;
-                for (int i = 0; i < actualParamList.size(); i++) {
-                    ParameterNode currNode = actualParamList.get(i);
-                    String actType = currNode.type.contents();
-                    if (templateParametersDictionnary.containsKey(actType)){
-                        currNode.type = templateParametersDictionnary.get(actType);
-                        scope.declare(actType, currNode);
-                    }
-                }
-                currFun.isTemplate = Boolean.FALSE;
-                funDecl(currFun);*/
             }
         }
         R.rule(node, "type")
@@ -522,28 +513,6 @@ public final class SemanticAnalysis
                         String paramName = ((TemplateType) params[i]).getParamName(node.function.contents(), templateNameIdx);
                         Type actualType = templateParametersDictionnary.get(paramName);
                         templateNameIdx++;
-                    /*Type template;
-                    switch (actualType){
-                        case "Int":
-                            template = IntType.INSTANCE;
-                            templateNameIdx++;
-                            break;
-                        case "Float":
-                            template = FloatType.INSTANCE;
-                            templateNameIdx++;
-                            break;
-                        case "String":
-                            template = StringType.INSTANCE;
-                            templateNameIdx++;
-                            break;
-                        case "Bool":
-                            template = BoolType.INSTANCE;
-                            templateNameIdx++;
-                            break;
-                        default:
-                            r.errorFor(format("This type %s is not allowed for the Template function", actualType), node);
-                            template = null;
-                    }*/
                         paramsToChange[i] = actualType;
                         idx++;
                     }
@@ -551,28 +520,6 @@ public final class SemanticAnalysis
                         ArrayType arrType = (ArrayType) params[i];
                         Type actualType = templateParametersDictionnary.get((arrType).templateName);
                         templateNameIdx++;
-                    /*Type template = null;
-                    switch (actualType){
-                        case "Int":
-                            template = new ArrayType(IntType.INSTANCE, arrType.templateName);
-                            templateNameIdx++;
-                            break;
-                        case "Float":
-                            template = new ArrayType(FloatType.INSTANCE, arrType.templateName);
-                            templateNameIdx++;
-                            break;
-                        case "String":
-                            template = new ArrayType(StringType.INSTANCE, arrType.templateName);
-                            templateNameIdx++;
-                            break;
-                        case "Bool":
-                            template = new ArrayType(BoolType.INSTANCE, arrType.templateName);
-                            templateNameIdx++;
-                            break;
-                        default:
-                            r.errorFor(format("This type %s is not allowed for the Template function", actualType), node);
-                            //template = null;
-                    }*/
                         paramsToChange[i] = actualType;
                     }
                 }
@@ -626,9 +573,9 @@ public final class SemanticAnalysis
 
                 Type left  = r.get(0);
                 Type right = r.get(1);
-                String templateFromVarleft = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.left.contents()) : null;
+                String templateFromVarLeft = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.left.contents()) : null;
                 String templateFromVarRight = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.right.contents()): null;
-                if (templateFromVarleft == null && templateFromVarRight == null){
+                if (templateFromVarLeft == null && templateFromVarRight == null){
                     if (node.operator == ADD && (left instanceof StringType || right instanceof StringType))
                         r.set(0, StringType.INSTANCE);
                     else if (isArithmetic(node.operator))
@@ -643,7 +590,7 @@ public final class SemanticAnalysis
                         arrayArithmetic(r,node,left,right,node.array_operator);
                 }else{
                     for (HashMap<String, Type> localHashmap : globalTypeDictionary.get(scopeFunc.name)){
-                        left = templateFromVarleft == null ? left : localHashmap.get(templateFromVarleft);
+                        left = templateFromVarLeft == null ? left : localHashmap.get(templateFromVarLeft);
                         right = templateFromVarRight == null ? right : localHashmap.get(templateFromVarRight);
                         if (node.operator == ADD && (left instanceof StringType || right instanceof StringType))
                             r.set(0, StringType.INSTANCE);
@@ -941,7 +888,7 @@ public final class SemanticAnalysis
     {
         this.inferenceContext = node;
 
-
+        final FunDeclarationNode scopeFunc = scope.parent != null ? (FunDeclarationNode) scope.parent.node : null;
         scope.declare(node.name, node);
         R.set(node, "scope", scope);
 
@@ -954,18 +901,26 @@ public final class SemanticAnalysis
             .by(r -> {
                 Type expected = r.get(0);
                 Type actual = r.get(1);
-                if (! (expected.name().equals("Template[]"))){
-                    if (!isAssignableTo(actual, expected) && !(actual instanceof TemplateType))
+                String templateFromVarLeft = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.type.contents()): null;
+                String templateFromVarRight = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.initializer.contents()): null;
+                if (templateFromVarRight != null || templateFromVarLeft != null){
+                    for (HashMap<String, Type> localHashmap : globalTypeDictionary.get(scopeFunc.name)) {
+                        expected = templateFromVarLeft == null ? expected : localHashmap.get(templateFromVarLeft);
+                        actual = templateFromVarRight == null ? actual : localHashmap.get(templateFromVarRight);
+                        System.out.println(expected + " " + actual);
+                        if (!isAssignableTo(actual, expected))
+                            r.error(format(
+                                "incompatible initializer type provided for variable `%s`: expected %s but got %s",
+                                node.name, expected, actual),
+                                node.initializer);
+                    }
+                }
+                else if (! (expected.name().equals("Template[]"))){
+                    if (!isAssignableTo(actual, expected))
                         r.error(format(
                             "incompatible initializer type provided for variable `%s`: expected %s but got %s",
                             node.name, expected, actual),
                             node.initializer);
-                    else if (expected instanceof TemplateType){
-                        r.error(format(
-                            "Try to declare wrong initializer type: %s",
-                            expected),
-                            node.initializer);
-                    }
                 }
 
             });

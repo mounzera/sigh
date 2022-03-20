@@ -2,6 +2,7 @@
 1. add numbers to the template name so that we can use T1, T2, T3 -OK
 2. create templates for a list of functions declarations
 
+
 Problemes:
 
 -  modify scope during funcall to reassign the type of a vairable declared in funDecl -> impossible for now
@@ -14,6 +15,13 @@ Problemes:
     successInput("template <typename T> fun f2 (x: T) {} ; f2<String> (\"hey\")" );//+ -> OK
 - Array template are ArrayType so have to check this in addition to "if instance of TemplateType"
 - return element should not be template (do the same as in binary operator)
+- assignement should not be template (do the same as in binary operator)
+- var declaration should not be template (do the same as in binary operator)
+- field declaration should not be template (do the same as in binary operator)
+
+Question:
+- Working with struct ??
+
 
 Important files:
 - semantic analysis

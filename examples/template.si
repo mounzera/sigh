@@ -56,7 +56,7 @@ fun array_print(x: T, a: T1): T{
 //var intArray: Int[] = [5]
 array_print<Int, Int>(2, 3)*/
 
-/*template<typename T1, typename T, typename T2>
+template<typename T1, typename T, typename T2>
 fun array_print2(a: T, x: T1, b: T2, c: Int): String{
     //print(x)
     var test: Int = x / b
@@ -65,7 +65,7 @@ fun array_print2(a: T, x: T1, b: T2, c: Int): String{
     return "" + b
 }
 //var stringArr: String[] = ["hey"]
-array_print2<Int, String, Int>("hey", 3, 2, 6)*/
+array_print2<Int, String, Int>("hey", 3, 2, 6)
 //print(array_print2<Float>(3.5))
 
 

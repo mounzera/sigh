@@ -15,9 +15,10 @@ Problemes:
     successInput("template <typename T> fun f2 (x: T) {} ; f2<String> (\"hey\")" );//+ -> OK
 - Array template are ArrayType so have to check this in addition to "if instance of TemplateType"
 - return element should not be template (do the same as in binary operator)
-- assignement should not be template (do the same as in binary operator)
-- var declaration should not be template (do the same as in binary operator)
+- assignement should not be template (do the same as in binary operator) -> done 
+- var declaration should not be template (do the same as in binary operator) -> done
 - field declaration should not be template (do the same as in binary operator)
+- if/while statement should not be template (do the same as in binary operator)
 - Division of 2 int casted to float does not give the right anwser
 - recheck interpretor try and catch
 

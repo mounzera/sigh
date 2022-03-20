@@ -716,28 +716,41 @@ public final class SemanticAnalysis
 
     private void assignment (AssignmentNode node)
     {
-        final FunDeclarationNode scopeFunc = scope.parent != null ? (FunDeclarationNode) scope.parent.node : null;
+        final FunDeclarationNode scopeFunc = currentFunction();
         R.rule(node, "type")
             .using(node.left.attr("type"), node.right.attr("type"))
             .by(r -> {
                 Type left  = r.get(0);
                 Type right = r.get(1);
+                String templateFromVarLeft = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.left.contents()): null;
                 String templateFromVarRight = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.right.contents()): null;
-                if (templateFromVarRight != null){
+                if (templateFromVarRight != null || templateFromVarLeft != null){
                     for (HashMap<String, Type> localHashmap : globalTypeDictionary.get(scopeFunc.name)) {
-                        right = localHashmap.get(templateFromVarRight);
+                        left = templateFromVarLeft == null ? left : localHashmap.get(templateFromVarLeft);
+                        right = templateFromVarRight == null ? right : localHashmap.get(templateFromVarRight);
+                        r.set(0, left); // the type of the assignment is the left-side type
+                        if (node.left instanceof ReferenceNode
+                            ||  node.left instanceof FieldAccessNode
+                            ||  node.left instanceof ArrayAccessNode) {
+                            if (!isAssignableTo(right, left))
+                                r.errorFor(format("Trying to assign a value of type %s to a non-compatible lvalue of type %s.", right, left), node);
+                        }
+                        else
+                            r.errorFor("Trying to assign to an non-lvalue expression.", node.left);
                     }
-                }
-                r.set(0, r.get(0)); // the type of the assignment is the left-side type
+                }else{
+                    r.set(0, r.get(0)); // the type of the assignment is the left-side type
 
-                if (node.left instanceof ReferenceNode
-                    ||  node.left instanceof FieldAccessNode
-                    ||  node.left instanceof ArrayAccessNode) {
-                    if (!isAssignableTo(right, left))
-                        r.errorFor("Trying to assign a value to a non-compatible lvalue.", node);
+                    if (node.left instanceof ReferenceNode
+                        ||  node.left instanceof FieldAccessNode
+                        ||  node.left instanceof ArrayAccessNode) {
+                        if (!isAssignableTo(right, left))
+                            r.errorFor(format("Trying to assign a value of type %s to a non-compatible lvalue of type %s.", right, left), node);
+                    }
+                    else
+                        r.errorFor("Trying to assign to an non-lvalue expression.", node.left);
                 }
-                else
-                    r.errorFor("Trying to assign to an non-lvalue expression.", node.left);
+
             });
     }
 
@@ -888,7 +901,7 @@ public final class SemanticAnalysis
     {
         this.inferenceContext = node;
 
-        final FunDeclarationNode scopeFunc = scope.parent != null ? (FunDeclarationNode) scope.parent.node : null;
+        final FunDeclarationNode scopeFunc = currentFunction();
         scope.declare(node.name, node);
         R.set(node, "scope", scope);
 

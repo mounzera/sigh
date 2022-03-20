@@ -80,11 +80,14 @@ print("" + max<Float, Int>(4.5, 3))*/
 //var test: Bool = 6 == 4
 
 //Test of var decl + var assignement
-template<typename T, typename T1>
+/*template<typename T, typename T1>
 fun assign(a: T, b: T1){
-    a = b
+    a = 2
+    var c : Int = a
+    print(""+c)
 }
-assign<Int, Float>(2, 3.0)
+assign<Int, Float>(2, 3.0)*/
+
 
 /*var arr : Template[] = [5, "Marie"]
 print("" + arr)

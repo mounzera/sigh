@@ -566,7 +566,7 @@ public final class SemanticAnalysis
 
     private void binaryExpression (BinaryExpressionNode node)
     {
-        final FunDeclarationNode scopeFunc = scope.parent != null ? (FunDeclarationNode) scope.parent.node : null;
+        final FunDeclarationNode scopeFunc = currentFunction();
         R.rule(node, "type")
             .using(node.left.attr("type"), node.right.attr("type"))
             .by(r -> {
@@ -708,7 +708,6 @@ public final class SemanticAnalysis
         }
 
         ArrayType arrayType = (ArrayType) left;
-        //System.out.println("name "+arrayType.name());
         r.set(0,arrayType.componentType);
     }
 
@@ -920,7 +919,6 @@ public final class SemanticAnalysis
                     for (HashMap<String, Type> localHashmap : globalTypeDictionary.get(scopeFunc.name)) {
                         expected = templateFromVarLeft == null ? expected : localHashmap.get(templateFromVarLeft);
                         actual = templateFromVarRight == null ? actual : localHashmap.get(templateFromVarRight);
-                        System.out.println(expected + " " + actual);
                         if (!isAssignableTo(actual, expected))
                             r.error(format(
                                 "incompatible initializer type provided for variable `%s`: expected %s but got %s",
@@ -1028,11 +1026,6 @@ public final class SemanticAnalysis
                     r.error("Missing return in function.", node);
                 // NOTE: The returned value presence & type is checked in returnStmt().
             });
-
-        //System.out.println(((ReferenceNode) ((BinaryExpressionNode) ((VarDeclarationNode) node.block.statements.get(0)).initializer).left).name);
-
-
-
     }
 
     // ---------------------------------------------------------------------------------------------

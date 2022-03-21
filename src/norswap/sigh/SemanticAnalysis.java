@@ -1087,13 +1087,13 @@ public final class SemanticAnalysis
     {
         R.set(node, "returns", true);
 
-        FunDeclarationNode function = currentFunction();
-        if (function == null) // top-level return
+        FunDeclarationNode scopeFunc = currentFunction();
+        if (scopeFunc == null) // top-level return
             return;
 
         if (node.expression == null)
             R.rule()
-                .using(function.returnType, "value")
+                .using(scopeFunc.returnType, "value")
                 .by(r -> {
                     Type returnType = r.get(0);
                     if (!(returnType instanceof VoidType))
@@ -1101,12 +1101,27 @@ public final class SemanticAnalysis
                 });
         else
             R.rule()
-                .using(function.returnType.attr("value"), node.expression.attr("type"))
+                .using(scopeFunc.returnType.attr("value"), node.expression.attr("type"))
                 .by(r -> {
                     Type formal = r.get(0);
                     Type actual = r.get(1);
+                    String name = scopeFunc.returnType.contents();
+                    String templateFromVarLeft = null;
+                    if (name.equals("T") || name.charAt(0) == ('T') && Character.isDigit(name.charAt(1)))
+                        templateFromVarLeft = name;
+                    String templateFromVarRight = variableToTemplate.get(scopeFunc.name).get(node.expression.contents());
                     if (formal instanceof VoidType)
                         r.error("Return with value in a Void function.", node);
+                    else if (templateFromVarRight != null || templateFromVarLeft != null){
+                        for (HashMap<String, Type> localHashmap : globalTypeDictionary.get(scopeFunc.name)) {
+                            formal = templateFromVarLeft == null ? formal : localHashmap.get(templateFromVarLeft);
+                            actual = templateFromVarRight == null ? actual : localHashmap.get(templateFromVarRight);
+                            if (!isAssignableTo(actual, formal))
+                                r.error(format(
+                                    "Incompatible return type, expected %s but got %s", formal, actual),
+                                    node.expression);
+                        }
+                    }
                     else if (!isAssignableTo(actual, formal) && !(formal instanceof TemplateType)) {
                         r.errorFor(format(
                             "Incompatible return type, expected %s but got %s", formal, actual),

@@ -89,10 +89,10 @@ fun assign(a: T, b: T1){
 }
 assign<Int, Float>(2, 3.0)*/
 
-var arr : Template[] = [5, "Marie"]
+/*var arr : Template[] = [5, "Marie"]
 print("" + arr)*/
 
-var arrInt: Float[] = [5.0,2]
+/*var arrInt: Float[] = [5.0,2]
 var arrInt2: Float[] = [2.0,2]
 var arr4: String[] =["hello "]
 var arr5: String[] =["everybody"]
@@ -100,10 +100,19 @@ var arr3: Bool[] = [true]
 var res: Bool[] = arrInt@(>=)arrInt2
 var res2: String[] = arr4@(+)arr5
 print(""+res)
-print(""+res2)
+print(""+res2)*/
 /*var a: Int=1
 var b: Int =2
 var res2 : Int = a+b*/
+
+
+//Test of the return stmt with template
+/*template<typename T, typename T1>
+fun ret(a: T, c: T1): String{
+    var b: String = "hey"
+    return c
+}
+ret<Int, String>(2, "hey")*/
 
 /*fun test(a: String): String{
     return a

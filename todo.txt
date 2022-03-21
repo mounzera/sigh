@@ -14,7 +14,7 @@ Problemes:
     successInput("template <typename T,typename T1> fun f (x: T1, y:T, z:Int, a: T1):T { return x}; f<Int,Int>(1,2,3,4)") ;
     successInput("template <typename T> fun f2 (x: T) {} ; f2<String> (\"hey\")" );//+ -> OK
 - Array template are ArrayType so have to check this in addition to "if instance of TemplateType"
-- return element should not be template (do the same as in binary operator)
+- return element should not be template (do the same as in binary operator) -> done
 - assignement should not be template (do the same as in binary operator) -> done 
 - var declaration should not be template (do the same as in binary operator) -> done
 - field declaration should not be template (do the same as in binary operator)

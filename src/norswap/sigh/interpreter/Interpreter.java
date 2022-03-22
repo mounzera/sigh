@@ -259,7 +259,8 @@ public final class Interpreter
 
         //result computation
         List<ExpressionNode> result = new ArrayList<>();
-        for (int i=0; i< left_arr.components.size();i++){
+        int len = Math.min(left_arr.components.size(),right_arr.components.size());
+        for (int i=0; i< len;i++){
             BinaryExpressionNode new_node = new BinaryExpressionNode(null,left_arr.components.get(i),node.array_operator,right_arr.components.get(i),null);
             if(isComparison(node.array_operator)){
                 result.add(new ReferenceNode(null, String.valueOf(literalBinaryExpression(new_node))));

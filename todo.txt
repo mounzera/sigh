@@ -23,6 +23,9 @@ Problemes:
 - recheck interpretor try and catch
 
 - verify ArrayType templatename utility
+- check array with templates
+- array variables name must be unique
+- operation between full and empty array is empty
 
 Question:
 - Working with struct ??

@@ -574,15 +574,27 @@ public final class SemanticAnalysis
             .using(node.left.attr("type"), node.right.attr("type"))
             .by(r -> {
 
-                Type left  = r.get(0);
-                Type right = r.get(1);
+                /*Type left  = r.get(0);
+                Type right = r.get(1);*/
+                Type left = null;
+                Type right = null;
+                List<Type> leftList = null;
+                List<Type> rightList = null;
+                if (r.get(0) instanceof ArrayList)
+                    leftList = r.get(0);
+                else
+                    left = r.get(0);
+                if (r.get(1) instanceof ArrayList)
+                    rightList = r.get(1);
+                else
+                    right = r.get(1);
                 String templateFromVarLeft = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.left.contents()) : null;
                 String templateFromVarRight = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.right.contents()): null;
-                if (templateFromVarLeft == null && templateFromVarRight == null){
+                if (templateFromVarLeft == null && templateFromVarRight == null && leftList == null && rightList == null){
                     if (node.operator == ADD && (left instanceof StringType || right instanceof StringType))
                         r.set(0, StringType.INSTANCE);
                     else if (isArithmetic(node.operator))
-                        binaryArithmetic(r, node, left, right);
+                        binaryArithmetic(r, node, left, right, null);
                     else if (isComparison(node.operator))
                         binaryComparison(r, node, left, right);
                     else if (isLogic(node.operator))
@@ -592,22 +604,35 @@ public final class SemanticAnalysis
                     else if (isArrayOp(node.operator))
                         arrayArithmetic(r,node,left,right,node.array_operator);
                 }else{
-                    for (HashMap<String, Type> localHashmap : globalTypeDictionary.get(scopeFunc.name)){
+                    List<Type> typesToSet = new ArrayList<>();
+                    for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
+                        HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
+                        left = leftList != null ? leftList.get(i): left;
+                        right = rightList != null ? rightList.get(i): right;
+                        //System.out.println(left + " " + right);
                         left = templateFromVarLeft == null ? left : localHashmap.get(templateFromVarLeft);
                         right = templateFromVarRight == null ? right : localHashmap.get(templateFromVarRight);
                         if (node.operator == ADD && (left instanceof StringType || right instanceof StringType))
-                            r.set(0, StringType.INSTANCE);
+                            //r.set(0, StringType.INSTANCE);
+                            typesToSet.add(StringType.INSTANCE);
                         else if (isArithmetic(node.operator))
-                            binaryArithmetic(r, node, left, right);
-                        else if (isComparison(node.operator))
+                            binaryArithmetic(r, node, left, right, typesToSet);
+                        else if (isComparison(node.operator)) {
+                            typesToSet.add(BoolType.INSTANCE);
                             binaryComparison(r, node, left, right);
-                        else if (isLogic(node.operator))
+                        }
+                        else if (isLogic(node.operator)){
+                            typesToSet.add(BoolType.INSTANCE);
                             binaryLogic(r, node, left, right);
-                        else if (isEquality(node.operator))
+                        }
+                        else if (isEquality(node.operator)){
+                            typesToSet.add(BoolType.INSTANCE);
                             binaryEquality(r, node, left, right);
+                        }
                         else if (isArrayOp(node.operator))
                             arrayArithmetic(r,node,left,right,node.array_operator);
                     }
+                    r.set(0, typesToSet);
                 }
             });
     }
@@ -638,22 +663,40 @@ public final class SemanticAnalysis
 
     // ---------------------------------------------------------------------------------------------
 
-    private void binaryArithmetic (Rule r, BinaryExpressionNode node, Type left, Type right)
+    private void binaryArithmetic (Rule r, BinaryExpressionNode node, Type left, Type right, List<Type> typeToSet)
     {
-        if (left instanceof IntType)
-            if (right instanceof IntType)
-                r.set(0, IntType.INSTANCE);
-            else if (right instanceof FloatType)
-                r.set(0, FloatType.INSTANCE);
+        if (typeToSet == null){
+            if (left instanceof IntType)
+                if (right instanceof IntType)
+                    r.set(0, IntType.INSTANCE);
+                else if (right instanceof FloatType)
+                    r.set(0, FloatType.INSTANCE);
+                else
+                    r.error(arithmeticError(node, "Int", right), node);
+            else if (left instanceof FloatType)
+                if (right instanceof IntType || right instanceof FloatType)
+                    r.set(0, FloatType.INSTANCE);
+                else
+                    r.error(arithmeticError(node, "Float", right), node);
             else
-                r.error(arithmeticError(node, "Int", right), node);
-        else if (left instanceof FloatType)
-            if (right instanceof IntType || right instanceof FloatType)
-                r.set(0, FloatType.INSTANCE);
+                r.error(arithmeticError(node, left, right), node);
+        }else{
+            if (left instanceof IntType)
+                if (right instanceof IntType)
+                    typeToSet.add(IntType.INSTANCE);
+                else if (right instanceof FloatType)
+                    typeToSet.add(FloatType.INSTANCE);
+                else
+                    r.error(arithmeticError(node, "Int", right), node);
+            else if (left instanceof FloatType)
+                if (right instanceof IntType || right instanceof FloatType)
+                    typeToSet.add(FloatType.INSTANCE);
+                else
+                    r.error(arithmeticError(node, "Float", right), node);
             else
-                r.error(arithmeticError(node, "Float", right), node);
-        else
-            r.error(arithmeticError(node, left, right), node);
+                r.error(arithmeticError(node, left, right), node);
+        }
+
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -729,11 +772,19 @@ public final class SemanticAnalysis
             .using(node.left.attr("type"), node.right.attr("type"))
             .by(r -> {
                 Type left  = r.get(0);
-                Type right = r.get(1);
+                Type right = null;
+                List<Type> rightList = null;
+                if (r.get(1) instanceof ArrayList)
+                    rightList = r.get(1);
+                else
+                    right = r.get(1);
                 String templateFromVarLeft = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.left.contents()): null;
                 String templateFromVarRight = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.right.contents()): null;
-                if (templateFromVarRight != null || templateFromVarLeft != null){
-                    for (HashMap<String, Type> localHashmap : globalTypeDictionary.get(scopeFunc.name)) {
+                if (templateFromVarRight != null || templateFromVarLeft != null|| rightList != null){
+                    for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
+                        HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
+                        if (rightList != null)
+                            right = rightList.get(i);
                         left = templateFromVarLeft == null ? left : localHashmap.get(templateFromVarLeft);
                         right = templateFromVarRight == null ? right : localHashmap.get(templateFromVarRight);
                         r.set(0, left); // the type of the assignment is the left-side type
@@ -921,11 +972,19 @@ public final class SemanticAnalysis
             .using(node.type.attr("value"), node.initializer.attr("type"))
             .by(r -> {
                 Type expected = r.get(0);
-                Type actual = r.get(1);
+                Type actual = null;
+                List<Type> actualList = null;
+                if (r.get(1) instanceof ArrayList)
+                    actualList = r.get(1);
+                else
+                    actual = r.get(1);
                 String templateFromVarLeft = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.type.contents()): null;
                 String templateFromVarRight = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.initializer.contents()): null;
-                if (templateFromVarRight != null || templateFromVarLeft != null){
-                    for (HashMap<String, Type> localHashmap : globalTypeDictionary.get(scopeFunc.name)) {
+                if (templateFromVarRight != null || templateFromVarLeft != null || actualList != null){
+                    for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
+                        HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
+                        if (actualList != null)
+                            actual = actualList.get(i);
                         expected = templateFromVarLeft == null ? expected : localHashmap.get(templateFromVarLeft);
                         actual = templateFromVarRight == null ? actual : localHashmap.get(templateFromVarRight);
                         if (!isAssignableTo(actual, expected))
@@ -1051,11 +1110,30 @@ public final class SemanticAnalysis
     // =============================================================================================
 
     private void ifStmt (IfNode node) {
+        FunDeclarationNode scopeFunc = currentFunction();
         R.rule()
             .using(node.condition, "type")
             .by(r -> {
-                Type type = r.get(0);
-                if (!(type instanceof BoolType) && !(type instanceof TemplateType)) {
+                Type type = null;
+                List<Type> typeList = null;
+                if (r.get(0) instanceof ArrayList)
+                    typeList = r.get(0);
+                else
+                    type = r.get(0);
+                String templateFromVar = scopeFunc != null && node.condition.contents().length() == 3 ? variableToTemplate.get(scopeFunc.name).get(node.condition.contents().substring(1,2)): null;
+                if (templateFromVar != null || typeList != null){
+                    for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
+                        HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
+                        if (typeList != null)
+                            type = typeList.get(i);
+                        //type = localHashmap.get(templateFromVar);
+                        if (!(type instanceof BoolType)) {
+                            r.error("If statement with a non-boolean condition of type: " + type,
+                                node.condition);
+                        }
+                    }
+                }
+                else if (!(type instanceof BoolType)) {
                     r.error("If statement with a non-boolean condition of type: " + type,
                         node.condition);
                 }
@@ -1070,11 +1148,30 @@ public final class SemanticAnalysis
     // ---------------------------------------------------------------------------------------------
 
     private void whileStmt (WhileNode node) {
+        FunDeclarationNode scopeFunc = currentFunction();
         R.rule()
             .using(node.condition, "type")
             .by(r -> {
-                Type type = r.get(0);
-                if (!(type instanceof BoolType) && !(type instanceof TemplateType)) {
+                Type type = null;
+                List<Type> typeList = null;
+                if (r.get(0) instanceof ArrayList)
+                    typeList = r.get(0);
+                else
+                    type = r.get(0);
+                String templateFromVar = scopeFunc != null && node.condition.contents().length() == 3 ? variableToTemplate.get(scopeFunc.name).get(node.condition.contents().substring(1,2)): null;
+                if (templateFromVar != null){
+                    for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
+                        HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
+                        if (typeList != null)
+                            type = typeList.get(i);
+                        //type = localHashmap.get(templateFromVar);
+                        if (!(type instanceof BoolType)) {
+                            r.error("While statement with a non-boolean condition of type: " + type,
+                                node.condition);
+                        }
+                    }
+                }
+                else if (!(type instanceof BoolType)) {
                     r.error("While statement with a non-boolean condition of type: " + type,
                         node.condition);
                 }
@@ -1104,7 +1201,12 @@ public final class SemanticAnalysis
                 .using(scopeFunc.returnType.attr("value"), node.expression.attr("type"))
                 .by(r -> {
                     Type formal = r.get(0);
-                    Type actual = r.get(1);
+                    Type actual = null;
+                    List<Type> actualList = null;
+                    if (r.get(1) instanceof ArrayList)
+                        actualList = r.get(1);
+                    else
+                        actual = r.get(1);
                     String name = scopeFunc.returnType.contents();
                     String templateFromVarLeft = null;
                     if (name.equals("T") || name.charAt(0) == ('T') && Character.isDigit(name.charAt(1)))
@@ -1112,8 +1214,11 @@ public final class SemanticAnalysis
                     String templateFromVarRight = variableToTemplate.get(scopeFunc.name).get(node.expression.contents());
                     if (formal instanceof VoidType)
                         r.error("Return with value in a Void function.", node);
-                    else if (templateFromVarRight != null || templateFromVarLeft != null){
-                        for (HashMap<String, Type> localHashmap : globalTypeDictionary.get(scopeFunc.name)) {
+                    else if (templateFromVarRight != null || templateFromVarLeft != null || actualList != null){
+                        for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
+                            HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
+                            if (actualList != null)
+                                actual = actualList.get(i);
                             formal = templateFromVarLeft == null ? formal : localHashmap.get(templateFromVarLeft);
                             actual = templateFromVarRight == null ? actual : localHashmap.get(templateFromVarRight);
                             if (!isAssignableTo(actual, formal))
@@ -1122,7 +1227,7 @@ public final class SemanticAnalysis
                                     node.expression);
                         }
                     }
-                    else if (!isAssignableTo(actual, formal) && !(formal instanceof TemplateType)) {
+                    else if (!isAssignableTo(actual, formal)) {
                         r.errorFor(format(
                             "Incompatible return type, expected %s but got %s", formal, actual),
                             node.expression);

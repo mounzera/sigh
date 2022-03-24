@@ -83,11 +83,13 @@ print("" + max<Float, Int>(4.5, 3))*/
 //Test of var decl + var assignement
 /*template<typename T, typename T1>
 fun assign(a: T, b: T1){
-    a = 2
-    var c : Int = a
-    print(""+c)
+    a = 3
+    a = a + 1
+    var c : Float = a + 1
+    print(a)
 }
-assign<Int, Float>(2, 3.0)*/
+assign<Int, Float>(2, 3.0)
+assign<Float, Int>(4.0, 5)*/
 
 /*var arr : Template[] = [5, "Marie"]
 print("" + arr)*/
@@ -106,13 +108,40 @@ var b: Int =2
 var res2 : Int = a+b*/
 
 
-//Test of the return stmt with template
+//Test of the return stmt with template -> semantic working, not interpretor
 /*template<typename T, typename T1>
-fun ret(a: T, c: T1): String{
+fun ret(a: T, c: T1): T{
     var b: String = "hey"
-    return c
+    return a + 1
 }
 ret<Int, String>(2, "hey")*/
+
+
+//Test of if stmt with template
+template<typename T>
+fun cond(a: T){
+    /*if(a > 6){
+        print(a)
+    }*/
+
+    if(a + 1 > 6){
+        print("hey")
+    }
+}
+cond<Int>(7)
+cond<Float>(6.6)
+
+//Test of while stmt template
+/*template<typename T>
+fun loop(a: T){
+    while(a < 8){
+        print(a)
+        a = a + 1
+    }
+}
+loop<Int>(5)
+loop<Float>(4.7)*/
+
 
 /*fun test(a: String): String{
     return a

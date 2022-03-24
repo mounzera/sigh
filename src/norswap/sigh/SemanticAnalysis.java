@@ -796,8 +796,7 @@ public final class SemanticAnalysis
                 if (templateFromVarRight != null || templateFromVarLeft != null|| rightList != null){
                     for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
                         HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
-                        if (rightList != null)
-                            right = rightList.get(i);
+                        right = rightList != null ? rightList.get(i): right;
                         left = templateFromVarLeft == null ? left : localHashmap.get(templateFromVarLeft);
                         right = templateFromVarRight == null ? right : localHashmap.get(templateFromVarRight);
                         r.set(0, left); // the type of the assignment is the left-side type
@@ -996,8 +995,7 @@ public final class SemanticAnalysis
                 if (templateFromVarRight != null || templateFromVarLeft != null || actualList != null){
                     for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
                         HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
-                        if (actualList != null)
-                            actual = actualList.get(i);
+                        actual = actualList != null? actualList.get(i): actual;
                         expected = templateFromVarLeft == null ? expected : localHashmap.get(templateFromVarLeft);
                         actual = templateFromVarRight == null ? actual : localHashmap.get(templateFromVarRight);
                         if (!isAssignableTo(actual, expected))
@@ -1137,9 +1135,7 @@ public final class SemanticAnalysis
                 if (templateFromVar != null || typeList != null){
                     for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
                         HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
-                        if (typeList != null)
-                            type = typeList.get(i);
-                        //type = localHashmap.get(templateFromVar);
+                        type = typeList != null? typeList.get(i): type;
                         if (!(type instanceof BoolType)) {
                             r.error("If statement with a non-boolean condition of type: " + type,
                                 node.condition);
@@ -1175,8 +1171,7 @@ public final class SemanticAnalysis
                 if (templateFromVar != null){
                     for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
                         HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
-                        if (typeList != null)
-                            type = typeList.get(i);
+                        type = typeList != null? typeList.get(i): type;
                         //type = localHashmap.get(templateFromVar);
                         if (!(type instanceof BoolType)) {
                             r.error("While statement with a non-boolean condition of type: " + type,
@@ -1230,8 +1225,7 @@ public final class SemanticAnalysis
                     else if (templateFromVarRight != null || templateFromVarLeft != null || actualList != null){
                         for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
                             HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
-                            if (actualList != null)
-                                actual = actualList.get(i);
+                            actual = actualList != null? actualList.get(i): actual;
                             formal = templateFromVarLeft == null ? formal : localHashmap.get(templateFromVarLeft);
                             actual = templateFromVarRight == null ? actual : localHashmap.get(templateFromVarRight);
                             if (!isAssignableTo(actual, formal))

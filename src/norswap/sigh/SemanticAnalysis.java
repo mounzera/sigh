@@ -443,7 +443,11 @@ public final class SemanticAnalysis
             dependencies[i + 1] = arg.attr("type");
             R.set(arg, "index", i);
         });
-        final FunDeclarationNode currFun = currentFunction();
+        FunDeclarationNode tempCurrFun = null;
+        if (scope.declarations.get(node.function.contents()) instanceof FunDeclarationNode){
+            tempCurrFun = ((FunDeclarationNode) scope.declarations.get(node.function.contents()));
+        }
+        final FunDeclarationNode currFun = tempCurrFun;
         /*if (currFun.templateParameters == null && node.templateArgs != null){
             R.error("Try to give types as argument but no template parameter was declared", node, node);
         } -> TODO add it to prevent funCall<Int> without template has been specified*/
@@ -594,7 +598,7 @@ public final class SemanticAnalysis
                     right = r.get(1);
                 String templateFromVarLeft = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.left.contents()) : null;
                 String templateFromVarRight = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.right.contents()): null;
-                if (templateFromVarLeft == null && templateFromVarRight == null && leftList == null && rightList == null){
+                if (scopeFunc == null || (templateFromVarLeft == null && templateFromVarRight == null && leftList == null && rightList == null)){
                     if (node.operator == ADD && (left instanceof StringType || right instanceof StringType))
                         r.set(0, StringType.INSTANCE);
                     else if (isArithmetic(node.operator))
@@ -613,7 +617,6 @@ public final class SemanticAnalysis
                         HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
                         left = leftList != null ? leftList.get(i): left;
                         right = rightList != null ? rightList.get(i): right;
-                        //System.out.println(left + " " + right);
                         left = templateFromVarLeft == null ? left : localHashmap.get(templateFromVarLeft);
                         right = templateFromVarRight == null ? right : localHashmap.get(templateFromVarRight);
                         if (node.operator == ADD && (left instanceof StringType || right instanceof StringType))

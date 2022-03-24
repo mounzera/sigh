@@ -128,7 +128,7 @@ fun cond(a: T){
         print(a)
     }*/
 
-    if(a + 1 > 6){
+    if(a > 6){
         print("hey")
     }
 }

@@ -31,6 +31,9 @@ Question:
 - Working with struct ??
 
 
+Questions séance de tp
+- funCall<Int> doit renvoyer une erreur si pas de template specified -> how to return an error not in the rules but using the reactor?
+
 Important files:
 - semantic analysis
 - sigh grammar

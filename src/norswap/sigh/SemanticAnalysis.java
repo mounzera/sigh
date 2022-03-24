@@ -438,11 +438,10 @@ public final class SemanticAnalysis
             dependencies[i + 1] = arg.attr("type");
             R.set(arg, "index", i);
         });
-        FunDeclarationNode tempCurrFun = null;
-        if (scope.declarations.get(node.function.contents()) instanceof FunDeclarationNode){
-            tempCurrFun = ((FunDeclarationNode) scope.declarations.get(node.function.contents()));
-        }
-        final FunDeclarationNode currFun = tempCurrFun;
+        final FunDeclarationNode currFun = currentFunction();
+        /*if (currFun.templateParameters == null && node.templateArgs != null){
+            R.error("Try to give types as argument but no template parameter was declared", node, node);
+        } -> TODO add it to prevent funCall<Int> without template has been specified*/
         HashMap<String, Type> templateParametersDictionnary = new HashMap<>();
         if (currFun != null) {
             if (node.templateArgs != null) {

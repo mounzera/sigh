@@ -118,7 +118,7 @@ ret<Int, String>(2, "hey")*/
 
 
 //Test of if stmt with template
-template<typename T>
+/*template<typename T>
 fun cond(a: T){
     /*if(a > 6){
         print(a)
@@ -129,7 +129,7 @@ fun cond(a: T){
     }
 }
 cond<Int>(7)
-cond<Float>(6.6)
+cond<Float>(6.6)*/
 
 //Test of while stmt template
 /*template<typename T>

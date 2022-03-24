@@ -159,9 +159,20 @@ public final class Interpreter
 
     // ---------------------------------------------------------------------------------------------
     private Type[] returnType(BinaryExpressionNode node){
-
-        Type leftType  = reactor.get(node.left, "type");
-        Type rightType = reactor.get(node.right, "type");
+        Type leftType = null;
+        Type rightType = null;
+        try{
+            List<Type> left  = reactor.get(node.left, "type");
+            leftType = left.get(0);
+        }catch (Exception e){
+            leftType  = reactor.get(node.left, "type");
+        }
+        try{
+            List<Type> right  = reactor.get(node.left, "type");
+            rightType = right.get(0);
+        }catch (Exception e){
+            rightType  = reactor.get(node.left, "type");
+        }
         Object left  = get(node.left);
         Object right = get(node.right);
         try{

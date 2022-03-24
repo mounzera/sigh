@@ -26,6 +26,9 @@ type of the last call and thus only this type will be used in the assignement ch
 - recheck interpretor try and catch + interpretor return stmt (outside a func so hard)
 
 - verify ArrayType templatename utility
+- check array with templates
+- array variables name must be unique
+- operation between full and empty array is empty
 
 Question:
 - Working with struct ??

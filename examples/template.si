@@ -99,10 +99,14 @@ var arrInt2: Float[] = [2.0,2]
 var arr4: String[] =["hello "]
 var arr5: String[] =["everybody"]
 var arr3: Bool[] = [true]
-var res: Bool[] = arrInt@(>=)arrInt2
+//var res: Bool[] = arrInt@(>=)arrInt2
 var res2: String[] = arr4@(+)arr5
-print(""+res)
-print(""+res2)*/
+//print(""+res)
+print(""+res2)
+
+var arr5: String[] =["everybody2"]
+var res3: String[] = arr4@(+)arr5
+print(""+res3)*/
 /*var a: Int=1
 var b: Int =2
 var res2 : Int = a+b*/

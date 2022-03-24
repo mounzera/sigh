@@ -106,7 +106,10 @@ public final class SemanticAnalysis
      * = hashmap with key = function name, value = hashmap with key = parameter, value = type templateParameter */
     private HashMap<String, HashMap<String, String>> variableToTemplate = new HashMap<>();
 
-
+    /**For Array arithmetic
+     * key= array name value = components of the array
+     * **/
+    private HashMap<String ,List> array_components = new HashMap<>();
 
     // ---------------------------------------------------------------------------------------------
 
@@ -307,6 +310,8 @@ public final class SemanticAnalysis
             return;
         }
         boolean templateArray =!(((ArrayTypeNode) ((VarDeclarationNode)this.inferenceContext).type).contents().equals("Template[]"));
+        String name = ((VarDeclarationNode)this.inferenceContext).name;
+        array_components.put(name,node.components);
         Attribute[] dependencies =
             node.components.stream().map(it -> it.attr("type")).toArray(Attribute[]::new);
 
@@ -751,10 +756,19 @@ public final class SemanticAnalysis
             r.error("Trying to use @ between non ArrayTypes",node);
             return;
         }
+        String left_name = ((ReferenceNode) node.left).name;
+        String right_name =((ReferenceNode) node.right).name;
+        //System.out.println(((BinaryExpressionNode)(((FunCallNode) inferenceContext).arguments.get(0))).right);
+
+        //Store array components
+        List left_array = array_components.get(left_name);
+        List right_array = array_components.get(right_name);
+        if (left_array.size() != right_array.size()){
+            r.error("Trying to use @ between arrays of different lengths",node);
+            return;
+        }
 
         ArrayType arrayType = (ArrayType) left;
-        //r.set(0,arrayType.componentType);
-        //r.set(0,new ArrayLiteralNode());
         if (isComparison(node.array_operator)){
             r.set(0,new ArrayType(BoolType.INSTANCE,null));
         }

@@ -90,21 +90,38 @@ fun assign(a: T, b: T1){
 assign<Int, Float>(2, 3.0)*/
 
 /*var arr : Template[] = [5, "Marie"]
+var arr2 : Template[]= [5.0, "Hello"]
+var arr3: Template[]=arr@(+)arr2
+print("" + arr3)
+print("" +arr2)
+/*var arr: Int[] = [1]
+print("" + arr)
+arr=[3]
 print("" + arr)*/
+
 
 /*var arrInt: Float[] = [5.0,2]
 var arrInt2: Float[] = [2.0,2]
+var arr3: Bool[] = [true]
+
 var arr4: String[] =["hello "]
 var arr5: String[] =["everybody"]
-var arr3: Bool[] = [true]
-//var res: Bool[] = arrInt@(>=)arrInt2
 var res2: String[] = arr4@(+)arr5
-//print(""+res)
-print(""+res2)
+var i1: Int =5
+var i2:Int=1
+print("" + arr5)
+print(""+res2) // print hello everybody2
+print(""+ (i1 +i2)) //print 6
 
 var arr5: String[] =["everybody2"]
 var res3: String[] = arr4@(+)arr5
-print(""+res3)*/
+var i1: Int = 6
+print(""+arr5)
+print(""+res3) //print hello everybody2
+print(""+(i1+i2))// print 7*/
+
+
+//var res: Bool[] = arrInt@(>=)arrInt2
 /*var a: Int=1
 var b: Int =2
 var res2 : Int = a+b*/

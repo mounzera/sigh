@@ -106,15 +106,15 @@ public final class SemanticAnalysis
      * = hashmap with key = function name, value = hashmap with key = parameter, value = type templateParameter */
     private HashMap<String, HashMap<String, String>> variableToTemplate = new HashMap<>();
 
-    /**For Array arithmetic
-     * key= array name value = components of the array
-     * **/
-    private HashMap<String ,List> array_components = new HashMap<>();
-
+    /**Template[]
+     *  = set with authorized operations between strings **/
+    private HashSet<BinaryOperator> string_op = new HashSet<BinaryOperator>();
     // ---------------------------------------------------------------------------------------------
 
     private SemanticAnalysis(Reactor reactor) {
         this.R = reactor;
+        BinaryOperator[] op ={ADD,GREATER,GREATER_EQUAL,LOWER,LOWER_EQUAL,EQUALITY,NOT_EQUALS};
+        this.string_op.addAll(Arrays.asList(op));
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -209,6 +209,13 @@ public final class SemanticAnalysis
     private void reference (ReferenceNode node)
     {
         final Scope scope = this.scope;
+
+        /*if (!node.name.equals("print") && (!node.name.equals("true"))){
+            System.out.println("ref "+ node.name + " "+ ( (VarDeclarationNode) scope.declarations.get(node.name)).initializer);
+        }*/
+
+
+        //System.out.println(scope.declarations.get());
 
 
         // Try to lookup immediately. This must succeed for variables, but not necessarily for
@@ -309,9 +316,18 @@ public final class SemanticAnalysis
             }
             return;
         }
-        boolean templateArray =!(((ArrayTypeNode) ((VarDeclarationNode)this.inferenceContext).type).contents().equals("Template[]"));
-        String name = ((VarDeclarationNode)this.inferenceContext).name;
-        array_components.put(name,node.components);
+        boolean templateArray = true;
+        if (this.inferenceContext instanceof VarDeclarationNode){
+            templateArray =!(((ArrayTypeNode) ((VarDeclarationNode)this.inferenceContext).type).contents().equals("Template[]"));
+        }
+        else {
+            //TODO check if different inference context
+            //System.out.println(((FunCallNode)this.inferenceContext).function);
+        }
+
+        boolean notTemplateArray = templateArray;
+        //String name = ((VarDeclarationNode)this.inferenceContext).name;
+        //array_components.put(name,node.components);
         Attribute[] dependencies =
             node.components.stream().map(it -> it.attr("type")).toArray(Attribute[]::new);
 
@@ -332,7 +348,7 @@ public final class SemanticAnalysis
                         supertype = type;
                     else {
                         supertype = commonSupertype(supertype, type);
-                        if (supertype == null && templateArray) {
+                        if (supertype == null && notTemplateArray) {
                             r.error("Could not find common supertype in array literal.", node);
                             return;
                         }
@@ -340,7 +356,7 @@ public final class SemanticAnalysis
                     ++i;
                 }
 
-                if (supertype == null  && templateArray)
+                if (supertype == null  && notTemplateArray)
                     r.error(
                         "Could not find common supertype in array literal: all members have Void type.",
                         node);
@@ -645,6 +661,15 @@ public final class SemanticAnalysis
 
     private void binaryArithmetic (Rule r, BinaryExpressionNode node, Type left, Type right)
     {
+        String left_name = ((ReferenceNode) node.left).name;
+        String right_name =((ReferenceNode) node.right).name;
+        IntLiteralNode left_node = (IntLiteralNode) ((VarDeclarationNode) (((Scope) R.get(node.left,"scope")).declarations.get(left_name))).initializer;
+        //List left_array = left_node.components;
+        IntLiteralNode right_node = (IntLiteralNode) ((VarDeclarationNode) (((Scope) R.get(node.right,"scope")).declarations.get(right_name))).initializer;
+        //List right_array = right_node.components;
+        //System.out.println("arr ar " +left_name +" " + left_node);
+        //System.out.println("arr ar " +right_name +" " + right_node);
+        //System.out.println("bin ar");
         if (left instanceof IntType)
             if (right instanceof IntType)
                 r.set(0, IntType.INSTANCE);
@@ -709,28 +734,61 @@ public final class SemanticAnalysis
     //Template[]
     private void arrayArithmetic (Rule r, BinaryExpressionNode node, Type left, Type right,BinaryOperator op)
     {
-
         if (!(left instanceof ArrayType)|| !(right instanceof ArrayType)){
             r.error("Trying to use @ between non ArrayTypes",node);
             return;
         }
         String left_name = ((ReferenceNode) node.left).name;
         String right_name =((ReferenceNode) node.right).name;
+        Boolean left_template = ((ArrayType) left).templateName.equals("Template");
+        Boolean right_template = ((ArrayType) right).templateName.equals("Template");
+        boolean temp = left_template || right_template;
+        ArrayLiteralNode left_node = (ArrayLiteralNode) ((VarDeclarationNode) (((Scope) R.get(node.left,"scope")).declarations.get(left_name))).initializer;
+        List left_array = left_node.components;
+        //System.out.println((VarDeclarationNode) (((Scope) R.get(node.right,"scope")).declarations.get(right_name)));
+        ArrayLiteralNode right_node = (ArrayLiteralNode) ((VarDeclarationNode) (((Scope) R.get(node.right,"scope")).declarations.get(right_name))).initializer;
+        List right_array = right_node.components;
+        //System.out.println("arr ar " +left_name +" " + left_array);
+        //System.out.println("arr ar " +right_name +" " + right_array);
         //System.out.println(((BinaryExpressionNode)(((FunCallNode) inferenceContext).arguments.get(0))).right);
 
-        //Store array components
-        List left_array = array_components.get(left_name);
-        List right_array = array_components.get(right_name);
+        //arrays of different sizes
         if (left_array.size() != right_array.size()){
-            r.error("Trying to use @ between arrays of different lengths",node);
+            r.error(format("Trying to use @ between arrays of different lengths : %s and %s", left_array.size(),right_array.size()),node);
             return;
+        }
+        // types check for template[]
+        if (temp){
+            for (int i=0; i < left_array.size(); i++){
+
+                boolean left_numeric = (left_array.get(i) instanceof IntLiteralNode || left_array.get(i) instanceof FloatLiteralNode);
+                boolean right_numeric = (right_array.get(i) instanceof IntLiteralNode || right_array.get(i) instanceof FloatLiteralNode);
+
+                if ((left_numeric != right_numeric) && (left_array.get(i).getClass() != right_array.get(i).getClass())){
+                    r.error("Trying to use @ between template arrays of different types",node);
+                    return;
+                }
+                if (!left_numeric && !(this.string_op.contains(op))){
+                    r.error(format("Trying to use illegal operation %s between strings in template arrays",op),node);
+                    return;
+                }
+            }
+
         }
 
         ArrayType arrayType = (ArrayType) left;
         if (isComparison(node.array_operator)){
+            if (temp){
+                r.set(0,new ArrayType(BoolType.INSTANCE,"Template"));
+            }
             r.set(0,new ArrayType(BoolType.INSTANCE,null));
         }
-        else         r.set(0,new ArrayType(arrayType.componentType,null));
+        else{
+            if (temp){
+                r.set(0,new ArrayType(arrayType.componentType,"Template"));
+            }
+            r.set(0,new ArrayType(arrayType.componentType,null));
+        }
 
     }
 

@@ -26,6 +26,7 @@ public class SighGrammar extends Grammar
         id_part = choice(alphanum, '_');
     }
     //Template[]
+    public int var_index =0;
     public rule AT              = word("@");
     public rule STAR            = word("*");
     public rule SLASH           = word("/");

@@ -25,7 +25,8 @@ Problemes:
 - verify ArrayType templatename utility
 - check array with templates
 - array variables name must be unique
-- operation between full and empty array is empty
+- operation between full and empty array is empty -> done
+- check assignment of operation between arrays
 
 Question:
 - Working with struct ??

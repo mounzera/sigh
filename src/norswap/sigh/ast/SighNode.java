@@ -49,6 +49,7 @@ public abstract class SighNode
      */
     @Override public final String toString ()
     {
+
         String klass = getClass().getSimpleName().replace("Node", "");
         String contents = contents();
         return klass.length() + contents.length() + 2 <= TO_STRING_CUTOFF

@@ -221,9 +221,28 @@ public final class Interpreter
         Type[] ret_types = returnType(node);
         Type leftType = ret_types[0];
         Type rightType = ret_types[1];
-        if (node.operator == BinaryOperator.ADD
-            && (leftType instanceof StringType || rightType instanceof StringType))
-            return convertToString(left) + convertToString(right);
+        if (//node.operator == BinaryOperator.ADD &&
+            (leftType instanceof StringType || rightType instanceof StringType)){
+            switch (node.operator){
+                case ADD:
+                    return convertToString(left) + convertToString(right);
+                case GREATER:
+                    return convertToString(left).compareTo( convertToString(right)) >0;
+                case GREATER_EQUAL:
+                    return convertToString(left).compareTo( convertToString(right)) >=0;
+                case LOWER:
+                    return convertToString(left).compareTo( convertToString(right)) <0;
+                case LOWER_EQUAL:
+                    return convertToString(left).compareTo( convertToString(right)) <=0;
+                case EQUALITY:
+                    return convertToString(left).compareTo( convertToString(right)) ==0;
+                case NOT_EQUALS:
+                    return convertToString(left).compareTo( convertToString(right)) !=0;
+                default:
+                    throw new Error("should not reach here");
+            }
+        }
+
         boolean floating = leftType instanceof FloatType || rightType instanceof FloatType;
         boolean numeric  = floating || leftType instanceof IntType || leftType instanceof TemplateType || rightType instanceof TemplateType;
 
@@ -245,10 +264,14 @@ public final class Interpreter
     }
     private Object binaryExpression (BinaryExpressionNode node)
     {
+
         // Normal Binary expression
         if (!(node.operator.equals(BinaryOperator.ARRAY_OP))){
             return literalBinaryExpression(node);
         }
+        Object[] left  = get(node.left);
+        Object right = get(node.right);
+        //System.out.println("expres "+get(node.left));
         // Array Binary expression
         Scope scope = reactor.get(node.left, "scope");
         String left_name = ((ReferenceNode) node.left).name;
@@ -324,6 +347,7 @@ public final class Interpreter
         }
 
         Object result;
+        System.out.println(node.operator);
         if (floating)
             switch (node.operator) {
                 case MULTIPLY:      return fleft *  fright;

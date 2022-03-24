@@ -29,16 +29,16 @@ public class ArrayLiteralNode extends ExpressionNode
             String contents = it.contents();
             budget -= 2 + contents.length();
             if (i == components.size() - 1) {
-                if (budget < 0) break;
+                //if (budget < 0) break;
             } else {
-                if (budget - ", ...".length() < 0) break;
+                //if (budget - ", ...".length() < 0) break;
             }
             b.append(contents);
             ++i;
         }
 
-        if (i < components.size())
-            b.append("...");
+        /*if (i < components.size())
+            b.append("...");*/
 
         return b.append(']').toString();
     }

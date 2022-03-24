@@ -10,11 +10,11 @@ public final class BinaryExpressionNode extends ExpressionNode
     public final BinaryOperator operator;
     public final BinaryOperator array_operator;
 
-    public BinaryExpressionNode (Span span, Object left,  Object operator, Object right, Object array_operator){//,ArrayLiteralNode left_arr, ArrayLiteralNode right_arr) {
+    public BinaryExpressionNode (Span span, Object left,  Object operator, Object right, Object array_operator){//},Object left_arr, Object right_arr) {
         super(span);
         this.left = left==null ? null: Util.cast(left, ExpressionNode.class);
         //this.left_arr = left_arr==null ? null: Util.cast(left_arr,ArrayLiteralNode.class);
-        //this.right_arr = right_arr;
+        //this.right_arr = right_arr==null ? null: Util.cast(right_arr,ArrayLiteralNode.class);
         this.right = Util.cast(right, ExpressionNode.class);
         this.operator = Util.cast(operator, BinaryOperator.class);
         this.array_operator = array_operator==null ? null: Util.cast(array_operator,BinaryOperator.class);

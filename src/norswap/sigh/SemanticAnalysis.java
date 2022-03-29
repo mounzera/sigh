@@ -450,11 +450,9 @@ public final class SemanticAnalysis
     {
         //Template arrays
 
-        System.out.println( "funcall "+scope.parent);
         String fun_name = node.function.contents();
         if (fun_name.equals("print")){
             if(inferenceContext instanceof FunCallNode){
-                System.out.println("print! "+R.get(inferenceContext,"scope") + " " + scope);
                 String inside_fname = ((FunCallNode) inferenceContext).function.contents();
                 Scope s = new Scope(node,scope);
                 s.declare(inside_fname, scope.declarations.get(inside_fname));
@@ -470,10 +468,7 @@ public final class SemanticAnalysis
         if(scope.declarations.get(fun_name) instanceof FunDeclarationNode) {
             fun_decl = (FunDeclarationNode) scope.declarations.get(fun_name);
         }
-        System.out.println("funcall "+fun_name+ " "+ inferenceContext );
-        System.out.println(scope.declarations);
         //TODO
-        System.out.println(fun_name);
         if (fun_decl != null){
             for (ParameterNode p : fun_decl.parameters){
                 R.set(p,"scope",scope);
@@ -667,8 +662,6 @@ public final class SemanticAnalysis
         final FunDeclarationNode scopeFunc = currentFunction();
         //System.out.println("scope func "+scopeFunc);
         //System.out.println("inf context" +inferenceContext);
-        System.out.println("binary expression "+ node.array_operator + " "+ node.operator + " "+ isArrayOp(node.operator) + " "+ isArithmetic(node.array_operator));
-        System.out.println("binary scope "+ R.get(scopeFunc,"scope"));
         R.rule(node, "type")
             .using(node.left.attr("type"), node.right.attr("type"))
             .by(r -> {
@@ -689,9 +682,7 @@ public final class SemanticAnalysis
                     right = r.get(1);
                 String templateFromVarLeft = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.left.contents()) : null;
                 String templateFromVarRight = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.right.contents()): null;
-                System.out.println("op "+node.operator);
                 if (scopeFunc == null || (templateFromVarLeft == null && templateFromVarRight == null && leftList == null && rightList == null)){
-                    System.out.println(node.operator);
                     if (node.operator == ADD && (left instanceof StringType || right instanceof StringType))
                         r.set(0, StringType.INSTANCE);
                     else if (isArithmetic(node.operator))
@@ -703,7 +694,6 @@ public final class SemanticAnalysis
                     else if (isEquality(node.operator))
                         binaryEquality(r, node, left, right);
                     else if (isArrayOp(node.operator)){
-                        System.out.println("first array arithmetic "+ node.operator);
                         arrayArithmetic(r,node,left,right,node.array_operator);
                     }
                 }else{
@@ -909,18 +899,10 @@ public final class SemanticAnalysis
     //Template[]
     private void arrayArithmetic (Rule r, BinaryExpressionNode node, Type left, Type right,BinaryOperator op)
     {
-        System.out.println("array arithmetic "+ inferenceContext+" " +R.get(inferenceContext,"scope"));
-        System.out.println(op);
-        System.out.println(scope);
-        Scope curr_scope = R.get(inferenceContext,"scope");
-        System.out.println(node);
-        String ref_name =((BinaryExpressionNode)((FunCallNode)inferenceContext).arguments.get(0)).right.contents();
 
-        System.out.println(((FunCallNode)((VarDeclarationNode)curr_scope.declarations.get(ref_name)).initializer).function.contents());
-        String ref_fun_name =((FunCallNode)((VarDeclarationNode)curr_scope.declarations.get(ref_name)).initializer).function.contents();
+        Scope curr_scope = R.get(inferenceContext,"scope");
         //System.out.println(((VarDeclarationNode)curr_scope.declarations.get("a")).initializer);
-        System.out.println((((Scope) R.get(node.left,"scope")).declarations.get(((ReferenceNode) node.left).name)));
-        System.out.println(((FunDeclarationNode)curr_scope.declarations.get("f")).parameters);
+
         if (!(left instanceof ArrayType)|| !(right instanceof ArrayType)){
             r.error("Trying to use @ between non ArrayTypes",node);
             return;
@@ -930,7 +912,6 @@ public final class SemanticAnalysis
         Boolean left_template = ((ArrayType) left).templateName.equals("Template");
         Boolean right_template = ((ArrayType) right).templateName.equals("Template");
         String fun_name =((ExpressionNode)((FunCallNode )inferenceContext).function).contents();
-        System.out.println("inference "+scope);
         /*if (!(left_template && right_template)){
             System.out.println("not");
             System.out.println(((ArrayType) left).templateName);
@@ -946,8 +927,10 @@ public final class SemanticAnalysis
             left_node = (ArrayLiteralNode) ((VarDeclarationNode) (((Scope) R.get(node.left,"scope")).declarations.get(left_name))).initializer;
         }else if (left_decl instanceof ParameterNode){
             //String fun_name =((ExpressionNode)((FunCallNode )inferenceContext).function).contents();
-            System.out.println("parameter node "+fun_name);
             if (fun_name.equals("print")){
+                String ref_name =((BinaryExpressionNode)((FunCallNode)inferenceContext).arguments.get(0)).right.contents();
+                String ref_fun_name =((FunCallNode)((VarDeclarationNode)curr_scope.declarations.get(ref_name)).initializer).function.contents();
+
                 left_nodes = param_arrays.get(ref_fun_name);
             }else {
                 left_nodes = param_arrays.get(fun_name);
@@ -964,15 +947,15 @@ public final class SemanticAnalysis
         }else if (right_decl instanceof ParameterNode){
             //right_param_node = (ParameterNode) right_decl;
             //String fun_name =((ExpressionNode)((FunCallNode )inferenceContext).function).contents();
-            System.out.println(fun_name+" "+R.get(node,"scope"));
             if (fun_name.equals("print")){
+                String ref_name =((BinaryExpressionNode)((FunCallNode)inferenceContext).arguments.get(0)).right.contents();
+                String ref_fun_name =((FunCallNode)((VarDeclarationNode)curr_scope.declarations.get(ref_name)).initializer).function.contents();
                 left_nodes = param_arrays.get(ref_fun_name);
             }else {
                 left_nodes = param_arrays.get(fun_name);
             }
         }
 
-        System.out.println("nodes types " + fun_name+ " " +left_node +" "+ right_node+ " "+ left_nodes+ " "+ right_nodes);
         //normal arrays
         if (right_node != null && left_node != null){
             if (chech_arrays(r,left_node.components, right_node.components,temp, node, op)){
@@ -982,7 +965,6 @@ public final class SemanticAnalysis
             }
 
         }else if (right_node==null && left_node==null){ //parameter array
-            System.out.println("here");
             //String fun_name =((ExpressionNode)((FunCallNode )inferenceContext).function).contents();
             if (right_nodes!= null && left_nodes!= null){
 
@@ -998,16 +980,12 @@ public final class SemanticAnalysis
                 return;
             }
             else if (right_nodes ==null && left_nodes ==null){
-                System.out.println(left_decl+" "+right_decl);
-                System.out.println(left_node +" "+ right_node+ " "+ left_nodes+ " "+ right_nodes);
-                System.out.println(right_name+" "+ left_name+"  "+((Scope) R.get(node.left,"scope")));
                 ArrayLiteralNode left_n = (ArrayLiteralNode) ((VarDeclarationNode) (((Scope) R.get(node.left,"scope")).declarations.get(left_name))).initializer;
                 List left_array = left_n.components;
                 //System.out.println((VarDeclarationNode) (((Scope) R.get(node.right,"scope")).declarations.get(right_name)));
                 ArrayLiteralNode right_n= (ArrayLiteralNode) ((VarDeclarationNode) (((Scope) R.get(node.right,"scope")).declarations.get(right_name))).initializer;
                 List right_array = right_n.components;
                 //List left_arr = new ArrayList();
-                System.out.println(left_node +" "+ right_node);
                 //left_arr.add();//(ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(left_name)).initializer));
                 //List right_arr= new ArrayList();
                 //right_arr.add((ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(right_name)).initializer));
@@ -1016,12 +994,8 @@ public final class SemanticAnalysis
             }
 
         }if (right_node ==null || left_node == null){
-            System.out.println("here");
-        System.out.println(left_decl+" "+right_decl);
-        System.out.println(left_node +" "+ right_node+ " "+ left_nodes+ " "+ right_nodes);
-        System.out.println(right_name+" "+ left_name+"  "+((Scope) R.get(node.left,"scope")));
 
-        List to_check;
+            List to_check;
             if (right_node==null){
                 if (!fun_name.equals("print")){
                     int len = param_arrays.get(fun_name).size();

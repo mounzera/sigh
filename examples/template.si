@@ -126,7 +126,7 @@ fun f(arg1: Int[], arg2: Int[], arg3:Int[]) : Template[]{
     var a: Int[] = [3,1,1]
     var b: Int[] = [4,2,2]
     var c : Template[] = a@(+)b
-    //print("" +arg1)
+    print("" +arg1)
     return c
 }
 
@@ -136,8 +136,8 @@ var c: Float[] = [1.0,2.0,3.0]
 //print(""+a)
 var d: Template[] = f<Int, Int>([1,1,1],[2,2,2],a)
 var e: Template[] = f<Int, Int>([2,1,1],[2,2,2],a)
-print(" here "+d)
-//print(" here " +f<Float, Int>(c,a,a))
+print(" "+d)
+print("" +f<Float, Int>(c,a,a))
 
 
 

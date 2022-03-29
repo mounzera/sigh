@@ -574,6 +574,7 @@ public final class Interpreter
 
     private Object funCall (FunCallNode node)
     {
+        //System.out.println("fun call " + node);
         currentFunctionName=node.function.contents();
         currentArguments =node.arguments;
         //reactor.set(node,"scope",reactor.get(node,"scope"));
@@ -613,6 +614,7 @@ public final class Interpreter
 
     private Object builtin (String name, Object[] args)
     {
+        //System.out.println("builtin");
         assert name.equals("print"); // only one at the moment
         String out = convertToString(args[0]);
         System.out.println(out);

@@ -120,12 +120,30 @@ print(""+c)
 print(""+f)
 print(""+g)*/
 
-//Template array assignment and operations with templates variables
-template<typename T, typename T1>
+//Template array assignment and operations with variables
 fun f(arg1: Int[], arg2: Int[], arg3:Int[]) : Template[]{
     var a: Int[] = [3,1,1]
     var b: Int[] = [4,2,2]
-    var c : Template[] = a@(+)b
+    var c : Template[] = arg1@(+)arg2
+    print("" +arg1)
+    return c
+}
+
+var a: Int[] = [1,1,1]
+var b: Int[] = [2,2,2]
+var c: Float[] = [1.0,2.0,3.0]
+//print(""+a)
+var d: Template[] = f([1,1,1],[2,2,2],a)
+var e: Template[] = f([2,1,1],[2,2,2],a)
+print(" "+d)
+//print("" +f(c,a,a))
+
+//Template array assignment and operations with template variables
+/*template<typename T, typename T1>
+fun f(arg1: T[], arg2: T1[], arg3:Int[]) : Template[]{
+    var a: Int[] = [3,1,1]
+    var b: Int[] = [4,2,2]
+    var c : Template[] = arg1@(+)arg2
     print("" +arg1)
     return c
 }
@@ -137,7 +155,7 @@ var c: Float[] = [1.0,2.0,3.0]
 var d: Template[] = f<Int, Int>([1,1,1],[2,2,2],a)
 var e: Template[] = f<Int, Int>([2,1,1],[2,2,2],a)
 print(" "+d)
-print("" +f<Float, Int>(c,a,a))
+print("" +f<Float, Int>(c,a,a))*/
 
 
 

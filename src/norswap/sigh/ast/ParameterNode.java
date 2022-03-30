@@ -8,6 +8,7 @@ public final class ParameterNode extends DeclarationNode
 {
     public final String name;
     public TypeNode type;
+    public ArrayLiteralNode array;
 
     public ParameterNode (Span span, Object name, Object type) {
         super(span);

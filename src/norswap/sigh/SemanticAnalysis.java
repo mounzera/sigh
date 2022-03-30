@@ -106,11 +106,6 @@ public final class SemanticAnalysis
      * = hashmap with key = function name, value = hashmap with key = parameter, value = type templateParameter */
     private HashMap<String, HashMap<String, String>> variableToTemplate = new HashMap<>();
 
-    /** Return type
-     * */
-    private HashMap<String, List<Type>> returnTemplateDic = new HashMap<>();
-    private HashMap<String, Integer> returnCounterFunction = new HashMap<>();
-
     /**Template[]
      *  = set with authorized operations between strings **/
     private HashSet<BinaryOperator> string_op = new HashSet<BinaryOperator>();
@@ -502,15 +497,6 @@ public final class SemanticAnalysis
                         default:
                             //r.errorFor(format("This type %s is not allowed for the Template function", actualType), node);
                             template = null;
-                    }
-                    String returnnName = currFun.returnType.contents();
-                    if (returnnName.equals("T") || returnnName.charAt(0) == ('T') && Character.isDigit(returnnName.charAt(1))){
-                        if (returnTemplateDic.get(node.function.contents()) == null){
-                            returnTemplateDic.put(node.function.contents(), new ArrayList<>());
-                            returnCounterFunction.put(node.function.contents(), 0);
-                        }
-                        if (templateName.name.equals(returnnName))
-                            returnTemplateDic.get(node.function.contents()).add(template);
                     }
                     templateParametersDictionnary.put(templateName.name, template);
                     tempIdx++;
@@ -1058,16 +1044,9 @@ public final class SemanticAnalysis
         this.inferenceContext = node;
 
         final FunDeclarationNode scopeFunc = currentFunction();
-        /*String paramTypeName = node.type.contents();
-        System.out.println(node.name());
-        if ((paramTypeName.equals("T") || (paramTypeName.charAt(0) == ('T') && Character.isDigit(paramTypeName.charAt(1)))) && scopeFunc != null) {
-            HashMap<String, String> temp = new HashMap<>();
-            temp.put(node.name, node.type.contents());
-            variableToTemplate.put(scopeFunc.name, temp);
-        }*/ // TODO when var is declared with template in fun add it to variable template to be able to recognize it
-
         scope.declare(node.name, node);
         R.set(node, "scope", scope);
+
         R.rule(node, "type")
             .using(node.type, "value")
             .by(Rule::copyFirst);
@@ -1075,7 +1054,6 @@ public final class SemanticAnalysis
         R.rule()
             .using(node.type.attr("value"), node.initializer.attr("type"))
             .by(r -> {
-                System.out.println(variableToTemplate);
                 Type expected = r.get(0);
                 Type actual = null;
                 List<Type> actualList = null;
@@ -1083,7 +1061,7 @@ public final class SemanticAnalysis
                     actualList = r.get(1);
                 else
                     actual = r.get(1);
-                String templateFromVarLeft = expected instanceof TemplateType ? node.type.contents(): null;
+                String templateFromVarLeft = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.type.contents()): null;
                 String templateFromVarRight = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.initializer.contents()): null;
                 String funName = scopeFunc != null ? scopeFunc.name: null;
                 if(node.initializer instanceof FunCallNode){
@@ -1104,7 +1082,7 @@ public final class SemanticAnalysis
                     }else{
                         for (int i = 0; i < globalTypeDictionary.get(funName).size(); i++) {
                             HashMap<String, Type> localHashmap = globalTypeDictionary.get(funName).get(i);
-                            actual = actualList != null? actualList.get(i): actual;
+                            actual = (actualList != null && actualList.size()!=0)? actualList.get(i): actual;
                             expected = templateFromVarLeft == null ? expected : localHashmap.get(templateFromVarLeft);
                             actual = templateFromVarRight == null ? actual : localHashmap.get(templateFromVarRight);
                             if (!isAssignableTo(actual, expected))
@@ -1330,7 +1308,6 @@ public final class SemanticAnalysis
                     if (name.equals("T") || name.charAt(0) == ('T') && Character.isDigit(name.charAt(1)))
                         templateFromVarLeft = name;
                     String templateFromVarRight = variableToTemplate.get(scopeFunc.name).get(node.expression.contents());
-                    System.out.println(node.expression.contents());
                     if (formal instanceof VoidType)
                         r.error("Return with value in a Void function.", node);
                     else if (templateFromVarRight != null || templateFromVarLeft != null || actualList != null){
@@ -1339,7 +1316,6 @@ public final class SemanticAnalysis
                             actual = actualList != null? actualList.get(i): actual;
                             formal = templateFromVarLeft == null ? formal : localHashmap.get(templateFromVarLeft);
                             actual = templateFromVarRight == null ? actual : localHashmap.get(templateFromVarRight);
-                            System.out.println(actual + " " + templateFromVarRight + " " + formal + " " + templateFromVarLeft);
                             if (!isAssignableTo(actual, formal))
                                 r.error(format(
                                     "Incompatible return type, expected %s but got %s", formal, actual),

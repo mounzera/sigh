@@ -56,6 +56,10 @@ public final class Interpreter
     private RootScope rootScope;
     private ScopeStorage rootStorage;
 
+    //Template arrays
+    private  String currentFunctionName=null;
+    private List<ExpressionNode> currentArguments =null;
+
     // ---------------------------------------------------------------------------------------------
 
     public Interpreter (Reactor reactor) {
@@ -287,8 +291,44 @@ public final class Interpreter
         Scope scope = reactor.get(node.left, "scope");
         String left_name = ((ReferenceNode) node.left).name;
         String right_name =((ReferenceNode) node.right).name;
-        ArrayLiteralNode left_arr =  (ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(left_name)).initializer);
-        ArrayLiteralNode right_arr = (ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(right_name)).initializer);
+
+        Scope curr_scope =(Scope)reactor.get(scope.declarations.get(left_name),"scope");
+        FunDeclarationNode currFunction =(FunDeclarationNode) curr_scope.declarations.get(currentFunctionName);
+
+
+        ArrayLiteralNode[] parameter_arrays = new ArrayLiteralNode[2];
+        if (currFunction != null        ) {
+            int param_index=0;
+            for (ParameterNode p : currFunction.parameters) {
+                if (p.name.equals(((ReferenceNode) node.left).name)) {
+                    if (currentArguments.get(param_index) instanceof ArrayLiteralNode) {
+                        parameter_arrays[0] = (ArrayLiteralNode) currentArguments.get(param_index);
+                    } else if (currentArguments.get(param_index) instanceof ReferenceNode) {
+                        String param_name = ((ReferenceNode) currentArguments.get(param_index)).name;
+                        parameter_arrays[0] = (ArrayLiteralNode) ((VarDeclarationNode) (curr_scope.declarations.get(param_name))).initializer;
+                    }
+                }
+                if (p.name.equals(((ReferenceNode) node.right).name)) {
+                    if (currentArguments.get(param_index) instanceof ArrayLiteralNode) {
+                        parameter_arrays[1] = (ArrayLiteralNode) currentArguments.get(param_index);
+                    } else if (currentArguments.get(param_index) instanceof ReferenceNode) {
+                        String param_name = ((ReferenceNode) currentArguments.get(param_index)).name;
+                        parameter_arrays[1] = (ArrayLiteralNode) ((VarDeclarationNode) (curr_scope.declarations.get(param_name))).initializer;
+                    }
+                }
+                //parameter_names.add(p.name);
+                param_index++;
+            }
+        }
+        if (currFunction == null){
+            currFunction=(FunDeclarationNode) curr_scope.declarations.get("print");
+        }
+        ArrayLiteralNode left_arr =  parameter_arrays[0];//(ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(left_name)).initializer);
+        ArrayLiteralNode right_arr = parameter_arrays[1];//(ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(right_name)).initializer);
+        if (left_arr == null && right_arr == null){
+            left_arr=(ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(left_name)).initializer);
+            right_arr=(ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(right_name)).initializer);
+        }
         //TODO check span
 
         //result computation
@@ -358,7 +398,6 @@ public final class Interpreter
         }
 
         Object result;
-        System.out.println(node.operator);
         if (floating)
             switch (node.operator) {
                 case MULTIPLY:      return fleft *  fright;
@@ -535,6 +574,10 @@ public final class Interpreter
 
     private Object funCall (FunCallNode node)
     {
+        currentFunctionName=node.function.contents();
+        currentArguments =node.arguments;
+        //reactor.set(node,"scope",reactor.get(node,"scope"));
+        //System.out.println(((Scope)(reactor.get(node,"scope")).);
         Object decl = get(node.function);
         node.arguments.forEach(this::run);
         Object[] args = map(node.arguments, new Object[0], visitor);

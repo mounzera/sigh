@@ -129,7 +129,7 @@ var b: Int =2
 var res2 : Int = a+b*/
 
 
-//Test of the return stmt with template -> semantic working, not interpretor
+//Test of the return stmt with template
 /*template<typename T, typename T1>
 fun ret(a: T, c: T1): T{
     var b: String = "hey"
@@ -137,13 +137,21 @@ fun ret(a: T, c: T1): T{
 }
 ret<Int, String>(2, "hey")*/
 
+//return used with var decl afterwards
+/*template<typename T, typename T1>
+fun ret(a: T): T{
+    var test: T1 = a + 1
+    return test
+}
+ret<Int, Int>(2)*/
+//var res2: String = ret<String>("hey")
 
 //Test of if stmt with template
 /*template<typename T>
 fun cond(a: T){
-    /*if(a > 6){
+    if(a + 1 > 6){
         print(a)
-    }*/
+    }
 
     if(a > 6){
         print("hey")
@@ -169,3 +177,14 @@ loop<Float>(4.7)*/
 }
 print(test("2"))
 test("3")*/
+
+// test return with var decl outside of fun -> not working
+/*template<typename T>
+fun loop(a: T): T{
+    while(a < 8){
+        print(a)
+        a = a + 1
+    }
+    return a
+}
+var res : Int = loop<Int>(5)*/

@@ -18,7 +18,7 @@ Problemes:
 - Interpretor should return the right type
 - assignement should not be template (do the same as in binary operator) -> done 
 - var declaration should not be template (do the same as in binary operator) -> done
-- field declaration should not be template (do the same as in binary operator)
+- field declaration should not be template (do the same as in binary operator) -> to check
 - if/while statement should not be template (do the same as in binary operator) -> done
 - Division of 2 int casted to float does not give the right anwser -> present in the basic language
 - two func call with different type could crash if using different semantic. If there is a + expr, it will set the 

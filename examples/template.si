@@ -135,7 +135,7 @@ fun ret(a: T, c: T1): T{
     var b: String = "hey"
     return a + 1
 }
-ret<Int, String>(2, "hey")*/
+var tes : Int = ret<Int, String>(2, "hey")*/
 
 
 //Test of if stmt with template
@@ -143,7 +143,7 @@ ret<Int, String>(2, "hey")*/
 fun cond(a: T){
     if(a + 1 > 6){
         print(a)
-    }*/
+    }
 
     if(a > 6){
         print("hey")

@@ -504,11 +504,13 @@ public final class SemanticAnalysis
             }else if (possible_array instanceof ReferenceNode){
                 String param_name = ((ReferenceNode) possible_array).name;
                 VarDeclarationNode array_decl = (VarDeclarationNode) (scope.declarations.get(param_name));
-                if (array_decl.initializer instanceof ArrayLiteralNode){
-                    if (local_param_arrays == null){
-                        local_param_arrays = new HashMap<>();
+                if (array_decl != null){
+                    if (array_decl.initializer instanceof ArrayLiteralNode){
+                        if (local_param_arrays == null){
+                            local_param_arrays = new HashMap<>();
+                        }
+                        local_param_arrays.put(param_names.get(param_index),(ArrayLiteralNode) array_decl.initializer);
                     }
-                    local_param_arrays.put(param_names.get(param_index),(ArrayLiteralNode) array_decl.initializer);
                 }
             }
             param_index++;
@@ -611,11 +613,14 @@ public final class SemanticAnalysis
                 r.set(0, funType.returnType);
                 Type[] params = funType.paramTypes;
                 Type[] paramsToChange = funType.changingParamTypes;
+                System.out.println(Arrays.toString(params) + " " + TemplateType.INSTANCE.templateList);
+
                 int idx = node.arguments.size()+1;
                 int templateNameIdx = 0;
                 for (int i = 0; i<params.length; i++){
                     if (params[i] instanceof TemplateType){
                         String paramName = ((TemplateType) params[i]).getParamName(node.function.contents(), templateNameIdx);
+                        System.out.println(templateNameIdx + " " + ((TemplateType) params[i]).templateList);
                         Type actualType = templateParametersDictionnary.get(paramName);
                         templateNameIdx++;
                         paramsToChange[i] = actualType;
@@ -630,6 +635,7 @@ public final class SemanticAnalysis
 
                     }
                 }
+                //TemplateType.INSTANCE.templateList = new HashMap<>();
                 List<ExpressionNode> args = node.arguments;
                 List<TypeNode> templateArgs = node.templateArgs;
                 if (params.length != args.size())
@@ -709,6 +715,10 @@ public final class SemanticAnalysis
                         arrayArithmetic(r,node,left,right,node.array_operator);
                 }else{
                     List<Type> typesToSet = new ArrayList<>();
+                    if (globalTypeDictionary.size() == 0){
+                        r.set(0, typesToSet);
+                        return;
+                    }
                     for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
                         HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
                         left = leftList != null ? leftList.get(i): left;
@@ -1097,6 +1107,8 @@ public final class SemanticAnalysis
                 String templateFromVarLeft = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.left.contents()): null;
                 String templateFromVarRight = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.right.contents()): null;
                 if (templateFromVarRight != null || templateFromVarLeft != null|| rightList != null){
+                    if (globalTypeDictionary.size() == 0)
+                        return;
                     for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
                         HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
                         right = rightList != null ? rightList.get(i): right;
@@ -1308,6 +1320,8 @@ public final class SemanticAnalysis
                     funName = ((FunCallNode) node.initializer).function.contents();
                 }
                 if (templateFromVarRight != null || templateFromVarLeft != null || actualList != null){
+                    if (globalTypeDictionary.size() == 0)
+                        return;
                     if(node.initializer instanceof FunCallNode){
                         int iter = returnCounterFunction.get(funName);
                         actual = returnTemplateDic.get(funName).get(iter);
@@ -1484,6 +1498,8 @@ public final class SemanticAnalysis
                     type = r.get(0);
                 String templateFromVar = scopeFunc != null && node.condition.contents().length() == 3 ? variableToTemplate.get(scopeFunc.name).get(node.condition.contents().substring(1,2)): null;
                 if (templateFromVar != null || typeList != null){
+                    if (globalTypeDictionary.size() == 0)
+                        return;
                     for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
                         HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
                         type = typeList != null? typeList.get(i): type;
@@ -1519,7 +1535,9 @@ public final class SemanticAnalysis
                 else
                     type = r.get(0);
                 String templateFromVar = scopeFunc != null && node.condition.contents().length() == 3 ? variableToTemplate.get(scopeFunc.name).get(node.condition.contents().substring(1,2)): null;
-                if (templateFromVar != null){
+                if (templateFromVar != null || typeList != null){
+                    if(globalTypeDictionary.size() == 0)
+                        return;
                     for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
                         HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
                         type = typeList != null? typeList.get(i): type;
@@ -1574,6 +1592,8 @@ public final class SemanticAnalysis
                     if (formal instanceof VoidType)
                         r.error("Return with value in a Void function.", node);
                     else if (templateFromVarRight != null || templateFromVarLeft != null || actualList != null){
+                        if(globalTypeDictionary.size() == 0)
+                            return;
                         for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
                             HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
                             actual = actualList != null? actualList.get(i): actual;

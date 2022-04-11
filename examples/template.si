@@ -163,9 +163,22 @@ fun loop(a: T){
 loop<Int>(5)
 loop<Float>(4.7)*/
 
-
 /*fun test(a: String): String{
     return a
 }
 print(test("2"))
 test("3")*/
+/*template<typename T2>
+fun f(test: T2): T2{
+    return test
+}
+
+f<Int>(12)
+
+template<typename T2>
+fun f2(test: T2): T2{
+    return test
+}
+
+f2<String>(12)*/
+

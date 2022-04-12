@@ -613,14 +613,11 @@ public final class SemanticAnalysis
                 r.set(0, funType.returnType);
                 Type[] params = funType.paramTypes;
                 Type[] paramsToChange = funType.changingParamTypes;
-                System.out.println(Arrays.toString(params) + " " + TemplateType.INSTANCE.templateList);
-
                 int idx = node.arguments.size()+1;
                 int templateNameIdx = 0;
                 for (int i = 0; i<params.length; i++){
                     if (params[i] instanceof TemplateType){
                         String paramName = ((TemplateType) params[i]).getParamName(node.function.contents(), templateNameIdx);
-                        System.out.println(templateNameIdx + " " + ((TemplateType) params[i]).templateList);
                         Type actualType = templateParametersDictionnary.get(paramName);
                         templateNameIdx++;
                         paramsToChange[i] = actualType;
@@ -1436,6 +1433,17 @@ public final class SemanticAnalysis
         R.rule(node, "type")
             .using(dependencies)
             .by (r -> {
+                if (node.templateParameters != null){
+                    for (TemplateParameterNode templateParam : node.templateParameters){
+                        String[] l = {"Int", "Float", "String", "Bool","Int[]", "Float[]", "String[]", "Bool[]", "Template", "Template[]"};
+                        List<String> allowedTypes = new ArrayList<>(Arrays.asList(l));
+                        String paramTypeName = templateParam.name;
+                        if (!(paramTypeName.equals("T") || paramTypeName.charAt(0) == ('T') && Character.isDigit(paramTypeName.charAt(1))) && !allowedTypes.contains(paramTypeName)){
+                            r.error(paramTypeName + " is not an allowed name for template", node);
+                            return;
+                        }
+                    }
+                }
                 for (ParameterNode param : node.parameters) {
                     String paramTypeName = param.type.contents();
                     if (paramTypeName.contains("[")){

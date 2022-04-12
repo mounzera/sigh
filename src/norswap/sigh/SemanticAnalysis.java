@@ -642,13 +642,28 @@ public final class SemanticAnalysis
 
                 int checkedArgs = Math.min(params.length, args.size());
                 for (int i = 0; i < checkedArgs; ++i) {
-                    Type argType = r.get(i + 1);
+                    List<Type> argsType = null;
+                    Type argType = null;
+                    if(r.get(i+1) instanceof ArrayList)
+                        argsType = r.get(i+1);
+                    else
+                        argType = r.get(i + 1);
                     Type paramType = paramsToChange[i];
-                    if (!isAssignableTo(argType, paramType) && !(argType instanceof TemplateType))
-                        r.errorFor(format(
-                            "incompatible argument provided for argument %d: expected %s but got %s",
-                            i, paramType, argType),
-                            node.arguments.get(i));
+                    if (argsType != null){
+                        for (Type arg : argsType ){
+                            if (!isAssignableTo(arg, paramType) && !(arg instanceof TemplateType))
+                                r.errorFor(format(
+                                    "incompatible argument provided for argument %d: expected %s but got %s",
+                                    i, paramType, arg),
+                                    node.arguments.get(i));
+                        }
+                    }else{
+                        if (!isAssignableTo(argType, paramType) && !(argType instanceof TemplateType))
+                            r.errorFor(format(
+                                "incompatible argument provided for argument %d: expected %s but got %s",
+                                i, paramType, argType),
+                                node.arguments.get(i));
+                    }
                 }
             });
     }
@@ -1104,8 +1119,10 @@ public final class SemanticAnalysis
                 String templateFromVarLeft = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.left.contents()): null;
                 String templateFromVarRight = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.right.contents()): null;
                 if (templateFromVarRight != null || templateFromVarLeft != null|| rightList != null){
-                    if (globalTypeDictionary.size() == 0)
+                    if (globalTypeDictionary.size() == 0){
+                        r.set(0, left);
                         return;
+                    }
                     for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
                         HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
                         right = rightList != null ? rightList.get(i): right;
@@ -1284,13 +1301,17 @@ public final class SemanticAnalysis
         this.inferenceContext = node;
 
         final FunDeclarationNode scopeFunc = currentFunction();
-        /*String paramTypeName = node.type.contents();
-        System.out.println(node.name());
+        String paramTypeName = node.type.contents();
         if ((paramTypeName.equals("T") || (paramTypeName.charAt(0) == ('T') && Character.isDigit(paramTypeName.charAt(1)))) && scopeFunc != null) {
-            HashMap<String, String> temp = new HashMap<>();
-            temp.put(node.name, node.type.contents());
-            variableToTemplate.put(scopeFunc.name, temp);
-        }*/ // TODO when var is declared with template in fun add it to variable template to be able to recognize it
+            if(variableToTemplate.containsKey(scopeFunc.name)){
+                HashMap<String, String> temp = variableToTemplate.get(scopeFunc.name);
+                temp.put(node.name, node.type.contents());
+            }else{
+                HashMap<String, String> temp = new HashMap<>();
+                temp.put(node.name, node.type.contents());
+                variableToTemplate.put(scopeFunc.name, temp);
+            }
+        } // TODO when var is declared with template in fun add it to variable template to be able to recognize it -> done but not checked !
 
         scope.declare(node.name, node);
         R.set(node, "scope", scope);
@@ -1330,6 +1351,7 @@ public final class SemanticAnalysis
                                 node.name, expected, actual),
                                 node.initializer);
                     }else{
+
                         for (int i = 0; i < globalTypeDictionary.get(funName).size(); i++) {
                             HashMap<String, Type> localHashmap = globalTypeDictionary.get(funName).get(i);
                             actual = (actualList != null && actualList.size()!=0)? actualList.get(i): actual;

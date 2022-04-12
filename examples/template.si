@@ -174,11 +174,15 @@ fun f(test: T2): T2{
 }
 
 f<Int>(12)
-
-template<typename T2>
-fun f2(test: T2): T2{
-    return test
+*/
+template<typename T>
+fun f2(test: T): T{
+    var a : T = test
+    a = test
+    return a
 }
 
-f2<String>(12)*/
+/*f2<Int>(12)
+f2<String>("hey")
+f2<Float>(2.0)*/
 

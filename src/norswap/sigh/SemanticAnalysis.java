@@ -503,7 +503,10 @@ public final class SemanticAnalysis
                 local_param_arrays.put(param_names.get(param_index),(ArrayLiteralNode) possible_array);
             }else if (possible_array instanceof ReferenceNode){
                 String param_name = ((ReferenceNode) possible_array).name;
-                VarDeclarationNode array_decl = (VarDeclarationNode) (scope.declarations.get(param_name));
+                VarDeclarationNode array_decl = null;
+                if(scope.declarations.get(param_name) instanceof  VarDeclarationNode){
+                    array_decl =(VarDeclarationNode) (scope.declarations.get(param_name));
+                }
                 if (array_decl != null){
                     if (array_decl.initializer instanceof ArrayLiteralNode){
                         if (local_param_arrays == null){
@@ -1132,8 +1135,9 @@ public final class SemanticAnalysis
                         if (node.left instanceof ReferenceNode
                             ||  node.left instanceof FieldAccessNode
                             ||  node.left instanceof ArrayAccessNode) {
-                            if (!isAssignableTo(right, left))
+                            if (!isAssignableTo(right, left)){
                                 r.errorFor(format("Trying to assign a value of type %s to a non-compatible lvalue of type %s.", right, left), node);
+                            }
                         }
                         else
                             r.errorFor("Trying to assign to an non-lvalue expression.", node.left);
@@ -1144,8 +1148,9 @@ public final class SemanticAnalysis
                     if (node.left instanceof ReferenceNode
                         ||  node.left instanceof FieldAccessNode
                         ||  node.left instanceof ArrayAccessNode) {
-                        if (!isAssignableTo(right, left))
+                        if (!isAssignableTo(right, left)){
                             r.errorFor(format("Trying to assign a value of type %s to a non-compatible lvalue of type %s.", right, left), node);
+                        }
                     }
                     else
                         r.errorFor("Trying to assign to an non-lvalue expression.", node.left);
@@ -1225,9 +1230,13 @@ public final class SemanticAnalysis
         if (a instanceof IntType && b instanceof FloatType)
             return true;
 
-        if (a instanceof ArrayType)
+        if (a instanceof ArrayType){
+            if (b.name().equals("Template[]")){
+                return true;
+            }
             return b instanceof ArrayType
                 && isAssignableTo(((ArrayType)a).componentType, ((ArrayType)b).componentType);
+        }
         return a instanceof NullType && b.isReference() || a.equals(b);
     }
 
@@ -1341,6 +1350,10 @@ public final class SemanticAnalysis
                     if (globalTypeDictionary.size() == 0)
                         return;
                     if(node.initializer instanceof FunCallNode){
+                        //TODO OK ou pas ?
+                        if (returnCounterFunction.size()==0){
+                            return;
+                        }
                         int iter = returnCounterFunction.get(funName);
                         actual = returnTemplateDic.get(funName).get(iter);
                         expected = templateFromVarLeft == null ? expected : globalTypeDictionary.get(funName).get(iter).get(templateFromVarLeft);

@@ -31,6 +31,10 @@ type of the last call and thus only this type will be used in the assignement ch
 - operation between full and empty array is empty -> done
 - check assignment of operation between arrays
 - assign template array to normal array ???
+- multiple operations
+- call in a print
+- clean the code
+-tests
 
 Question:
 - Working with struct ??

@@ -321,7 +321,9 @@ public final class Interpreter
             }
         }
         if (currFunction == null){
+            if (curr_scope.declarations.get("print") instanceof  FunDeclarationNode){
             currFunction=(FunDeclarationNode) curr_scope.declarations.get("print");
+            }
         }
         ArrayLiteralNode left_arr =  parameter_arrays[0];//(ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(left_name)).initializer);
         ArrayLiteralNode right_arr = parameter_arrays[1];//(ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(right_name)).initializer);

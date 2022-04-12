@@ -91,75 +91,17 @@ fun assign(a: T, b: T1){
 assign<Int, Float>(2, 3.0)
 assign<Float, Int>(4.0, 5)*/
 
-//Template array test
-/*var arr10 : Template[] = [1.0, "Hello"]
-var arr20 : Template[]= [2, " everybody"]
-var arr30: Template[]=arr10@(+)arr20*/
-//print("" + arr10)
-//print("" + arr30)
-//Template array assignment test
-//print("" +arr20)
-/*arr10=["hello"]
-print("10 " + arr10)*/
-//print("" + arr30)
-/*arr30=arr10
-print("30 " + arr30)
-var arr40: Template[] = arr20
-print("" + arr20)*/
-//var arr50: String[] = arr10 //NOt working
-
-//Template array assignment and operations with variables
-/*var a: Int = 1
-var b: String ="b"
-var d: Float = 3
-var e: String=" e"
-var c: Template[] = [a,b]
-var f: Template[] = [d,e]
-var g: Template[] = c@(+)f
-print(""+c)
-print(""+f)
-print(""+g)*/
-
-//Template array assignment and operations with variables
-fun f(arg1: Int[], arg2: Int[], arg3:Int[]) : Template[]{
-    var a: Int[] = [3,1,1]
-    var b: Int[] = [4,2,2]
-    var c : Template[] = arg1@(+)arg2
-    print("" +arg1)
-    return c
-}
-
-var a: Int[] = [1,1,1]
-var b: Int[] = [2,2,2]
-var c: Float[] = [1.0,2.0,3.0]
-//print(""+a)
-var d: Template[] = f([1,1,1],[2,2,2],a)
-var e: Template[] = f([2,1,1],[2,2,2],a)
-print(" "+d)
-//print("" +f(c,a,a))
-
-//Template array assignment and operations with template variables
-/*template<typename T, typename T1>
-fun f(arg1: T[], arg2: T1[], arg3:Int[]) : Template[]{
-    var a: Int[] = [3,1,1]
-    var b: Int[] = [4,2,2]
-    var c : Template[] = arg1@(+)arg2
-    print("" +arg1)
-    return c
-}
-
-var a: Int[] = [1,1,1]
-var b: Int[] = [2,2,2]
-var c: Float[] = [1.0,2.0,3.0]
-//print(""+a)
-var d: Template[] = f<Int, Int>([1,1,1],[2,2,2],a)
-var e: Template[] = f<Int, Int>([2,1,1],[2,2,2],a)
-print(" "+d)
-print("" +f<Float, Int>(c,a,a))*/
+/*var arr : Template[] = [5, "Marie"]
+var arr2 : Template[]= [5.0, "Hello"]
+var arr3: Template[]=arr@(+)arr2
+print("" + arr3)
+print("" +arr2)
+/*var arr: Int[] = [1]
+print("" + arr)
+arr=[3]
+print("" + arr)*/
 
 
-
-//Array operations tests
 /*var arrInt: Float[] = [5.0,2]
 var arrInt2: Float[] = [2.0,2]
 var arr3: Bool[] = [true]

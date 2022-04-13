@@ -356,7 +356,8 @@ public final class Interpreter
                         if (array_decl.initializer instanceof FunCallNode){
                             parameter_arrays[1] = (ArrayLiteralNode) currentFunctionValue.value;
                         }
-                        else {
+                        else {                            System.out.println("here2 "+array_decl.initializer);
+
                             parameter_arrays[1] = (ArrayLiteralNode) (array_decl.initializer);
                         }
                     }
@@ -378,7 +379,10 @@ public final class Interpreter
         }
         if (node.right instanceof ReferenceNode) {
             right_arr = parameter_arrays[1];//(ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(right_name)).initializer);
+            System.out.println(right_arr);
             if (right_arr == null) { // arrays is a declaration
+                System.out.println("here");
+
                 right_arr = (ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(right_name)).initializer);
             }
         }
@@ -386,6 +390,7 @@ public final class Interpreter
         //TODO check span
 
         //type check
+        System.out.println(node.right);
         if (left_arr.components.size() != right_arr.components.size()){
 
             throw  new Error(format(" Operation between arrays of different length: %s (%d) and %s (%d)",left_arr.components.toString(), left_arr.components.size(), right_arr.components.toString(),right_arr.components.size()));

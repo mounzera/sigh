@@ -235,8 +235,3 @@ print(""+e)*/
 /*var arrInt: Float[] = [5.0,2]
 var arrInt2: Float[] = [2.0,2]
 var arr3: Bool[] = [true]*/
-
-//tests
-//var str: String = null; return print(str + 1)
-//print(""+ (true  && true))
-//print(""+(true + 2))

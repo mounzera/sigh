@@ -215,10 +215,10 @@ public final class Interpreter
         Type rightType = reactor.get(node.right, "type");*/
 
         // Cases where both operands should not be evaluated.
-        switch (node.operator) {
+        /*switch (node.operator) {
             case OR:  return booleanOp(node, false);
             case AND: return booleanOp(node, true);
-        }
+        }*/
         Object left  = get(node.left);
         Object right = get(node.right);
         /*try{

@@ -117,9 +117,9 @@ public final class TemplateInterpreterTests extends TestFixture {
                 "return add(4, 7)",
             11L);
         check("template <typename T> fun f (x: T) : Int {return 2} ; return f<String> (\"hey\")", 2L);
-        check("template <typename T, typename T1> fun f1 (x: T, y: T1) : T1 {return 2} ; return f1<String, Int> (\"hey\",1)", 2L);
-        check("template <typename T, typename T1> fun f2 (x: T, y: T1) : T1 {return y} ; return f2<String, Int> (\"hey\",2)", 2L);
-        check("template <typename T, typename T1> fun f3 (x: T, y: T1, z:Int) : T {return x} ; return f3<String, Int> (\"hey\",1, 7)", "hey");
+        check("template <typename T, typename T1> fun f (x: T, y: T1) : T {return 2} ; return f<String, Int> (\"hey\",1)", 2L);
+        check("template <typename T, typename T1> fun f (x: T, y: T1) : T {return y} ; return f<String, Int> (\"hey\",2)", 2L);
+        check("template <typename T, typename T1> fun f (x: T, y: T1, z:Int) : T {return x} ; return f<String, Int> (\"hey\",1, 7)", "hey");
 
 
 

@@ -35,8 +35,7 @@ public class ArrayGrammarTests extends AutumnTestFixture {
         rule = grammar.statement;
         System.out.println(new ArrayTypeNode(null,new TemplateTypeNode(null, "Template")).componentType);
         System.out.println(new ArrayLiteralNode(null,asList()));
-        successExpect("var a:Template[]=[]",
-            new VarDeclarationNode(null,"a",new ArrayTypeNode(null,new TemplateTypeNode(null, "Template")),new ArrayLiteralNode(null,asList())));
+        successExpect("var a:Template[]=[]", new VarDeclarationNode(null,"a",new ArrayTypeNode(null,new TemplateTypeNode(null, "Template")),new ArrayLiteralNode(null,asList())));
 
 
 

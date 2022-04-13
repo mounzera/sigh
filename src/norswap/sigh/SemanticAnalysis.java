@@ -949,7 +949,7 @@ public final class SemanticAnalysis
         Boolean left_template = ((ArrayType) left).templateName!=null;
         Boolean right_template = ((ArrayType) right).templateName!=null;
         boolean temp = left_template || right_template;
-        //String fun_name =((ExpressionNode)((FunCallNode )inferenceContext).function).contents();
+        String fun_name =((ExpressionNode)((FunCallNode )inferenceContext).function).contents();
         /*if (!(left_template && right_template)){
             System.out.println("not");
             System.out.println(((ArrayType) left).templateName);
@@ -1259,7 +1259,6 @@ public final class SemanticAnalysis
             return b instanceof ArrayType
                 && isAssignableTo(((ArrayType)a).componentType, ((ArrayType)b).componentType);
         }
-        System.out.println(a +" " +b);
         return a instanceof NullType && b.isReference() || a.equals(b);
     }
 
@@ -1331,7 +1330,7 @@ public final class SemanticAnalysis
     private void varDecl (VarDeclarationNode node)
     {
         this.inferenceContext = node;
-        System.out.println("var decl "+node);
+
         final FunDeclarationNode scopeFunc = currentFunction();
         String paramTypeName = node.type.contents();
         if ((paramTypeName.equals("T") || (paramTypeName.charAt(0) == ('T') && Character.isDigit(paramTypeName.charAt(1)))) && scopeFunc != null) {
@@ -1394,7 +1393,6 @@ public final class SemanticAnalysis
                             actual = (actualList != null && actualList.size()!=0)? actualList.get(i): actual;
                             expected = templateFromVarLeft == null ? expected : localHashmap.get(templateFromVarLeft);
                             actual = templateFromVarRight == null ? actual : localHashmap.get(templateFromVarRight);
-                            System.out.println("erro "+ node);
                             if (!isAssignableTo(actual, expected)) {
                                 r.error(format(
                                         "incompatible initializer type provided for variable `%s`: expected %s but got %s",

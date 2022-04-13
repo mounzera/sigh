@@ -203,23 +203,22 @@ print(""+f)
 print(""+g)*/
 
 //Template array assignment and operations with templates variables
-template<typename T, typename T1>
-fun f(arg1: T1[], arg2: T[], arg3:Int[]) : Template[]{
+/*template<typename T, typename T1>
+fun f(arg1: Template[], arg2: T[], arg3:Int[]) : Template[]{
     var c : Template[] = arg1@(+)arg3//@(+)arg2
     //print("" +arg2)
     return c
 }
 
-var a: Int[] = [1,1,1]//"hello" ]
-var b: Int[] = [2,2,2]//"hi"]
-var c: Float[] = [1.0,2.0,2.0]//"bye"]
+var a: Template[] = [1,1,1]//"hello" ]
+var b: Template[] = [2,2,2]//"hi"]
+var c: Template[] = [1.0,2.0,2.0]//"bye"]
 var g: Int[] = [2,3,4]
-print(""+a)
-print(""+c)
-var d: Template[] = f<Int, Int>(b,g,a) //[3,3,3]
-//var e: Template[] = f<Int, Int>(d,[2,2,2],d)
-//print(""+d)
-//print(""+e)
+//print(""+a)
+var d: Template[] = f<Template, Template>(b,c,a) //[3,3,3]
+var e: Template[] = f<Int, Int>(d,[2,2,2],d)
+print(""+d)
+print(""+e)*/
 //var a: Int = (1+2)+3
 //print(""+a)
 //print("" +f<Float[], Int[]>(c,a,b))
@@ -241,6 +240,5 @@ var arr3: Bool[] = [true]*/
 //var str: String = null; return print(str + 1)
 //print(""+ (true  && true))
 //print(""+(true + 2))
-//fun test (x: String):String { return x }
-//print(test("a"))
-var a:Template[]=[]
+fun test (x: String):String { return x }
+print(test("a"))

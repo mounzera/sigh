@@ -20,8 +20,7 @@ public final class VarDeclarationNode extends DeclarationNode
         this.name = Util.cast(name, String.class);
         this.type = Util.cast(type, TypeNode.class);
         this.initializer = Util.cast(initializer, ExpressionNode.class);
-        /*System.out.println(span);
-        System.out.println(this.name);
+        /*System.out.println(this.name);
         System.out.println(this.type);
         System.out.println(this.initializer);*/
     }

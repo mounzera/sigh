@@ -321,7 +321,6 @@ public final class Interpreter
         if (node.right instanceof BinaryExpressionNode){
             right_arr = (ArrayLiteralNode) binaryExpression((BinaryExpressionNode) node.right);
         }
-
         FunDeclarationNode currFunction = null;//(FunDeclarationNode) scope.lookup(currentFunctionName).declaration;//(FunDeclarationNode) curr_scope.declarations.get(currentFunctionName);
         Scope curr_scope =null;//(Scope)reactor.get(scope.declarations.get(left_name),"scope");
         ArrayLiteralNode[] parameter_arrays = new ArrayLiteralNode[2]; //store left and right arrays
@@ -329,7 +328,6 @@ public final class Interpreter
             currFunction = (FunDeclarationNode) scope.lookup(currentFunctionName).declaration;//(FunDeclarationNode) curr_scope.declarations.get(currentFunctionName);
             if (scope.declarations.get(left_name) != null)
                 curr_scope= (Scope) reactor.get(scope.declarations.get(left_name), "scope");
-            System.out.println(curr_scope);
         }
         if (currFunction != null) {
             int param_index = 0;
@@ -339,8 +337,13 @@ public final class Interpreter
                         parameter_arrays[0] = (ArrayLiteralNode) currentArguments.get(param_index);
                     } else if (currentArguments.get(param_index) instanceof ReferenceNode) {
                         String param_name = ((ReferenceNode) currentArguments.get(param_index)).name;
-                        VarDeclarationNode array_decl = (VarDeclarationNode) (curr_scope.declarations.get(param_name));
-                        if (array_decl.initializer instanceof FunCallNode){
+                        VarDeclarationNode array_decl =null;
+                        if (curr_scope==null){
+                            Scope s= ((Scope)reactor.get(currFunction,"scope")).parent;
+                            array_decl = (VarDeclarationNode) s.declarations.get(param_name);
+                        }else {
+                            array_decl = (VarDeclarationNode) (curr_scope.declarations.get(param_name));
+                        }                        if (array_decl.initializer instanceof FunCallNode){
                             parameter_arrays[0] = (ArrayLiteralNode) currentFunctionValue.value;
                         }
                         else {
@@ -354,9 +357,14 @@ public final class Interpreter
                         parameter_arrays[1] = (ArrayLiteralNode) currentArguments.get(param_index);
                     } else if (currentArguments.get(param_index) instanceof ReferenceNode) {
                         String param_name = ((ReferenceNode) currentArguments.get(param_index)).name;
-                        System.out.println(node.right +" "+ node.left + " "+ curr_scope + " " +param_name);
+                        VarDeclarationNode array_decl =null;
+                        if (curr_scope==null){
+                            Scope s= ((Scope)reactor.get(currFunction,"scope")).parent;
+                            array_decl = (VarDeclarationNode) s.declarations.get(param_name);
+                        }else {
+                            array_decl = (VarDeclarationNode) (curr_scope.declarations.get(param_name));
+                        }
 
-                        VarDeclarationNode array_decl = (VarDeclarationNode) (curr_scope.declarations.get(param_name));
                         if (array_decl.initializer instanceof FunCallNode){
                             parameter_arrays[1] = (ArrayLiteralNode) currentFunctionValue.value;
                         }
@@ -373,7 +381,6 @@ public final class Interpreter
             currFunction=(FunDeclarationNode) curr_scope.declarations.get("print");
             }
         }*/
-        System.out.println("scope "+scope+ right_name);
         if (node.left instanceof ReferenceNode){
             left_arr = parameter_arrays[0];//(ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(left_name)).initializer);
 

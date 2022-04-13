@@ -203,9 +203,9 @@ print(""+f)
 print(""+g)*/
 
 //Template array assignment and operations with templates variables
-template<typename T, typename T1>
+/*template<typename T, typename T1>
 fun f(arg1: Template[], arg2: T[], arg3:Int[]) : Template[]{
-    var c : Template[] = arg1@(+)arg3//@(+)arg2
+    var c : Template[] = arg1@(+)arg3@(+)arg2
     //print("" +arg2)
     return c
 }
@@ -215,10 +215,10 @@ var b: Template[] = [2,2,2]//"hi"]
 var c: Template[] = [1.0,2.0,2.0]//"bye"]
 var g: Int[] = [2,3,4]
 //print(""+a)
-var d: Template[] = f<Template, Template>(b,c,a) //[3,3,3]
-//var e: Template[] = f<Int, Int>(d,[2,2,2],d)
+var d: Template[] = f<Template, Template>(c,b,a) //[3,3,3]
+var e: Template[] = f<Int, Int>(d,[2,2,2],d)
 print(""+d)
-//print(""+e)
+print(""+e)*/
 //var a: Int = (1+2)+3
 //print(""+a)
 //print("" +f<Float[], Int[]>(c,a,b))

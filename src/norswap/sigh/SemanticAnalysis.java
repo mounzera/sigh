@@ -820,6 +820,18 @@ public final class SemanticAnalysis
         //List left_array = left_node.components;
         //IntLiteralNode right_node = (IntLiteralNode) ((VarDeclarationNode) (((Scope) R.get(node.right,"scope")).declarations.get(right_name))).initializer;
         //List right_array = right_node.components;
+        if (left instanceof IntType)
+            if (right instanceof IntType)
+                r.set(0, IntType.INSTANCE);
+            else if (right instanceof FloatType)
+                r.set(0, FloatType.INSTANCE);
+            else
+                r.error(arithmeticError(node, "Int", right), node);
+        else if (left instanceof FloatType)
+            if (right instanceof IntType || right instanceof FloatType)
+                r.set(0, FloatType.INSTANCE);
+            else
+                r.error(arithmeticError(node, left, right), node);
         }else{
             System.out.println("else");
             if (left instanceof IntType)

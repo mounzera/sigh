@@ -211,7 +211,6 @@ public final class Interpreter
 
     //Binary expression for non array types
     private Object literalBinaryExpression(BinaryExpressionNode node){
-        System.out.println("literal binary "+node);
         /*Type leftType  = reactor.get(node.left, "type");
         Type rightType = reactor.get(node.right, "type");*/
 
@@ -293,7 +292,6 @@ public final class Interpreter
         //Object[] left  = (Object[]) get(node.left);
         //Object right = (Object[]) get(node.right);
 
-        System.out.println("array binary "+node + get(node.right));
         // Array Binary expression
         Scope scope = reactor.get(node.left, "scope");
         /*String left_name = ((ReferenceNode) node.left).name;
@@ -323,10 +321,14 @@ public final class Interpreter
         if (node.right instanceof BinaryExpressionNode){
             right_arr = (ArrayLiteralNode) binaryExpression((BinaryExpressionNode) node.right);
         }
-
-        FunDeclarationNode currFunction = (FunDeclarationNode) scope.lookup(currentFunctionName).declaration;//(FunDeclarationNode) curr_scope.declarations.get(currentFunctionName);
-        Scope curr_scope =(Scope)reactor.get(scope.declarations.get(left_name),"scope");
+        FunDeclarationNode currFunction = null;
+        Scope curr_scope = null;
         ArrayLiteralNode[] parameter_arrays = new ArrayLiteralNode[2]; //store left and right arrays
+        if (scope != null && currentFunctionName != null) {
+            currFunction = (FunDeclarationNode) scope.lookup(currentFunctionName).declaration;//(FunDeclarationNode) curr_scope.declarations.get(currentFunctionName);
+            if (scope.declarations.get(left_name) != null)
+                curr_scope= (Scope) reactor.get(scope.declarations.get(left_name), "scope");
+        }
         if (currFunction != null) {
             int param_index = 0;
             for (ParameterNode p : currFunction.parameters) {
@@ -335,8 +337,6 @@ public final class Interpreter
                         parameter_arrays[0] = (ArrayLiteralNode) currentArguments.get(param_index);
                     } else if (currentArguments.get(param_index) instanceof ReferenceNode) {
                         String param_name = ((ReferenceNode) currentArguments.get(param_index)).name;
-                        System.out.println((VarDeclarationNode) (curr_scope.declarations.get(param_name)));
-                        System.out.println((Scope) reactor.get((VarDeclarationNode) (curr_scope.declarations.get(param_name)),"scope"));
                         VarDeclarationNode array_decl = (VarDeclarationNode) (curr_scope.declarations.get(param_name));
                         if (array_decl.initializer instanceof FunCallNode){
                             parameter_arrays[0] = (ArrayLiteralNode) currentFunctionValue.value;
@@ -502,7 +502,6 @@ public final class Interpreter
 
     public Object assignment (AssignmentNode node)
     {
-        System.out.println("assignment" + node);
         if (node.left instanceof ReferenceNode) {
             Scope scope = reactor.get(node.left, "scope");
             String name = ((ReferenceNode) node.left).name;
@@ -641,15 +640,12 @@ public final class Interpreter
 
     private Object funCall (FunCallNode node)
     {
-        System.out.println("funcall "+node);
         currentFunctionName=node.function.contents();
         currentArguments =node.arguments;
         //reactor.set(node,"scope",reactor.get(node,"scope"));
-        //System.out.println(((Scope)(reactor.get(node,"scope")).);
         Object decl = get(node.function);
         node.arguments.forEach(this::run);
         Object[] args = map(node.arguments, new Object[0], visitor);
-        System.out.println("decl "+ storage);
 
         if (decl == Null.INSTANCE)
             throw new PassthroughException(new NullPointerException("calling a null function"));
@@ -663,7 +659,6 @@ public final class Interpreter
         ScopeStorage oldStorage = storage;
         Scope scope = reactor.get(decl, "scope");
         storage = new ScopeStorage(scope, storage);
-        System.out.println("context "+(String)reactor.get(node,"context"));
 
         FunDeclarationNode funDecl = (FunDeclarationNode) decl;
         coIterate(args, funDecl.parameters,
@@ -758,7 +753,6 @@ public final class Interpreter
     // ---------------------------------------------------------------------------------------------
 
     private Void returnStmt (ReturnNode node) {
-        System.out.println("return node "+node + currentFunctionName);
         Return r = new Return(node.expression == null ? null : get(node.expression));
         currentFunctionValue = r;
         throw r ;
@@ -768,7 +762,6 @@ public final class Interpreter
 
     private Void varDecl (VarDeclarationNode node)
     {
-        System.out.println("var declaration" + node.initializer);
         Scope scope = reactor.get(node, "scope");
         assign(scope, node.name, get(node.initializer), reactor.get(node, "type"));
         reactor.set(node.initializer,"context",node.name);

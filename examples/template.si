@@ -175,8 +175,8 @@ test("3")*/
 /*var arr10 : Template[] = [1.0, "Hello"]
 var arr20 : Template[]= [2, " everybody"]
 var arr30: Template[]=arr10@(+)arr20
-print("" + arr10)
-print("" + arr30)
+print("111" + arr10)
+print("222" + arr30)
 
 //Template array assignment test
 print("" + arr10)
@@ -186,8 +186,9 @@ print("10 " + arr10)
 arr30=arr10
 print("30 " + arr30)
 var arr40: Template[] = arr20
-print("" + arr20)*/
+print("" + arr20)
 //var arr50: String[] = arr10 //NOt working
+//print("" + arr50)*/
 
 //Template array assignment and operations with variables
 /*var a: Int = 1
@@ -202,7 +203,7 @@ print(""+f)
 print(""+g)*/
 
 //Template array assignment and operations with templates variables
-template<typename T, typename T1>
+/*template<typename T, typename T1>
 fun f(arg1: Template[], arg2: T[], arg3:Int[]) : Template[]{
     var c : Template[] = arg1@(+)arg3//@(+)arg2
     //print("" +arg2)
@@ -217,12 +218,12 @@ var g: Int[] = [2,3,4]
 var d: Template[] = f<Template, Template>(b,c,a) //[3,3,3]
 var e: Template[] = f<Int, Int>(d,[2,2,2],d)
 print(""+d)
-print(""+e)
+print(""+e)*/
 //var a: Int = (1+2)+3
 //print(""+a)
 //print("" +f<Float[], Int[]>(c,a,b))
 
-fun test (x: String):String { return x+" a" }
+//fun test (x: String):String { return x+" a" }
 //print(test("a"))
 //var x : String = test("a")
 //var y: String = test(x)

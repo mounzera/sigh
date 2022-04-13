@@ -699,9 +699,6 @@ public final class SemanticAnalysis
     {
 
         final FunDeclarationNode scopeFunc = currentFunction();
-        //System.out.println("second" +scope.parent);
-        //System.out.println(scope.lookup());
-        //System.out.println("last" + (Scope)R.get(scopeFunc,"scope"));
         R.set(node,"scope",scope);
         R.rule(node, "type")
             .using(node.left.attr("type"), node.right.attr("type"))
@@ -820,9 +817,6 @@ public final class SemanticAnalysis
         //List left_array = left_node.components;
         //IntLiteralNode right_node = (IntLiteralNode) ((VarDeclarationNode) (((Scope) R.get(node.right,"scope")).declarations.get(right_name))).initializer;
         //List right_array = right_node.components;
-        //System.out.println("arr ar " +left_name +" " + left_node);
-        //System.out.println("arr ar " +right_name +" " + right_node);
-        //System.out.println("bin ar");
         if (left instanceof IntType)
             if (right instanceof IntType)
                 r.set(0, IntType.INSTANCE);
@@ -946,12 +940,7 @@ public final class SemanticAnalysis
     private void arrayArithmetic (Rule r, BinaryExpressionNode node, Type left, Type right,BinaryOperator op)
     {
         Scope curr_scope = R.get(inferenceContext,"scope");
-        //System.out.println(scope.lookup());
-        //r.set(node,"scope",curr_scope);
-
         //R.set(node,"scope",curr_scope);
-        //System.out.println(((ReferenceNode) node.left).funName +" "+node.right);
-        //System.out.println(((VarDeclarationNode)curr_scope.declarations.get("a")).initializer);
         if (!(left instanceof ArrayType)|| !(right instanceof ArrayType)){
             r.error("Trying to use @ between non ArrayTypes",node);
             return;

@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.lang.String.format;
 import static norswap.sigh.ast.BinaryOperator.*;
 import static norswap.sigh.ast.BinaryOperator.LOWER_EQUAL;
 import static norswap.utils.Util.cast;
@@ -59,6 +60,7 @@ public final class Interpreter
     //Template arrays
     private  String currentFunctionName=null;
     private List<ExpressionNode> currentArguments =null;
+    private Return currentFunctionValue = null;
 
     // ---------------------------------------------------------------------------------------------
 
@@ -152,6 +154,8 @@ public final class Interpreter
     // ---------------------------------------------------------------------------------------------
 
     private Object parenthesized (ParenthesizedNode node) {
+        reactor.set(node,"scope",rootScope);
+
         return get(node.expression);
     }
 
@@ -162,6 +166,7 @@ public final class Interpreter
     }
 
     // ---------------------------------------------------------------------------------------------
+    //Returns an array with the types of the left and right nodes
     private Type[] returnType(BinaryExpressionNode node){
         Type leftType = null;
         Type rightType = null;
@@ -201,10 +206,12 @@ public final class Interpreter
 
     }
     private Boolean isFloat(Type leftType,Type rightType){
-        return leftType instanceof FloatType || rightType instanceof FloatType;
+        return (leftType instanceof FloatType || rightType instanceof FloatType) &&(!(leftType instanceof  StringType) &&!(rightType instanceof  StringType));
     }
 
+    //Binary expression for non array types
     private Object literalBinaryExpression(BinaryExpressionNode node){
+        System.out.println("literal binary "+node);
         /*Type leftType  = reactor.get(node.left, "type");
         Type rightType = reactor.get(node.right, "type");*/
 
@@ -213,7 +220,6 @@ public final class Interpreter
             case OR:  return booleanOp(node, false);
             case AND: return booleanOp(node, true);
         }*/
-
         Object left  = get(node.left);
         Object right = get(node.right);
         /*try{
@@ -284,64 +290,117 @@ public final class Interpreter
         if (!(node.operator.equals(BinaryOperator.ARRAY_OP))){
             return literalBinaryExpression(node);
         }
-        Object[] left  = get(node.left);
-        Object right = get(node.right);
-        //System.out.println("expres "+get(node.left));
+        //Object[] left  = (Object[]) get(node.left);
+        //Object right = (Object[]) get(node.right);
+
+        System.out.println("array binary "+node + get(node.right));
         // Array Binary expression
         Scope scope = reactor.get(node.left, "scope");
-        String left_name = ((ReferenceNode) node.left).name;
-        String right_name =((ReferenceNode) node.right).name;
+        /*String left_name = ((ReferenceNode) node.left).name;
+        String right_name =((ReferenceNode) node.right).name;*/
+        String left_name = null;
+        String right_name = null;
+        if (node.left instanceof ReferenceNode){
+            left_name=((ReferenceNode) node.left).name;
+        }
+        if (node.right instanceof ReferenceNode){
+            right_name=((ReferenceNode) node.right).name;
+        }
 
+        ArrayLiteralNode left_arr = null; // retrieve lesft anr right arrays
+        ArrayLiteralNode right_arr = null;
+        if (node.left instanceof  ParenthesizedNode){
+            ArrayLiteralNode result = (ArrayLiteralNode) binaryExpression((BinaryExpressionNode) ((ParenthesizedNode) node.left).expression);
+            left_arr = result;
+        }
+        if (node.left instanceof BinaryExpressionNode){
+            left_arr = (ArrayLiteralNode) binaryExpression((BinaryExpressionNode) node.left);
+        }
+        if (node.right instanceof  ParenthesizedNode){
+            ArrayLiteralNode result = (ArrayLiteralNode) binaryExpression((BinaryExpressionNode) ((ParenthesizedNode) node.right).expression);
+            right_arr = result;
+        }
+        if (node.right instanceof BinaryExpressionNode){
+            right_arr = (ArrayLiteralNode) binaryExpression((BinaryExpressionNode) node.right);
+        }
+
+        FunDeclarationNode currFunction = (FunDeclarationNode) scope.lookup(currentFunctionName).declaration;//(FunDeclarationNode) curr_scope.declarations.get(currentFunctionName);
         Scope curr_scope =(Scope)reactor.get(scope.declarations.get(left_name),"scope");
-        FunDeclarationNode currFunction =(FunDeclarationNode) curr_scope.declarations.get(currentFunctionName);
-
-
-        ArrayLiteralNode[] parameter_arrays = new ArrayLiteralNode[2];
-        if (currFunction != null        ) {
-            int param_index=0;
+        ArrayLiteralNode[] parameter_arrays = new ArrayLiteralNode[2]; //store left and right arrays
+        if (currFunction != null) {
+            int param_index = 0;
             for (ParameterNode p : currFunction.parameters) {
-                if (p.name.equals(((ReferenceNode) node.left).name)) {
+                if (node.left instanceof  ReferenceNode && p.name.equals(((ReferenceNode) node.left).name)) {
                     if (currentArguments.get(param_index) instanceof ArrayLiteralNode) {
                         parameter_arrays[0] = (ArrayLiteralNode) currentArguments.get(param_index);
                     } else if (currentArguments.get(param_index) instanceof ReferenceNode) {
                         String param_name = ((ReferenceNode) currentArguments.get(param_index)).name;
-                        parameter_arrays[0] = (ArrayLiteralNode) ((VarDeclarationNode) (curr_scope.declarations.get(param_name))).initializer;
-                    }
+                        System.out.println((VarDeclarationNode) (curr_scope.declarations.get(param_name)));
+                        System.out.println((Scope) reactor.get((VarDeclarationNode) (curr_scope.declarations.get(param_name)),"scope"));
+                        VarDeclarationNode array_decl = (VarDeclarationNode) (curr_scope.declarations.get(param_name));
+                        if (array_decl.initializer instanceof FunCallNode){
+                            parameter_arrays[0] = (ArrayLiteralNode) currentFunctionValue.value;
+                        }
+                        else {
+                            parameter_arrays[0] = (ArrayLiteralNode) (array_decl.initializer);
+                        }
+
+                    } else System.out.println("unknown parameter type array operation");
                 }
-                if (p.name.equals(((ReferenceNode) node.right).name)) {
+                if (node.right instanceof ReferenceNode && p.name.equals(((ReferenceNode) node.right).name)) {
                     if (currentArguments.get(param_index) instanceof ArrayLiteralNode) {
                         parameter_arrays[1] = (ArrayLiteralNode) currentArguments.get(param_index);
                     } else if (currentArguments.get(param_index) instanceof ReferenceNode) {
                         String param_name = ((ReferenceNode) currentArguments.get(param_index)).name;
-                        parameter_arrays[1] = (ArrayLiteralNode) ((VarDeclarationNode) (curr_scope.declarations.get(param_name))).initializer;
+                        VarDeclarationNode array_decl = (VarDeclarationNode) (curr_scope.declarations.get(param_name));
+                        if (array_decl.initializer instanceof FunCallNode){
+                            parameter_arrays[1] = (ArrayLiteralNode) currentFunctionValue.value;
+                        }
+                        else {
+                            parameter_arrays[1] = (ArrayLiteralNode) (array_decl.initializer);
+                        }
                     }
                 }
-                //parameter_names.add(p.name);
                 param_index++;
             }
         }
-        if (currFunction == null){
+        /*if (currFunction == null){
             if (curr_scope.declarations.get("print") instanceof  FunDeclarationNode){
             currFunction=(FunDeclarationNode) curr_scope.declarations.get("print");
             }
+        }*/
+        if (node.left instanceof ReferenceNode){
+            left_arr = parameter_arrays[0];//(ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(left_name)).initializer);
+
+            if (left_arr == null) { //array declared not a reference but a declaration
+                left_arr = (ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(left_name)).initializer);
+            }
         }
-        ArrayLiteralNode left_arr =  parameter_arrays[0];//(ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(left_name)).initializer);
-        ArrayLiteralNode right_arr = parameter_arrays[1];//(ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(right_name)).initializer);
-        if (left_arr == null && right_arr == null){
-            left_arr=(ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(left_name)).initializer);
-            right_arr=(ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(right_name)).initializer);
+        if (node.right instanceof ReferenceNode) {
+            right_arr = parameter_arrays[1];//(ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(right_name)).initializer);
+            if (right_arr == null) { // arrays is a declaration
+                right_arr = (ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(right_name)).initializer);
+            }
         }
+        //}
         //TODO check span
+
+        //type check
+        if (left_arr.components.size() != right_arr.components.size()){
+
+            throw  new Error(format(" Operation between arrays of different length: %s (%d) and %s (%d)",left_arr.components.toString(), left_arr.components.size(), right_arr.components.toString(),right_arr.components.size()));
+        }
+
 
         //result computation
         List<ExpressionNode> result = new ArrayList<>();
-        int len = Math.min(left_arr.components.size(),right_arr.components.size());
+        int len = left_arr.components.size();
         for (int i=0; i< len;i++){
             BinaryExpressionNode new_node = new BinaryExpressionNode(null,left_arr.components.get(i),node.array_operator,right_arr.components.get(i),null);
             if(isComparison(node.array_operator)){
                 result.add(new ReferenceNode(null, String.valueOf(literalBinaryExpression(new_node))));
             }else {
-                Type[] ret_types=returnType(new_node);
+                Type[] ret_types=returnType(new_node); //deduce the types of the nodes
                 boolean floating = isFloat(ret_types[0],ret_types[1]);
                 switch (node.array_operator) {
                     case OR:
@@ -351,11 +410,16 @@ public final class Interpreter
                     default:
                         if (floating){
                             result.add(new FloatLiteralNode(null, ((Double) literalBinaryExpression(new_node))));
-                        }else if( ret_types[0]==StringType.INSTANCE){
+                        }else if( ret_types[0]==StringType.INSTANCE && ret_types[1]==StringType.INSTANCE){
                             result.add(new StringLiteralNode(null, (String) literalBinaryExpression(new_node)));
                         }
-                        else{
-                            result.add(new IntLiteralNode(null, (long) literalBinaryExpression(new_node)));
+                        else if(ret_types[0] instanceof IntType && ret_types[1] instanceof  IntType) {
+                            IntLiteralNode toAdd =new IntLiteralNode(null, (long) literalBinaryExpression(new_node));
+                            result.add(toAdd);
+                            reactor.set(toAdd,"type",IntType.INSTANCE);
+                        }
+                        else {
+                            throw new Error(format("trying to use @ between array elements of incompatible types : %s and %s", ret_types[0].name(),ret_types[1].name()));
                         }
                 }
 
@@ -363,7 +427,7 @@ public final class Interpreter
 
 
 
-        }
+        }//TODO Span
         ArrayLiteralNode resultNode = new ArrayLiteralNode(null,result);
         return resultNode;
 
@@ -438,6 +502,7 @@ public final class Interpreter
 
     public Object assignment (AssignmentNode node)
     {
+        System.out.println("assignment" + node);
         if (node.left instanceof ReferenceNode) {
             Scope scope = reactor.get(node.left, "scope");
             String name = ((ReferenceNode) node.left).name;
@@ -576,7 +641,7 @@ public final class Interpreter
 
     private Object funCall (FunCallNode node)
     {
-        //System.out.println("fun call " + node);
+        System.out.println("funcall "+node);
         currentFunctionName=node.function.contents();
         currentArguments =node.arguments;
         //reactor.set(node,"scope",reactor.get(node,"scope"));
@@ -584,6 +649,7 @@ public final class Interpreter
         Object decl = get(node.function);
         node.arguments.forEach(this::run);
         Object[] args = map(node.arguments, new Object[0], visitor);
+        System.out.println("decl "+ storage);
 
         if (decl == Null.INSTANCE)
             throw new PassthroughException(new NullPointerException("calling a null function"));
@@ -597,6 +663,7 @@ public final class Interpreter
         ScopeStorage oldStorage = storage;
         Scope scope = reactor.get(decl, "scope");
         storage = new ScopeStorage(scope, storage);
+        System.out.println("context "+(String)reactor.get(node,"context"));
 
         FunDeclarationNode funDecl = (FunDeclarationNode) decl;
         coIterate(args, funDecl.parameters,
@@ -616,7 +683,6 @@ public final class Interpreter
 
     private Object builtin (String name, Object[] args)
     {
-        //System.out.println("builtin");
         assert name.equals("print"); // only one at the moment
         String out = convertToString(args[0]);
         System.out.println(out);
@@ -692,15 +758,21 @@ public final class Interpreter
     // ---------------------------------------------------------------------------------------------
 
     private Void returnStmt (ReturnNode node) {
-        throw new Return(node.expression == null ? null : get(node.expression));
+        System.out.println("return node "+node + currentFunctionName);
+        Return r = new Return(node.expression == null ? null : get(node.expression));
+        currentFunctionValue = r;
+        throw r ;
     }
 
     // ---------------------------------------------------------------------------------------------
 
     private Void varDecl (VarDeclarationNode node)
     {
+        System.out.println("var declaration" + node.initializer);
         Scope scope = reactor.get(node, "scope");
         assign(scope, node.name, get(node.initializer), reactor.get(node, "type"));
+        reactor.set(node.initializer,"context",node.name);
+        //reactor.set(context,node.na);
         return null;
     }
 

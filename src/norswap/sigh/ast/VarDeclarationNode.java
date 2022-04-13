@@ -13,6 +13,7 @@ public final class VarDeclarationNode extends DeclarationNode
     public final String name;
     public final TypeNode type;
     public final ExpressionNode initializer;
+    public String context;
 
     public VarDeclarationNode (Span span, Object name, Object type, Object initializer) {
         super(span);

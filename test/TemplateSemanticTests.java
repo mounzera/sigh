@@ -110,7 +110,7 @@ public final class TemplateSemanticTests extends UraniumTestFixture
         successInput("template <typename T, typename T1> fun intAndString (x: T1, y: T) {} ; intAndString<Int, String> (\"hey\", 2)");
 
 
-        successInput("template <typename T> fun f9 (x: T) {} ; f9<Bool> (true)"); //TODO : error with vardeclaration (which should not since it is not array)
+        successInput("template <typename T> fun f9 (x: T) {} ; f9<Bool> (true)");
         failureInputWith("template <typename T> fun f10 (x: T) {} ; f10<String> (2)","incompatible argument provided for argument 0: expected String but got Int");
 
     }

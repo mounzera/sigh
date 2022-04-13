@@ -723,8 +723,9 @@ public final class SemanticAnalysis
                 if (scopeFunc == null || (templateFromVarLeft == null && templateFromVarRight == null && leftList == null && rightList == null)){
                     if (node.operator == ADD && (left instanceof StringType || right instanceof StringType))
                         r.set(0, StringType.INSTANCE);
-                    else if (isArithmetic(node.operator))
+                    else if (isArithmetic(node.operator)){
                         binaryArithmetic(r, node, left, right, null);
+                    }
                     else if (isComparison(node.operator))
                         binaryComparison(r, node, left, right);
                     else if (isLogic(node.operator))
@@ -811,12 +812,17 @@ public final class SemanticAnalysis
                     r.set(0, FloatType.INSTANCE);
                 else
                     r.error(arithmeticError(node, "Float", right), node);
+            else
+                r.error(arithmeticError(node,left,right),node);
         //String left_name = ((ReferenceNode) node.left).name;
         //String right_name =((ReferenceNode) node.right).name;
         //IntLiteralNode left_node = (IntLiteralNode) ((VarDeclarationNode) (((Scope) R.get(node.left,"scope")).declarations.get(left_name))).initializer;
         //List left_array = left_node.components;
         //IntLiteralNode right_node = (IntLiteralNode) ((VarDeclarationNode) (((Scope) R.get(node.right,"scope")).declarations.get(right_name))).initializer;
         //List right_array = right_node.components;
+        //System.out.println("arr ar " +left_name +" " + left_node);
+        //System.out.println("arr ar " +right_name +" " + right_node);
+        //System.out.println("bin ar");
         if (left instanceof IntType)
             if (right instanceof IntType)
                 r.set(0, IntType.INSTANCE);
@@ -924,13 +930,13 @@ public final class SemanticAnalysis
         ArrayType arrayType = (ArrayType) left;
         if (isComparison(node.array_operator)){
             if (temp){
-                r.set(0,new ArrayType(BoolType.INSTANCE,"Template"));
+                r.set(0,new ArrayType(BoolType.INSTANCE,"Template[]"));
             }
             r.set(0,new ArrayType(BoolType.INSTANCE,null));
         }
         else{
             if (temp){
-                r.set(0,new ArrayType(TemplateType.INSTANCE,"Template"));
+                r.set(0,new ArrayType(TemplateType.INSTANCE,"Template[]"));
             }
             r.set(0,new ArrayType(arrayType.componentType,null));
         }
@@ -957,7 +963,7 @@ public final class SemanticAnalysis
         Boolean left_template = ((ArrayType) left).templateName!=null;
         Boolean right_template = ((ArrayType) right).templateName!=null;
         boolean temp = left_template || right_template;
-        String fun_name =((ExpressionNode)((FunCallNode )inferenceContext).function).contents();
+        //String fun_name =((ExpressionNode)((FunCallNode )inferenceContext).function).contents();
         /*if (!(left_template && right_template)){
             System.out.println("not");
             System.out.println(((ArrayType) left).templateName);
@@ -1388,11 +1394,12 @@ public final class SemanticAnalysis
                         actual = returnTemplateDic.get(funName).get(iter);
                         expected = templateFromVarLeft == null ? expected : globalTypeDictionary.get(funName).get(iter).get(templateFromVarLeft);
                         returnCounterFunction.put(funName, iter+1);
-                        if (!isAssignableTo(actual, expected))
+                        if (!isAssignableTo(actual, expected)) {
                             r.error(format(
-                                "incompatible initializer type provided for variable `%s`: expected %s but got %s",
-                                node.name, expected, actual),
+                                    "incompatible initializer type provided for variable `%s`: expected %s but got %s",
+                                    node.name, expected, actual),
                                 node.initializer);
+                        }
                     }else{
 
                         for (int i = 0; i < globalTypeDictionary.get(funName).size(); i++) {
@@ -1400,11 +1407,12 @@ public final class SemanticAnalysis
                             actual = (actualList != null && actualList.size()!=0)? actualList.get(i): actual;
                             expected = templateFromVarLeft == null ? expected : localHashmap.get(templateFromVarLeft);
                             actual = templateFromVarRight == null ? actual : localHashmap.get(templateFromVarRight);
-                            if (!isAssignableTo(actual, expected))
+                            if (!isAssignableTo(actual, expected)) {
                                 r.error(format(
-                                    "incompatible initializer type provided for variable `%s`: expected %s but got %s",
-                                    node.name, expected, actual),
+                                        "incompatible initializer type provided for variable `%s`: expected %s but got %s",
+                                        node.name, expected, actual),
                                     node.initializer);
+                            }
                         }
                     }
                 }
@@ -1421,10 +1429,12 @@ public final class SemanticAnalysis
                         else { //right hand is Template array
 
                             //TODO assign template to normal array ???
-                            r.error(format(
-                                    "incompatible initializer type provided for variable `%s`: expected %s but got %s",
-                                    node.name, expected, actual),
-                                node.initializer);
+                            if (! isAssignableTo(actual,expected)){
+                                r.error(format(
+                                        "incompatible initializer type provided for variable `%s`: expected %s but got %s",
+                                        node.name, expected, actual),
+                                    node.initializer);
+                            }
 
 
                         }

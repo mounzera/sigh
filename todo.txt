@@ -35,7 +35,7 @@ type of the last call and thus only this type will be used in the assignement ch
 - call in a print
 - clean the code
 - && and  ||
-- tests
+- tests -> some need to be fixed
 
 Question:
 - Working with struct ??

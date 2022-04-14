@@ -243,4 +243,21 @@ var arr3: Bool[] = [true]*/
 //fun test (x: String):String { return x }
 //print(test("a"))
 
-var a:Template[]=[]
+//var a:Template[]=[]
+
+//print(""+([1]@(==)[2]))
+//print(""+([1]@(+)[2.0]))
+//print(""+([1]@(+)["ello"]))
+/*var x: Template[] = []
+var a: Template[]= [1,2.0,"hel"]
+var b: Template[] =[1,2.0,"lo"]
+x=a@(+)b
+print(""+x)*/
+//TODO
+/*template <typename T, typename T1>
+fun add (a: T[], b: T1[]): Template[] { return a@(+)b }
+var t: Temlate[]= add<Template,Template>([4.0,"h"], [5,"ello"])
+print(""+t)*/
+/*var x: Template[] = [1,2.0,"hello",true]
+print(""+x[0])
+print(""+x.length)*/

@@ -242,3 +242,5 @@ var arr3: Bool[] = [true]*/
 //print(""+(true + 2))
 //fun test (x: String):String { return x }
 //print(test("a"))
+
+var a:Template[]=[]

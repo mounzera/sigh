@@ -547,8 +547,8 @@ public final class SemanticAnalysis
             R.error("Try to give types as argument but no template parameter was declared", node, node);
         } -> TODO add it to prevent funCall<Int> without template has been specified*/
         HashMap<String, Type> templateParametersDictionnary = new HashMap<>();
-        if (currFun != null) {
-            if (node.templateArgs != null) {
+        if (currFun != null && node.templateArgs != null) {
+            if (node.templateArgs.size() != 0 && currFun.getTemplateParameters() != null && node.templateArgs.size() == currFun.getTemplateParameters().size()) {
                 int tempIdx = 0;
                 int templateNameIdx = 0;
                 for (TemplateParameterNode templateName : currFun.getTemplateParameters()) {
@@ -603,19 +603,22 @@ public final class SemanticAnalysis
             .by(r -> {
                 Type maybeFunType = r.get(0);
                 if (!(maybeFunType instanceof FunType)) {
-                    r.error("trying to call a non-function expression: " + node.function, node.function);
+                    r.error("trying to call a non-function expression: " + node.function.contents(), node.function);
                     return;
                 }
-                if (currFun != null) {
-                    if (node.templateArgs != null) {
-                        if (currFun.getTemplateParameters() == null) {
-                            r.error("Trying to use template that were not declared: " + node.function, node.function);
+                if (currFun != null && currFun.getTemplateParameters() != null) {
+                    if (node.templateArgs != null && node.templateArgs.size() != 0) {
+                        if(node.templateArgs.size() != currFun.getTemplateParameters().size()){
+                            r.error(format("Wrong number of template arguments in %s: expected %d but got %d", node.function.contents(), currFun.getTemplateParameters().size(), node.templateArgs.size()), node.function);
                             return;
                         }
-                    }else if (currFun.getTemplateParameters() != null) {
-                        r.error("Trying to call template function without giving any types in arg: " + node.function, node.function);
+                    }else{
+                        r.error("Trying to call template function without giving any types in arg: " + node.function.contents(), node.function);
                         return;
                     }
+                }else if(currFun != null && node.templateArgs != null  && node.templateArgs.size() != 0){
+                    r.error("Trying to use template that were not declared: " + node.function.contents(), node.function);
+                    return;
                 }
                 FunType funType = cast(maybeFunType);
                 r.set(0, funType.returnType);
@@ -659,14 +662,14 @@ public final class SemanticAnalysis
                     Type paramType = paramsToChange[i];
                     if (argsType != null){
                         for (Type arg : argsType ){
-                            if (!isAssignableTo(arg, paramType) && !(arg instanceof TemplateType))
+                            if (!isAssignableTo(arg, paramType) )
                                 r.errorFor(format(
                                     "incompatible argument provided for argument %d: expected %s but got %s",
                                     i, paramType, arg),
                                     node.arguments.get(i));
                         }
                     }else{
-                        if (!isAssignableTo(argType, paramType) && !(argType instanceof TemplateType))
+                        if (!isAssignableTo(argType, paramType))
                             r.errorFor(format(
                                 "incompatible argument provided for argument %d: expected %s but got %s",
                                 i, paramType, argType),
@@ -845,14 +848,15 @@ public final class SemanticAnalysis
                 else if (right instanceof FloatType)
                     typeToSet.add(FloatType.INSTANCE);
                 else
-                    r.error(arithmeticError(node, "Int", right), node);
+                    r.errorFor(arithmeticError(node, "Int", right), node);
             else if (left instanceof FloatType)
                 if (right instanceof IntType || right instanceof FloatType)
                     typeToSet.add(FloatType.INSTANCE);
                 else
-                    r.error(arithmeticError(node, "Float", right), node);
-            else
-                r.error(arithmeticError(node, left, right), node);
+                    r.errorFor(arithmeticError(node, "Float", right), node);
+            else{
+                r.errorFor(arithmeticError(node, left, right), node);
+            }
         }
 
     }
@@ -1611,7 +1615,9 @@ public final class SemanticAnalysis
                     for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
                         HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
                         type = typeList != null? typeList.get(i): type;
+                        type = templateFromVar == null? type: localHashmap.get(templateFromVar);
                         if (!(type instanceof BoolType)) {
+                            System.out.println(type);
                             r.error("If statement with a non-boolean condition of type: " + type,
                                 node.condition);
                         }
@@ -1649,7 +1655,7 @@ public final class SemanticAnalysis
                     for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
                         HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
                         type = typeList != null? typeList.get(i): type;
-                        //type = localHashmap.get(templateFromVar);
+                        type = templateFromVar == null ? type : localHashmap.get(templateFromVar);
                         if (!(type instanceof BoolType)) {
                             r.error("While statement with a non-boolean condition of type: " + type,
                                 node.condition);
@@ -1700,7 +1706,7 @@ public final class SemanticAnalysis
                     if (formal instanceof VoidType)
                         r.error("Return with value in a Void function.", node);
                     else if (templateFromVarRight != null || templateFromVarLeft != null || actualList != null){
-                        if(globalTypeDictionary.size() == 0)
+                        if(globalTypeDictionary.size() == 0 || (actualList != null && actualList.size() == 0))
                             return;
                         for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
                             HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);

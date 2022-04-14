@@ -823,6 +823,21 @@ public final class SemanticAnalysis
         //List left_array = left_node.components;
         //IntLiteralNode right_node = (IntLiteralNode) ((VarDeclarationNode) (((Scope) R.get(node.right,"scope")).declarations.get(right_name))).initializer;
         //List right_array = right_node.components;
+        //System.out.println("arr ar " +left_name +" " + left_node);
+        //System.out.println("arr ar " +right_name +" " + right_node);
+        //System.out.println("bin ar");
+        if (left instanceof IntType)
+            if (right instanceof IntType)
+                r.set(0, IntType.INSTANCE);
+            else if (right instanceof FloatType)
+                r.set(0, FloatType.INSTANCE);
+            else
+                r.error(arithmeticError(node, "Int", right), node);
+        else if (left instanceof FloatType)
+            if (right instanceof IntType || right instanceof FloatType)
+                r.set(0, FloatType.INSTANCE);
+            else
+                r.error(arithmeticError(node, left, right), node);
         }else{
             if (left instanceof IntType)
                 if (right instanceof IntType)
@@ -952,7 +967,7 @@ public final class SemanticAnalysis
         Boolean left_template = ((ArrayType) left).templateName!=null;
         Boolean right_template = ((ArrayType) right).templateName!=null;
         boolean temp = left_template || right_template;
-        String fun_name =((ExpressionNode)((FunCallNode )inferenceContext).function).contents();
+        //String fun_name =((ExpressionNode)((FunCallNode )inferenceContext).function).contents();
         /*if (!(left_template && right_template)){
             System.out.println("not");
             System.out.println(((ArrayType) left).templateName);

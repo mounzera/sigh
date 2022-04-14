@@ -240,5 +240,6 @@ var arr3: Bool[] = [true]*/
 //var str: String = null; return print(str + 1)
 //print(""+ (true  && true))
 //print(""+(true + 2))
-fun test (x: String):String { return x }
-print(test("a"))
+template <typename T>
+fun test (x: T):T { return x - 1 }
+test<String>("a")

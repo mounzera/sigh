@@ -108,10 +108,47 @@ public final class TemplateSemanticTests extends UraniumTestFixture
         successInput("template <typename T> fun oneFloat (x: T) {} ; oneFloat<Float> (2)");
         successInput("template <typename T, typename T1> fun twoInt (x: T1, y: T) {} ; twoInt<Int, Int> (2, 2)");
         successInput("template <typename T, typename T1> fun intAndString (x: T1, y: T) {} ; intAndString<Int, String> (\"hey\", 2)");
+        successInput("template <typename T> fun oneBool (x: T) {} ; oneBool<Bool> (true)");
+
+        failureInputWith("template <typename T> fun incompatible (x: T) {} ; incompatible<String> (2)","incompatible argument provided for argument 0: expected String but got Int");
+        failureInputWith("template <typename T> fun wrongNumberArgs (x: T) {} ; wrongNumberArgs<String, Int> (2)","Wrong number of template arguments in wrongNumberArgs: expected 1 but got 2");
+        failureInputWith("template <typename T, typename T1> fun wrongNumberArgsTwo (x: T) {} ; wrongNumberArgsTwo<String> (2)","Wrong number of template arguments in wrongNumberArgsTwo: expected 2 but got 1");
+        failureInputWith("template <typename T> fun noTemplateArguments (x: T) {} ; noTemplateArguments<>(2)","Trying to call template function without giving any types in arg: noTemplateArguments");
+        failureInputWith("fun noTemplate (x: Int) {} ; noTemplate<Int>(2)","Trying to use template that were not declared: noTemplate");
+        failureInputWith("template <typename T> fun wrongArgs (x: T) {} ; wrongArgs<Int>(\"hey\")","incompatible argument provided for argument 0: expected Int but got String");
+        failureInputWith("template <typename T, typename T1, typename T2> fun wrongArgsTwo (x: T, y: T1, z: T2) {} ; wrongArgsTwo<String, Int, Int>(\"hey\", 3, true)","incompatible argument provided for argument 2: expected Int but got Bool");
 
 
-        successInput("template <typename T> fun f9 (x: T) {} ; f9<Bool> (true)");
-        failureInputWith("template <typename T> fun f10 (x: T) {} ; f10<String> (2)","incompatible argument provided for argument 0: expected String but got Int");
+
+
+    }
+
+    @Test public void testBinaryExpression() {
+        //basic Operation
+        successInput("template <typename T> fun basicOperation (x: T): Int {return x + 1} ; basicOperation<Int> (2)");
+        successInput("template <typename T> fun basicOperation2 (x: T): Int {return x - 1} ; basicOperation2<Int> (2)");
+        successInput("template <typename T> fun basicOperation3 (x: T): Int {return x / 1} ; basicOperation3<Int> (2)");
+        successInput("template <typename T> fun basicOperation4 (x: T): Int {return x * 1} ; basicOperation4<Int> (2)");
+        successInput("template <typename T, typename T1> fun basicTwoOperation (x: T, y: T1): Int {return x + 1} ; basicTwoOperation<Int, Float> (2, 4.5)");
+        successInput("template <typename T, typename T1> fun basicTwoOperation2 (x: T, y: T1): Int {return x - 1} ; basicTwoOperation2<Int, Float> (2, 4.5)");
+        successInput("template <typename T, typename T1> fun basicTwoOperation3 (x: T, y: T1): Int {return x / 1} ; basicTwoOperation3<Int, Float> (2, 4.5)");
+        successInput("template <typename T, typename T1> fun basicTwoOperation4 (x: T, y: T1): Int {return x * 1} ; basicTwoOperation4<Int, Float> (2, 4.5)");
+        successInput("template <typename T> fun basicOperationString (x: T):T { return x + 1}; basicOperationString<String>(\"hey\")");
+        failureInputWith("template <typename T> fun basicOperationFail (x: T):T { return x - 1}; basicOperationFail<String>(\"hey\")", "Trying to subtract String with Int");
+        failureInputWith("template <typename T> fun basicOperationFail2 (x: T):T { return x + 1}; basicOperationFail2<Bool>(true)", "Trying to add Bool with Int");
+
+        successInput("template <typename T, typename T1> fun basicOperationTemplate (x: T, y: T1):T { return x + y}; basicOperationTemplate<Int, Int>(4, 2)");
+        successInput("template <typename T, typename T1> fun basicOperationTemplate2 (x: T, y: T1):T1 { return x * y}; basicOperationTemplate2<Int, Float>(4, 2.5)");
+        successInput("template <typename T, typename T1> fun basicOperationTemplate3 (x: T, y: T1):T1 { return x + y}; basicOperationTemplate3<Int, String>(4, \"hey\")");
+        failureInputWith("template <typename T, typename T1> fun basicOperationTemplateFail (x: T, y: T1):T { return x * y}; basicOperationTemplateFail<Int, String>(4, \"hey\")", "Trying to multiply Int with String");
+        failureInputWith("template <typename T, typename T1> fun basicOperationTemplateFail2 (x: T, y: T1):T { return x + y}; basicOperationTemplateFail2<Int, Bool>(4, true)", "");
+
+        successInput("template <typename T, typename T1> fun otherOperationTemplate (x: T, y: T1):Bool { return x == y}; otherOperationTemplate<Int, Int>(4, 2)");
+        successInput("template <typename T, typename T1> fun otherOperationTemplate2 (x: T, y: T1):Bool { return x >= y}; otherOperationTemplate2<Int, Int>(4, 2)");
+        successInput("template <typename T, typename T1> fun otherOperationTemplate3 (x: T, y: T1):Bool { return x || y}; otherOperationTemplate3<Bool, Bool>(true, false)");
+        successInput("template <typename T, typename T1> fun otherOperationTemplate4 (x: T, y: T1):Bool { return x == y}; otherOperationTemplate4<Bool, Bool>(true, false)");
+        failureInputWith("template <typename T, typename T1> fun otherOperationTemplateFail (x: T, y: T1):Bool { return x || y}; otherOperationTemplateFail<Bool, Int>(true, 1)", "Attempting to perform binary logic on non-boolean type: Int");
+        failureInputWith("template <typename T, typename T1> fun otherOperationTemplateFail2 (x: T, y: T1):Bool { return x == y}; otherOperationTemplateFail2<Bool, Int>(true, 1)", "Trying to compare incomparable types Bool and Int");
 
     }
 
@@ -122,6 +159,9 @@ public final class TemplateSemanticTests extends UraniumTestFixture
 
         successInput("template <typename T,typename T1> fun f14 (x: T1, y:T, z:Int, a: T1):T { return x}; f14<Int,Int>(1,2,3,4)") ;
         successInput("template <typename T,typename T1> fun f15 (x: T1, y:T, z:Int, a: T1):T1 { return x}; f15<Int,String>(\"hey\",2,3,\"hey\")") ;
+        //failureInputWith("template <typename T, typename T1> fun basicOperationTemplate2 (x: T, y: T1):T { return x * y}; basicOperationTemplate2<Int, Float>(4, 2.5)", "Incompatible return type, expected Int but got Float");
+        //failureInputWith("template <typename T, typename T1> fun otherOperationTemplate (x: T, y: T1):T { return x == y}; otherOperationTemplate<Int, Int>(4, 2)");
+
 
     }
 }

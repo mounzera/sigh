@@ -121,12 +121,6 @@ public final class TemplateSemanticTests extends UraniumTestFixture
         //test double calls
         successInput("template <typename T> fun doubleCalls (x: T) {} ; doubleCalls<String> (\"hey\"); doubleCalls<Int> (2)");
         successInput("template <typename T, typename T1> fun doubleCalls2 (x: T1, y: T) {} ; doubleCalls2<Int, Int> (2, 2); doubleCalls2<Int, String> (\"hey\", 2)");
-
-
-
-
-
-
     }
 
     @Test public void testBinaryExpression() {
@@ -158,8 +152,6 @@ public final class TemplateSemanticTests extends UraniumTestFixture
 
         //test double calls
         successInput("template <typename T> fun basicOperationDouble (x: T): T {return x + 1} ; basicOperationDouble<Int> (2); basicOperationDouble<String> (\"hey\")");
-
-
     }
 
     @Test public void testVarDeclAndAssignement() {
@@ -217,6 +209,9 @@ public final class TemplateSemanticTests extends UraniumTestFixture
 
         successInput("template <typename T,typename T1> fun returnBasic4 (x: T1, y:T, z:Int, a: T1):T { return x}; returnBasic4<Int,Int>(1,2,3,4)") ;
         successInput("template <typename T,typename T1> fun returnBasic5 (x: T1, y:T, z:Int, a: T1):T1 { return x}; returnBasic5<Int,String>(\"hey\",2,3,\"hey\")") ;
+
+        //test double calls
+        successInput("template <typename T> fun returnBasicDouble (x: T) : T { return x} ; returnBasicDouble<String> (\"hey\"); returnBasicDouble<Int> (3)");
 
     }
 }

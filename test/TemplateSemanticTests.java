@@ -206,15 +206,17 @@ public final class TemplateSemanticTests extends UraniumTestFixture
 
 
         @Test public void testReturn(){
-        successInput("template <typename T> fun f11 (x: T) : T { return x} ; f11<String> (\"hey\")");
-        successInput("template <typename T> fun f12 (x: T) : Int { return 2} ; f12<String> (\"hey\")");
-        successInput("template <typename T> fun f13 (x: T) : Int { return 2} ; f13<String> (\"hey\")");
+        successInput("template <typename T> fun returnBasic (x: T) : T { return x} ; returnBasic<String> (\"hey\")");
+        successInput("template <typename T> fun returnBasic1 (x: T) : Int { return 2} ; returnBasic1<String> (\"hey\")");
+        failureInputWith("template <typename T> fun returnBasicFail (x: T) : Int { return x} ; returnBasicFail<String> (\"hey\")", "Incompatible return type, expected Int but got String");
+        failureInputWith("template <typename T> fun returnBasicFail2 (x: T) : T { return 2} ; returnBasicFail2<String> (\"hey\")", "Incompatible return type, expected String but got Int");
 
-        successInput("template <typename T,typename T1> fun f14 (x: T1, y:T, z:Int, a: T1):T { return x}; f14<Int,Int>(1,2,3,4)") ;
-        successInput("template <typename T,typename T1> fun f15 (x: T1, y:T, z:Int, a: T1):T1 { return x}; f15<Int,String>(\"hey\",2,3,\"hey\")") ;
-        //failureInputWith("template <typename T, typename T1> fun basicOperationTemplate2 (x: T, y: T1):T { return x * y}; basicOperationTemplate2<Int, Float>(4, 2.5)", "Incompatible return type, expected Int but got Float");
-        //failureInputWith("template <typename T, typename T1> fun otherOperationTemplate (x: T, y: T1):T { return x == y}; otherOperationTemplate<Int, Int>(4, 2)");
+        successInput("template <typename T, typename T1> fun returnBasic2 (x: T, y: T1) : T { return x + y} ; returnBasic2<Int, Int> (2, 6)");
+        failureInputWith("template <typename T, typename T1> fun returnBasicFail3 (x: T, y: T1):T { return x * y}; returnBasicFail3<Int, Float>(4, 2.5)", "Incompatible return type, expected Int but got Float");
+        successInput("template <typename T, typename T1> fun returnBasic3 (x: T, y: T1) : Bool { return x || y} ; returnBasic3<Bool, Bool> (true, false)");
 
+        successInput("template <typename T,typename T1> fun returnBasic4 (x: T1, y:T, z:Int, a: T1):T { return x}; returnBasic4<Int,Int>(1,2,3,4)") ;
+        successInput("template <typename T,typename T1> fun returnBasic5 (x: T1, y:T, z:Int, a: T1):T1 { return x}; returnBasic5<Int,String>(\"hey\",2,3,\"hey\")") ;
 
     }
 }

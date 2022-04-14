@@ -1590,7 +1590,9 @@ public final class SemanticAnalysis
                     for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
                         HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
                         type = typeList != null? typeList.get(i): type;
+                        type = templateFromVar == null? type: localHashmap.get(templateFromVar);
                         if (!(type instanceof BoolType)) {
+                            System.out.println(type);
                             r.error("If statement with a non-boolean condition of type: " + type,
                                 node.condition);
                         }
@@ -1628,7 +1630,7 @@ public final class SemanticAnalysis
                     for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
                         HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
                         type = typeList != null? typeList.get(i): type;
-                        //type = localHashmap.get(templateFromVar);
+                        type = templateFromVar == null ? type : localHashmap.get(templateFromVar);
                         if (!(type instanceof BoolType)) {
                             r.error("While statement with a non-boolean condition of type: " + type,
                                 node.condition);

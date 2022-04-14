@@ -118,6 +118,12 @@ public final class TemplateSemanticTests extends UraniumTestFixture
         failureInputWith("template <typename T> fun wrongArgs (x: T) {} ; wrongArgs<Int>(\"hey\")","incompatible argument provided for argument 0: expected Int but got String");
         failureInputWith("template <typename T, typename T1, typename T2> fun wrongArgsTwo (x: T, y: T1, z: T2) {} ; wrongArgsTwo<String, Int, Int>(\"hey\", 3, true)","incompatible argument provided for argument 2: expected Int but got Bool");
 
+        //test double calls
+        successInput("template <typename T> fun doubleCalls (x: T) {} ; doubleCalls<String> (\"hey\"); doubleCalls<Int> (2)");
+        successInput("template <typename T, typename T1> fun doubleCalls2 (x: T1, y: T) {} ; doubleCalls2<Int, Int> (2, 2); doubleCalls2<Int, String> (\"hey\", 2)");
+
+
+
 
 
 
@@ -150,9 +156,56 @@ public final class TemplateSemanticTests extends UraniumTestFixture
         failureInputWith("template <typename T, typename T1> fun otherOperationTemplateFail (x: T, y: T1):Bool { return x || y}; otherOperationTemplateFail<Bool, Int>(true, 1)", "Attempting to perform binary logic on non-boolean type: Int");
         failureInputWith("template <typename T, typename T1> fun otherOperationTemplateFail2 (x: T, y: T1):Bool { return x == y}; otherOperationTemplateFail2<Bool, Int>(true, 1)", "Trying to compare incomparable types Bool and Int");
 
+        //test double calls
+        successInput("template <typename T> fun basicOperationDouble (x: T): T {return x + 1} ; basicOperationDouble<Int> (2); basicOperationDouble<String> (\"hey\")");
+
+
     }
 
-    @Test public void testReturn(){
+    @Test public void testVarDeclAndAssignement() {
+        successInput("template <typename T> fun basicVarDecl (x: T) {var a : Int = x} ; basicVarDecl<Int> (2)");
+        successInput("template <typename T> fun basicVarDecl2 (x: T) {var a : T = x; a = 2} ; basicVarDecl2<Int> (2)");
+        failureInputWith("template <typename T> fun basicVarDeclFail (x: T) {var a : Int = x} ; basicVarDeclFail<String> (\"hey\")", "incompatible initializer type provided for variable `a`: expected Int but got String");
+        failureInputWith("template <typename T> fun basicVarDeclFail2 (x: T) {var a : T = 2} ; basicVarDeclFail2<String> (\"hey\")", "incompatible initializer type provided for variable `a`: expected String but got Int");
+        successInput("template <typename T, typename T1> fun basicVarDeclTwo (x: T, y: T1) {var a : T = x; a = y} ; basicVarDeclTwo<Int, Int> (2, 4)");
+        failureInputWith("template <typename T, typename T1> fun basicVarDeclTwo (x: T, y: T1) {var a : T = x; a = y} ; basicVarDeclTwo<Int, Float> (2, 4.5)", "Trying to assign a value of type Float to a non-compatible lvalue of type Int");
+
+        //test double calls
+        successInput("template <typename T> fun basicVarDeclDouble (x: T) {var a : T = x} ; basicVarDeclDouble<Int> (2); basicVarDeclDouble<String> (\"hey\")");
+
+    }
+
+    @Test public void testIfWhile () {
+        //if
+        successInput("template <typename T> fun ifTest (x: T) {if(x > 3){}} ; ifTest<Int> (2)");
+        successInput("template <typename T> fun ifTest5 (x: T) {if(x > 3){}else if(x < 0){}else{}} ; ifTest5<Int> (2)");
+        failureInputWith("template <typename T> fun ifTestFail (x: T) {if(x){}} ; ifTestFail<Int> (2)", "If statement with a non-boolean condition of type: Int");
+
+        successInput("template <typename T> fun ifTest1 (x: T) {if(x + 6 > 3){}} ; ifTest1<Int> (2)");
+        failureInputWith("template <typename T> fun ifTestFail2 (x: T) {if(x + 6){}} ; ifTestFail2<Int> (2)", "If statement with a non-boolean condition of type: Int");
+
+        successInput("template <typename T, typename T1> fun ifTest2 (x: T, y: T1) {if(x + 6 > y){}} ; ifTest2<Int, Float> (2, 7.5)");
+        successInput("template <typename T> fun ifTest3 (x: T) {if(x){}} ; ifTest3<Bool> (true)");
+        successInput("template <typename T, typename T1> fun ifTest4 (x: T, y: T1) {if(x || y){}} ; ifTest4<Bool, Bool> (true, false)");
+
+        // while
+        successInput("template <typename T> fun whileTest (x: T) {while(x > 3){}} ; whileTest<Int> (2)");
+        failureInputWith("template <typename T> fun whileTestFail (x: T) {while(x){}} ; whileTestFail<Int> (2)", "While statement with a non-boolean condition of type: Int");
+
+        successInput("template <typename T> fun whileTest1 (x: T) {while(x + 6 > 3){}} ; whileTest1<Int> (2)");
+        failureInputWith("template <typename T> fun whileTestFail2 (x: T) {while(x + 6){}} ; whileTestFail2<Int> (2)", "While statement with a non-boolean condition of type: Int");
+
+        successInput("template <typename T, typename T1> fun whileTest2 (x: T, y: T1) {while(x + 6 > y){}} ; whileTest2<Int, Float> (2, 7.5)");
+        successInput("template <typename T> fun whileTest3 (x: T) {while(x){}} ; whileTest3<Bool> (true)");
+        successInput("template <typename T, typename T1> fun whileTest4 (x: T, y: T1) {while(x || y){}} ; whileTest4<Bool, Bool> (true, false)");
+
+        //test double calls
+        successInput("template <typename T> fun ifTestDouble (x: T) {if(x > 3){}} ; ifTestDouble<Int> (2) ; ifTestDouble<Float> (2.6)");
+
+    }
+
+
+        @Test public void testReturn(){
         successInput("template <typename T> fun f11 (x: T) : T { return x} ; f11<String> (\"hey\")");
         successInput("template <typename T> fun f12 (x: T) : Int { return 2} ; f12<String> (\"hey\")");
         successInput("template <typename T> fun f13 (x: T) : Int { return 2} ; f13<String> (\"hey\")");

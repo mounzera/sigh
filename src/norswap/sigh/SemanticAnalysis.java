@@ -662,14 +662,14 @@ public final class SemanticAnalysis
                     Type paramType = paramsToChange[i];
                     if (argsType != null){
                         for (Type arg : argsType ){
-                            if (!isAssignableTo(arg, paramType) )
+                            if (!isAssignableTo(arg, paramType) && !(arg instanceof TemplateType))
                                 r.errorFor(format(
                                     "incompatible argument provided for argument %d: expected %s but got %s",
                                     i, paramType, arg),
                                     node.arguments.get(i));
                         }
                     }else{
-                        if (!isAssignableTo(argType, paramType))
+                        if (!isAssignableTo(argType, paramType) && !(argType instanceof TemplateType))
                             r.errorFor(format(
                                 "incompatible argument provided for argument %d: expected %s but got %s",
                                 i, paramType, argType),

@@ -88,8 +88,8 @@ public class ArrayGrammarTests extends AutumnTestFixture {
             ARRAY_OP,
             new ArrayLiteralNode(null, asList(intlit(2),intlit(2))),
             EQUALITY));
-        failure("[1,1]@(&&)[2,2]");
-        failure("[1,1]@(||)[2,2]");
+        //failure("[1,1]@(&&)[2,2]");
+        //failure("[1,1]@(||)[2,2]");
 
         successExpect("[1,\"hello\"]@(!=)[2,2]", new BinaryExpressionNode(null,
             new ArrayLiteralNode(null, asList(intlit(1),stringlit("hello"))),

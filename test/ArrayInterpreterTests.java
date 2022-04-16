@@ -186,6 +186,7 @@ public final class ArrayInterpreterTests extends TestFixture {
         check("var x: Template[] = [];  var a: Template[]= [1,2.0,\"hel\"]; var b: Template[] =[1,2.0,\"lo\"]; return x=a@(+)b",
             new ArrayLiteralNode(null,asList(intlit(2),floatlit(4.0),stringlit("hello"))));
         checkThrows("var x: Template[]; return x = [1,\"hel\"]@(+)[2,\"lo\"]",Error.class);
+        checkThrows("var x: Template[]; var a: Template[]=[1,2.0]; var b: Template[] =[2,\"lo\"]; return x = a@(+)b",Error.class);
 
 
 

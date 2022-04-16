@@ -967,11 +967,15 @@ public final class SemanticAnalysis
         if (node.right instanceof ReferenceNode){
             right_name=((ReferenceNode) node.right).name;
         }
-        Boolean left_template = ((ArrayType) left).templateName!=null;
-        Boolean right_template = ((ArrayType) right).templateName!=null;
+        Boolean left_template = ((ArrayType) left).templateName != null;//((ArrayType) left).templateName == null ? false : ((ArrayType) left).templateName.equals("Template");
+        Boolean right_template = ((ArrayType) right).templateName != null;//((ArrayType) right).templateName == null ? false : ((ArrayType) right).templateName.equals("Template");
         boolean temp = left_template || right_template;
-
-        if (! temp && ((ArrayType) left).componentType instanceof StringType && ((ArrayType) right).componentType instanceof StringType){
+        /*System.out.println(((ArrayType) left).componentType instanceof StringType);
+        System.out.println(((ArrayType) right).componentType instanceof StringType);
+        System.out.println(!temp);
+        System.out.println(((ArrayType) left).templateName);
+        System.out.println(((ArrayType) right).templateName);*/
+        if ( !temp && ((ArrayType) left).componentType instanceof StringType && ((ArrayType) right).componentType instanceof StringType){
             if (! string_op.contains(node.array_operator)) {
                 r.error(format("Trying to use %s between arrays of String type",node.array_operator),node);
                 return;

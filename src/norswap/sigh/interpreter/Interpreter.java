@@ -288,8 +288,10 @@ public final class Interpreter
         if (!(node.operator.equals(BinaryOperator.ARRAY_OP))){
             return literalBinaryExpression(node);
         }
-        //Object[] left  = (Object[]) get(node.left);
-        //Object right = (Object[]) get(node.right);
+
+        //Object right = get(node.right);
+
+
 
         // Array Binary expression
         Scope scope = reactor.get(node.left, "scope");
@@ -306,7 +308,21 @@ public final class Interpreter
 
         ArrayLiteralNode left_arr = null; // retrieve lesft anr right arrays
         ArrayLiteralNode right_arr = null;
-        if (node.left instanceof  ParenthesizedNode){
+        try{
+            if(get(node.left) instanceof ArrayLiteralNode){
+                left_arr= ((ArrayLiteralNode) get(node.left));
+            }
+        }catch (Exception e){
+            System.out.println("exception");
+        }
+        try{
+            if(get(node.left) instanceof ArrayLiteralNode){
+                right_arr= ((ArrayLiteralNode) get(node.left));
+            }
+        }catch (Exception e){
+            System.out.println("exception");
+        }
+        /*if (node.left instanceof  ParenthesizedNode){
             ArrayLiteralNode result = (ArrayLiteralNode) binaryExpression((BinaryExpressionNode) ((ParenthesizedNode) node.left).expression);
             left_arr = result;
         }
@@ -319,7 +335,7 @@ public final class Interpreter
         }
         if (node.right instanceof BinaryExpressionNode){
             right_arr = (ArrayLiteralNode) binaryExpression((BinaryExpressionNode) node.right);
-        }
+        }*/
         FunDeclarationNode currFunction = null;//(FunDeclarationNode) scope.lookup(currentFunctionName).declaration;//(FunDeclarationNode) curr_scope.declarations.get(currentFunctionName);
         Scope curr_scope =null;//(Scope)reactor.get(scope.declarations.get(left_name),"scope");
         ArrayLiteralNode[] parameter_arrays = new ArrayLiteralNode[2]; //store left and right arrays

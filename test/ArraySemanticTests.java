@@ -174,6 +174,12 @@ public final class ArraySemanticTests extends UraniumTestFixture
             "fun add (a: Template[], b: Template[]): Bool[] { return a@(!=)b } " +
                 "return add([4.0], [\"h\"])");
 
+        successInput(
+            "fun add (a: String[], b: String[]): String[] { return a@(-)b } " +
+                "return add([\"h\"], [\"ello\"])");
+
+
+
         //TODO ok in template.si ???
         /*successInput(
             "template <typename T, typename T1> fun add (a: T[], b: T1[]): Template[] { return a@(+)b } " +

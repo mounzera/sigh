@@ -284,7 +284,6 @@ public final class Interpreter
     }
     private Object binaryExpression (BinaryExpressionNode node)
     {
-
         // Normal Binary expression
         if (!(node.operator.equals(BinaryOperator.ARRAY_OP))){
             return literalBinaryExpression(node);
@@ -388,14 +387,21 @@ public final class Interpreter
                 left_arr = (ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(left_name)).initializer);
             }
         }
+        if (node.left instanceof ArrayLiteralNode){
+            left_arr = (ArrayLiteralNode) node.left;
+        }
         if (node.right instanceof ReferenceNode) {
             right_arr = parameter_arrays[1];//(ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(right_name)).initializer);
             if (right_arr == null) { // arrays is a declaration
                 right_arr = (ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(right_name)).initializer);
             }
         }
+        if (node.right instanceof ArrayLiteralNode){
+            right_arr = (ArrayLiteralNode) node.right;
+        }
         //}
         //TODO check span
+
 
         //type check
         if (left_arr.components.size() != right_arr.components.size()){
@@ -417,12 +423,25 @@ public final class Interpreter
                 switch (node.array_operator) {
                     case OR:
                         result.add(new ReferenceNode(null, String.valueOf(booleanOp(new_node, false))));
+                        break;
                     case AND:
                         result.add(new ReferenceNode(null, String.valueOf(booleanOp(new_node, true))));
+                        break;
+                    case GREATER :
+                    case GREATER_EQUAL:
+                    case LOWER:
+                    case LOWER_EQUAL:
+                    case EQUALITY:
+                    case NOT_EQUALS:
+                        result.add(new ReferenceNode(null, String.valueOf(literalBinaryExpression(new_node))));
+                        break;
                     default:
                         if (floating){
                             result.add(new FloatLiteralNode(null, ((Double) literalBinaryExpression(new_node))));
                         }else if( ret_types[0]==StringType.INSTANCE && ret_types[1]==StringType.INSTANCE){
+                            if (node.array_operator != ADD){
+                                throw  new Error(format("trying to use %s between array elements of type string", node.operator));
+                            }
                             result.add(new StringLiteralNode(null, (String) literalBinaryExpression(new_node)));
                         }
                         else if(ret_types[0] instanceof IntType && ret_types[1] instanceof  IntType) {

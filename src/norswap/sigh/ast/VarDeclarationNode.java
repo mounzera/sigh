@@ -2,6 +2,7 @@ package norswap.sigh.ast;
 
 import norswap.autumn.positions.Span;
 import norswap.sigh.bytecode.Null;
+import norswap.sigh.types.ArrayType;
 import norswap.utils.Util;
 
 import java.util.ArrayList;
@@ -20,9 +21,10 @@ public final class VarDeclarationNode extends DeclarationNode
         this.name = Util.cast(name, String.class);
         this.type = Util.cast(type, TypeNode.class);
         this.initializer = Util.cast(initializer, ExpressionNode.class);
-        /*System.out.println(this.name);
-        System.out.println(this.type);
-        System.out.println(this.initializer);*/
+        /*System.out.println(span);
+        System.out.println(this.name);
+        System.out.println(((ArrayTypeNode)this.type).componentType);
+        System.out.println(((ArrayLiteralNode)this.initializer).components.get(0));*/
     }
 
     @Override public String name () {

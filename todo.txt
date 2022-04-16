@@ -26,15 +26,16 @@ type of the last call and thus only this type will be used in the assignement ch
 - recheck interpretor try and catch + interpretor return stmt (outside a func so hard)
 
 - verify ArrayType templatename utility ->done
-- check array with templates
-- array variables name must be unique
+- check array with templates -> done
+- array variables name must be  -> nothing to do ?
 - operation between full and empty array is empty -> done
-- check assignment of operation between arrays
-- assign template array to normal array ???
-- multiple operations
+- check assignment of operation between arrays -> done
+- assign template array to normal array ??? -> impossible for now
+- multiple operations -> seems done
 - call in a print
 - clean the code
--tests
+- && and  ||
+- tests -> some need to be fixed
 
 Question:
 - Working with struct ??

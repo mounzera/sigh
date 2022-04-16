@@ -325,7 +325,9 @@ public final class SemanticAnalysis
         }
         boolean templateArray = true;
         if (this.inferenceContext instanceof VarDeclarationNode){
-            templateArray =!(((ArrayTypeNode) ((VarDeclarationNode)this.inferenceContext).type).contents().equals("Template[]"));
+            TypeNode t =((VarDeclarationNode)this.inferenceContext).type;
+            if (t instanceof  ArrayTypeNode)
+                templateArray =!(((ArrayTypeNode) t).contents().equals("Template[]"));
         }
         else {
             //TODO check if different inference context
@@ -356,7 +358,7 @@ public final class SemanticAnalysis
                     else {
                         supertype = commonSupertype(supertype, type);
                         if (supertype == null && notTemplateArray) {
-                            r.error("sy.", node);
+                            r.error("Could not find common supertype in array literal.", node);
                             return;
                         }
                     }
@@ -817,8 +819,9 @@ public final class SemanticAnalysis
                     r.set(0, FloatType.INSTANCE);
                 else
                     r.error(arithmeticError(node, "Float", right), node);
-            else
+            else{
                 r.error(arithmeticError(node,left,right),node);
+            }
         //String left_name = ((ReferenceNode) node.left).name;
         //String right_name =((ReferenceNode) node.right).name;
         //IntLiteralNode left_node = (IntLiteralNode) ((VarDeclarationNode) (((Scope) R.get(node.left,"scope")).declarations.get(left_name))).initializer;
@@ -934,7 +937,7 @@ public final class SemanticAnalysis
 
     private void set_array_type(Rule r, BinaryExpressionNode node, Type left, boolean temp){
         ArrayType arrayType = (ArrayType) left;
-        if (isComparison(node.array_operator)){
+        if (isComparison(node.array_operator) || isEquality(node.array_operator)){
             if (temp){
                 r.set(0,new ArrayType(BoolType.INSTANCE,"Template[]"));
             }
@@ -969,6 +972,13 @@ public final class SemanticAnalysis
         Boolean left_template = ((ArrayType) left).templateName!=null;
         Boolean right_template = ((ArrayType) right).templateName!=null;
         boolean temp = left_template || right_template;
+
+        if (! temp && ((ArrayType) left).componentType instanceof StringType && ((ArrayType) right).componentType instanceof StringType){
+            if (! string_op.contains(node.array_operator)) {
+                r.error(format("Trying to use %s between arrays of String type",node.array_operator),node);
+                return;
+            }
+        }
         //String fun_name =((ExpressionNode)((FunCallNode )inferenceContext).function).contents();
         /*if (!(left_template && right_template)){
             System.out.println("not");
@@ -977,9 +987,24 @@ public final class SemanticAnalysis
 
 
 
-        if (!temp && ! left.name().equals(right.name())){
-            r.error(format("Trying to use @ between non compatible ArrayTypes %s and %s",left.name() , right.name()),node);
-            return;
+
+        if (!temp &&! left.name().equals(right.name())){
+            if (left_name != null && right_name != null) {
+                boolean left_num = left_name.equals("Int[]") || left_name.equals("Float[]");
+                boolean right_num = right_name.equals("Int[]") || right_name.equals("Float[]");
+                if (!left_num || !right_num) {
+                    r.error(format("Trying to use @ between non compatible ArrayTypes %s and %s", left.name(), right.name()), node);
+                    return;
+                }
+            }else {
+                boolean left_num = left.name().equals("Int[]") || left.name().equals("Float[]");
+                boolean right_num = right.name().equals("Int[]") || right.name().equals("Float[]");
+                if (!left_num || !right_num) {
+                    r.error(format("Trying to use @ between non compatible ArrayTypes %s and %s", left.name(), right.name()), node);
+                    return;
+                }
+
+            }
         }
         set_array_type(r,node,left,temp);
         return;
@@ -1190,7 +1215,7 @@ public final class SemanticAnalysis
                     if (node.left instanceof ReferenceNode
                         ||  node.left instanceof FieldAccessNode
                         ||  node.left instanceof ArrayAccessNode) {
-                        if (!isAssignableTo(right, left)){
+                        if (!isAssignableTo(right, left) && !left.name().equals("Template")){
                             r.errorFor(format("Trying to assign a value of type %s to a non-compatible lvalue of type %s.", right, left), node);
                         }
                     }
@@ -1687,7 +1712,7 @@ public final class SemanticAnalysis
                             return;
                         for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
                             HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
-                            actual = actualList != null? actualList.get(i): actual;
+                            actual = (actualList != null && actualList.size()!=0)? actualList.get(i): actual;
                             formal = templateFromVarLeft == null ? formal : localHashmap.get(templateFromVarLeft);
                             actual = templateFromVarRight == null ? actual : localHashmap.get(templateFromVarRight);
                             if (!isAssignableTo(actual, formal))
@@ -1698,7 +1723,7 @@ public final class SemanticAnalysis
                     }
                     else if (!isAssignableTo(actual, formal)) {
                         r.errorFor(format(
-                            "Incompatible return type, expected %s but got %s", formal, actual),
+                            "Incompatible return type , expected %s but got %s", formal, actual),
                             node.expression);
                     }
                 });

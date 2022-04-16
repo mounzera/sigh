@@ -1,10 +1,11 @@
 //Basic template param test
-/*template <typename T, typename T1>
+template <typename T, typename T1>
 fun check_param (r: T, a: T1, b: Int, c: T){
-    print(a)
+    print(a + "")
 }
 check_param<Int, String>(2, "hey", 2, 2);
-//check_param<Int, String>(2, "hey", 2, 2);
+check_param<Float, Int>(2.3, 4, 4, 8.4);
+/*check_param<Int, String>(2, "hey", 2, 2);
 
 template <typename T,typename T1>
 fun check_param1 (x: T, y: T1) :T{

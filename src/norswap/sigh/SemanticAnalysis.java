@@ -598,8 +598,6 @@ public final class SemanticAnalysis
                 }
             }
         }
-        System.out.println(variableToTemplate);
-        System.out.println(globalTypeDictionary);
         R.rule(node, "type")
             .using(dependencies)
             .by(r -> {

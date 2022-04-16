@@ -23,6 +23,8 @@ public class ArrayGrammarTests extends AutumnTestFixture {
 
     private static StringLiteralNode stringlit( String s) { return  new StringLiteralNode(null, s);}
 
+    private static ReferenceNode boollit( boolean b) {return  new ReferenceNode(null,String.valueOf(b));}
+
     @Test
     public void testDeclarations() {
         rule = grammar.statement;
@@ -88,8 +90,18 @@ public class ArrayGrammarTests extends AutumnTestFixture {
             ARRAY_OP,
             new ArrayLiteralNode(null, asList(intlit(2),intlit(2))),
             EQUALITY));
-        //failure("[1,1]@(&&)[2,2]");
-        //failure("[1,1]@(||)[2,2]");
+
+        successExpect("[true,true]@(||)[true,false]", new BinaryExpressionNode(null,
+            new ArrayLiteralNode(null, asList(boollit(true),boollit(true))),
+            ARRAY_OP,
+            new ArrayLiteralNode(null, asList(boollit(true),boollit(false))),
+            OR));
+
+        successExpect("[true,true]@(&&)[true,false]", new BinaryExpressionNode(null,
+            new ArrayLiteralNode(null, asList(boollit(true),boollit(true))),
+            ARRAY_OP,
+            new ArrayLiteralNode(null, asList(boollit(true),boollit(false))),
+            AND));
 
         successExpect("[1,\"hello\"]@(!=)[2,2]", new BinaryExpressionNode(null,
             new ArrayLiteralNode(null, asList(intlit(1),stringlit("hello"))),

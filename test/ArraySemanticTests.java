@@ -66,12 +66,12 @@ public final class ArraySemanticTests extends UraniumTestFixture
         successInput("return [1,1]@(*)[2,2]@(*)[1,1]");
         successInput("return [1,1]@(/)[2,2]@(/)[1,1]");
         successInput("return [1,1]@(%)[2,2]@(+)[1,1]");
-        successInput("return [1,1]@(>)[2,2]@(>)[true,false]");
-        successInput("return [1,1]@(>=)[2,2]@(<=)[true,false]");
-        successInput("return [1,1]@(<)[2,2]@(==)[true,false]");
-        successInput("return [1,1]@(<=)[2,2]@(>)[true,false]");
-        successInput("return [1,1]@(==)[2,2]@(<)[true,false]");
-        successInput("return [1,1]@(!=)[2,2]@(<=)[true,false]");
+        successInput("return [1,1]@(>)[2,2]@(||)[true,false]");
+        successInput("return [1,1]@(>=)[2,2]@(||)[true,false]");
+        successInput("return [1,1]@(<)[2,2]@(||)[true,false]");
+        successInput("return [1,1]@(<=)[2,2]@(&&)[true,false]");
+        successInput("return [1,1]@(==)[2,2]@(&&)[true,false]");
+        successInput("return [1,1]@(!=)[2,2]@(&&)[true,false]");
 
         successInput("return [1,1.0]@(+)[2,2.0]");
         successInput("return [1,1.0]@(-)[2,2.0]");
@@ -97,6 +97,19 @@ public final class ArraySemanticTests extends UraniumTestFixture
         failureInputWith("return [\"h\"]@(/)[\"ello\"]", "Trying to use DIVIDE between arrays of String type");
         failureInputWith("return [\"h\"]@(%)[\"ello\"]", "Trying to use REMAINDER between arrays of String type");
         failureInputWith("return [\"h\"]@(-)[\"ello\"]", "Trying to use SUBTRACT between arrays of String type");
+
+
+        successInput("return [true,true]@(||)[true,false]");
+        successInput("return [true,true]@(&&)[true,false]");
+        successInput("return [true,true]@(==)[true,false]");
+        successInput("return [true,true]@(!=)[true,false]");
+        failureInputWith("return [true,true]@(*)[true,false]","Trying to use MULTIPLY between arrays of Bool type");
+        failureInputWith("return [true,true]@(/)[true,false]","Trying to use DIVIDE between arrays of Bool type");
+        failureInputWith("return [true,true]@(%)[true,false]","Trying to use REMAINDER between arrays of Bool type");
+        failureInputWith("return [true,true]@(>)[true,false]","Trying to use GREATER between arrays of Bool type");
+        failureInputWith("return [true,true]@(>=)[true,false]","Trying to use GREATER_EQUAL between arrays of Bool type");
+        failureInputWith("return [true,true]@(<) [true,false]","Trying to use LOWER between arrays of Bool type");
+        failureInputWith("return [true,true]@(<=)[true,false]","Trying to use LOWER_EQUAL between arrays of Bool type");
 
         failureInputWith("return [1]@(+)[\"ello\"]","Trying to use @ between non compatible ArrayTypes Int[] and String[]");
         failureInputWith("return [1.0]@(+)[\"ello\"]","Trying to use @ between non compatible ArrayTypes Float[] and String[]");
@@ -169,14 +182,58 @@ public final class ArraySemanticTests extends UraniumTestFixture
         successInput(
             "fun add (a: Float[], b: Int[]): Bool[] { return a@(!=)b } " +
                 "return add([4.0], [7])");
+        successInput(
+            "fun add (a: Bool[], b: Bool[]): Bool[] { return a@(||)b } " +
+                "return add([true], [false])");
 
+        successInput(
+            "fun add (a: Bool[], b: Bool[]): Bool[] { return a@(&&)b } " +
+                "return add([true], [false])");
+
+        successInput(
+            "fun add (a: Template[], b: Template[]): Template[] { return a@(+)b } " +
+                "return add([4.0], [\"h\"])");
+        successInput(
+            "fun add (a: Template[], b: Template[]): Template[] { return a@(-)b } " +
+                "return add([4.0], [\"h\"])");
+        successInput(
+            "fun add (a: Template[], b: Template[]): Template[] { return a@(*)b } " +
+                "return add([4.0], [\"h\"])");
+        successInput(
+            "fun add (a: Template[], b: Template[]): Template[] { return a@(%)b } " +
+                "return add([4.0], [\"h\"])");
+        successInput(
+            "fun add (a: Template[], b: Template[]): Template[] { return a@(/)b } " +
+                "return add([4.0], [\"h\"])");
+        successInput(
+            "fun add (a: Template[], b: Template[]): Bool[] { return a@(>)b } " +
+                "return add([4.0], [\"h\"])");
+        successInput(
+            "fun add (a: Template[], b: Template[]): Bool[] { return a@(>=)b } " +
+                "return add([4.0], [\"h\"])");
+        successInput(
+            "fun add (a: Template[], b: Template[]): Bool[] { return a@(<)b } " +
+                "return add([4.0], [\"h\"])");
+        successInput(
+            "fun add (a: Template[], b: Template[]): Bool[] { return a@(<=)b } " +
+                "return add([4.0], [\"h\"])");
+        successInput(
+            "fun add (a: Template[], b: Template[]): Bool[] { return a@(==)b } " +
+                "return add([4.0], [\"h\"])");
         successInput(
             "fun add (a: Template[], b: Template[]): Bool[] { return a@(!=)b } " +
                 "return add([4.0], [\"h\"])");
-
+        successInput(
+            "fun add (a: Template[], b: Template[]): Bool[] { return a@(&&)b } " +
+                "return add([4.0], [\"h\"])");
+        successInput(
+            "fun add (a: Template[], b: Template[]): Bool[] { return a@(||)b } " +
+                "return add([4.0], [\"h\"])");
         successInput(
             "fun add (a: String[], b: String[]): String[] { return a@(-)b } " +
                 "return add([\"h\"], [\"ello\"])");
+
+
 
 
 

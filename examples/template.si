@@ -1,10 +1,10 @@
 //Basic template param test
-template <typename T, typename T1>
+/*template <typename T, typename T1>
 fun check_param (r: T, a: T1, b: Int, c: T){
     print(a + "")
 }
 check_param<Int, String>(2, "hey", 2, 2);
-check_param<Float, Int>(2.3, 4, 4, 8.4);
+check_param<Float, Int>(2.3, 4, 4, 8.4);*/
 /*check_param<Int, String>(2, "hey", 2, 2);
 
 template <typename T,typename T1>
@@ -177,11 +177,11 @@ var arr20 : Float[]= [2.0, 3.0]
 var arr30: Bool[]=arr10@(>)arr20
 print("111" + arr10)
 print("222" + arr30)*/
-var arr10 : Bool[] = [true]
+/*var arr10 : Bool[] = [true]
 var arr20 : Bool[]= [false]
 var arr30: Bool[]=arr10@(&&)arr20
 print("111" + arr10)
-print("222" + arr30)
+print("222" + arr30)*/
 
 //Template array test
 /*var arr10 : Template[] = [1.0, "Hello"]
@@ -283,3 +283,8 @@ print(""+x.length)*/
 
 /*fun add (a: String[], b: String[]): String[] { return a@(-)b }
 add(["h"], ["ello"])*/
+
+/*fun add (a: Template[], b: Template[]): Template[] { return a@(&&)b }
+var a : Template[] = [4.0,"h"]
+var b: Template[] =[2,"ello"]
+print(""+add(a,b))*/

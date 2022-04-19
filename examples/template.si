@@ -1,10 +1,10 @@
 //Basic template param test
-template <typename T, typename T1>
+/*template <typename T, typename T1>
 fun check_param (r: T, a: T1, b: Int, c: T){
     print(a + "")
 }
 check_param<Int, String>(2, "hey", 2, 2);
-check_param<Float, Int>(2.3, 4, 4, 8.4);
+check_param<Float, Int>(2.3, 4, 4, 8.4);*/
 /*check_param<Int, String>(2, "hey", 2, 2);
 
 template <typename T,typename T1>
@@ -262,3 +262,16 @@ print(""+t)*/
 /*var x: Template[] = [1,2.0,"hello",true]
 print(""+x[0])
 print(""+x.length)*/
+
+
+
+
+//list as type in template function
+template <typename T>
+fun listTest2(a: T[]): T{
+    var b: Int = a[0]
+    return b
+}
+var l: Int[] = [2, 5]
+//listTest<Int[]>(l)
+listTest2<Int>(l)

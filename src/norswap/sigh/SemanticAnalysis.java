@@ -443,14 +443,34 @@ public final class SemanticAnalysis
                 if (!(type instanceof IntType))
                     r.error("Indexing an array using a non-Int-valued expression", node.index);
             });
+        final FunDeclarationNode scopeFunc = currentFunction();
+
 
         R.rule(node, "type")
             .using(node.array, "type")
             .by(r -> {
-                Type type = r.get(0);
-                if (type instanceof ArrayType){
-                    r.set(0, ((ArrayType) type).componentType);
+                Type type = null;
+                List<Type> typeList = null;
+                if (r.get(0) instanceof ArrayList)
+                    typeList = r.get(0);
+                else
+                    type = r.get(0);
 
+                String templateFromVarLeft = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.array.contents()) : null;
+                if (scopeFunc != null && (templateFromVarLeft != null || typeList != null)) {
+                    List<Type> typeToSet = new ArrayList<>();
+                    for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
+                        HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
+                        type = typeList != null ? typeList.get(i) : type;
+                        type = templateFromVarLeft == null ? type : localHashmap.get(templateFromVarLeft);
+                        if (type instanceof ArrayType){
+                            typeToSet.add(((ArrayType) type).componentType);
+                        }
+                    }
+                    r.set(0, typeToSet);
+                }
+                else if (type instanceof ArrayType){
+                    r.set(0, ((ArrayType) type).componentType);
                 }
                 else
                     r.error("Trying to index a non-array expression of type " + type, node);
@@ -553,6 +573,7 @@ public final class SemanticAnalysis
                 int templateNameIdx = 0;
                 for (TemplateParameterNode templateName : currFun.getTemplateParameters()) {
                     Type template;
+
                     switch (node.templateArgs.get(tempIdx).contents()){
                         case "Int":
                             template = IntType.INSTANCE;
@@ -587,6 +608,7 @@ public final class SemanticAnalysis
                             returnTemplateDic.get(node.function.contents()).add(template);
                     }
                     templateParametersDictionnary.put(templateName.name, template);
+                    templateParametersDictionnary.put(templateName.name+"[]", new ArrayType(template, null));
                     tempIdx++;
                 }
                 if (globalTypeDictionary.get(node.function.contents()) == null){
@@ -1376,6 +1398,8 @@ public final class SemanticAnalysis
 
         final FunDeclarationNode scopeFunc = currentFunction();
         String paramTypeName = node.type.contents();
+        if (paramTypeName.contains("[]"))
+            paramTypeName = paramTypeName.substring(0, paramTypeName.length()-2);
         if ((paramTypeName.equals("T") || (paramTypeName.charAt(0) == ('T') && Character.isDigit(paramTypeName.charAt(1)))) && scopeFunc != null) {
             if(variableToTemplate.containsKey(scopeFunc.name)){
                 HashMap<String, String> temp = variableToTemplate.get(scopeFunc.name);
@@ -1404,7 +1428,7 @@ public final class SemanticAnalysis
                     actualList = r.get(1);
                 else
                     actual = r.get(1);
-                String templateFromVarLeft = expected instanceof TemplateType ? node.type.contents(): null;
+                String templateFromVarLeft = expected instanceof TemplateType? node.type.contents(): null;
                 String templateFromVarRight = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.initializer.contents()): null;
                 String funName = scopeFunc != null ? scopeFunc.name: null;
                 if(node.initializer instanceof FunCallNode){
@@ -1523,7 +1547,7 @@ public final class SemanticAnalysis
         HashMap<String, String> tempVariableToTemplate = variableToTemplate.get(node.name);
         for (ParameterNode param : node.parameters){
             String type = param.type.contents();
-            if (type.equals("T") || type.charAt(0) == ('T') && Character.isDigit(type.charAt(1))){
+            if (type.equals("T") || type.charAt(0) == ('T') && Character.isDigit(type.charAt(1)) || type.contains("[")){
                 tempVariableToTemplate.put(param.name, type);
             }
         }
@@ -1617,7 +1641,6 @@ public final class SemanticAnalysis
                         type = typeList != null? typeList.get(i): type;
                         type = templateFromVar == null? type: localHashmap.get(templateFromVar);
                         if (!(type instanceof BoolType)) {
-                            System.out.println(type);
                             r.error("If statement with a non-boolean condition of type: " + type,
                                 node.condition);
                         }
@@ -1699,8 +1722,11 @@ public final class SemanticAnalysis
                     else
                         actual = r.get(1);
                     String name = scopeFunc.returnType.contents();
+                    String subname = name;
+                    if (name.contains("[]"))
+                        subname = name.substring(0, name.length()-2);
                     String templateFromVarLeft = null;
-                    if (name.equals("T") || name.charAt(0) == ('T') && Character.isDigit(name.charAt(1)))
+                    if (subname.equals("T") || subname.charAt(0) == ('T') && Character.isDigit(subname.charAt(1)))
                         templateFromVarLeft = name;
                     String templateFromVarRight = variableToTemplate.get(scopeFunc.name).get(node.expression.contents());
                     if (formal instanceof VoidType)

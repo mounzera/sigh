@@ -47,6 +47,9 @@ public final class ArrayInterpreterTests extends TestFixture {
 
     private static StringLiteralNode stringlit( String s) { return  new StringLiteralNode(null, s);}
 
+    private static ReferenceNode boollit( boolean b) {return  new ReferenceNode(null,String.valueOf(b));}
+
+
 
     // ---------------------------------------------------------------------------------------------
 
@@ -134,7 +137,8 @@ public final class ArrayInterpreterTests extends TestFixture {
         checkExpr("[1]@(<=)[2]",  new ArrayLiteralNode(null, asList(new ReferenceNode(null, "true"))));
         checkExpr("[1]@(==)[2]",  new ArrayLiteralNode(null, asList(new ReferenceNode(null, "false"))));
         checkExpr("[1]@(!=)[2]",  new ArrayLiteralNode(null, asList(new ReferenceNode(null, "true"))));
-
+        checkThrows("[1]@(&&)[2]",  Error.class);
+        checkThrows("[1]@(||)[2]",  Error.class);
 
         checkExpr("[1.0]@(+)[2.0]",  new ArrayLiteralNode(null, asList(floatlit(3))));
         checkExpr("[1.0]@(-)[2.0]",  new ArrayLiteralNode(null, asList(floatlit(-1))));
@@ -147,7 +151,8 @@ public final class ArrayInterpreterTests extends TestFixture {
         checkExpr("[1.0]@(<=)[2.0]",  new ArrayLiteralNode(null, asList(new ReferenceNode(null, "true"))));
         checkExpr("[1.0]@(==)[2.0]",  new ArrayLiteralNode(null, asList(new ReferenceNode(null, "false"))));
         checkExpr("[1.0]@(!=)[2.0]",  new ArrayLiteralNode(null, asList(new ReferenceNode(null, "true"))));
-
+        checkThrows("[1.0]@(&&)[2.0]",  Error.class);
+        checkThrows("[1.0]@(||)[2.0]",  Error.class);
 
 
         checkThrows("[true]@(+)[false]",  Error.class);
@@ -161,8 +166,20 @@ public final class ArrayInterpreterTests extends TestFixture {
         checkThrows("[true]@(<=)[false]",  Error.class);
         checkThrows("[true]@(==)[false]",  Error.class);
         checkThrows("[true]@(!=)[false]",  Error.class);
+        checkExpr("[true]@(||)[false]", new ArrayLiteralNode(null,asList(boollit(true))));
+        checkExpr("[true]@(&&)[false]", new ArrayLiteralNode(null,asList(boollit(false))));
 
         checkExpr("[\"hel\"]@(+)[\"lo\"]",new ArrayLiteralNode(null, asList(stringlit("hello"))));
+        checkExpr("[\"hel\"]@(>)[\"lo\"]",new ArrayLiteralNode(null, asList(boollit(false))));
+        checkExpr("[\"hel\"]@(>=)[\"lo\"]",new ArrayLiteralNode(null, asList(boollit(false))));
+        checkExpr("[\"hel\"]@(<)[\"lo\"]",new ArrayLiteralNode(null, asList(boollit(true))));
+        checkExpr("[\"hel\"]@(<=)[\"lo\"]",new ArrayLiteralNode(null, asList(boollit(true))));
+        checkExpr("[\"hel\"]@(==)[\"lo\"]",new ArrayLiteralNode(null, asList(boollit(false))));
+        checkExpr("[\"hel\"]@(!=)[\"lo\"]",new ArrayLiteralNode(null, asList(boollit(true))));
+        checkThrows("[\"hel\"]@(-)[\"lo\"]",Error.class);
+        checkThrows("[\"hel\"]@(*)[\"lo\"]",Error.class);
+        checkThrows("[\"hel\"]@(%)[\"lo\"]",Error.class);
+        checkThrows("[\"hel\"]@(/)[\"lo\"]",Error.class);
         checkThrows("[1,2]@(-)[1]",Error.class);
 
     }
@@ -186,6 +203,7 @@ public final class ArrayInterpreterTests extends TestFixture {
         check("var x: Template[] = [];  var a: Template[]= [1,2.0,\"hel\"]; var b: Template[] =[1,2.0,\"lo\"]; return x=a@(+)b",
             new ArrayLiteralNode(null,asList(intlit(2),floatlit(4.0),stringlit("hello"))));
         checkThrows("var x: Template[]; return x = [1,\"hel\"]@(+)[2,\"lo\"]",Error.class);
+        checkThrows("var x: Template[]; var a: Template[]=[1,2.0]; var b: Template[] =[2,\"lo\"]; return x = a@(+)b",Error.class);
 
 
 
@@ -244,6 +262,39 @@ public final class ArrayInterpreterTests extends TestFixture {
             "fun add (a: Float[], b: Int[]): Bool[] { return a@(!=)b } " +
                 "return add([4.0], [7])",
             new ArrayLiteralNode(null, asList(new ReferenceNode(null, "true"))));
+
+        check(
+            "fun add (a: Bool[], b: Bool[]): Bool[] { return a@(||)b } " +
+                "return add([true], [false])",
+            new ArrayLiteralNode(null, asList(boollit(true))));
+
+        check(
+            "fun add (a: Bool[], b: Bool[]): Bool[] { return a@(&&)b } " +
+                "return add([true], [false])",
+            new ArrayLiteralNode(null, asList(boollit(false))));
+
+        check(
+            "fun add (a: Template[], b: Template[]): Template[] { return a@(+)b } " +
+                "var a : Template[] = [4.0,\"h\"]; var b: Template[] =[2,\"ello\"]"+
+                "return add(a,b)",
+            new ArrayLiteralNode(null, asList(floatlit(6.0),stringlit("hello"))));
+
+        check(
+            "fun add (a: Template[], b: Template[]): Template[] { return a@(>)b } " +
+                "var a : Template[] = [4.0,\"h\"]; var b: Template[] =[2,\"ello\"]"+
+                "return add(a,b)",
+            new ArrayLiteralNode(null,asList( boollit(true), boollit(true))));
+
+        checkThrows(
+            "fun add (a: Template[], b: Template[]): Template[] { return a@(-)b } " +
+                "var a : Template[] = [4.0,\"h\"]; var b: Template[] =[2,\"ello\"]"+
+                "return add(a,b)", Error.class);
+
+        checkThrows(
+            "fun add (a: Template[], b: Template[]): Template[] { return a@(&&)b } " +
+                "var a : Template[] = [4.0,\"h\"]; var b: Template[] =[2,\"ello\"]"+
+                "return add(a,b)", Error.class);
+
         //TODO not working
         /*check(
             "template <typename T, typename T1> fun add (a: T[], b: T1[]): Template[] { return a@(+)b } " +

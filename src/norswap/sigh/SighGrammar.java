@@ -166,6 +166,10 @@ public class SighGrammar extends Grammar
     public rule add_op = choice(
         PLUS        .as_val(BinaryOperator.ADD),
         MINUS       .as_val(BinaryOperator.SUBTRACT));
+    //Template[]
+    public rule bin_op = choice(
+        AMP_AMP       .as_val(BinaryOperator.AND),
+        BAR_BAR       .as_val(BinaryOperator.OR));
 
 
     public rule cmp_op = choice(
@@ -195,7 +199,7 @@ public class SighGrammar extends Grammar
 
     //Template[]
     public rule array_op = seq(
-        AT.as_val(BinaryOperator.ARRAY_OP) , LPAREN, choice(add_op,mult_op,cmp_op),
+        AT.as_val(BinaryOperator.ARRAY_OP) , LPAREN, choice(add_op,mult_op,cmp_op,bin_op),
         RPAREN
     );
     public rule array_expr = left_expression()

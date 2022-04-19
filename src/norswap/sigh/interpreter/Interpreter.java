@@ -168,8 +168,8 @@ public final class Interpreter
     // ---------------------------------------------------------------------------------------------
     //Returns an array with the types of the left and right nodes
     private Type[] returnType(BinaryExpressionNode node){
-        Type leftType = null;
-        Type rightType = null;
+        Type leftType=null;
+        Type rightType=null;
         try{
             List<Type> left  = reactor.get(node.left, "type");
             leftType = left.get(0);
@@ -201,8 +201,7 @@ public final class Interpreter
             rightType = StringType.INSTANCE;
         }catch (Exception e){}
 
-        Type[] ret_types = {leftType,rightType};
-        return ret_types;
+        return new Type[]{leftType,rightType};
 
     }
     private Boolean isFloat(Type leftType,Type rightType){
@@ -288,8 +287,10 @@ public final class Interpreter
         if (!(node.operator.equals(BinaryOperator.ARRAY_OP))){
             return literalBinaryExpression(node);
         }
-        //Object[] left  = (Object[]) get(node.left);
-        //Object right = (Object[]) get(node.right);
+
+        //Object right = get(node.right);
+
+
 
         // Array Binary expression
         Scope scope = reactor.get(node.left, "scope");
@@ -306,7 +307,21 @@ public final class Interpreter
 
         ArrayLiteralNode left_arr = null; // retrieve lesft anr right arrays
         ArrayLiteralNode right_arr = null;
-        if (node.left instanceof  ParenthesizedNode){
+        try{
+            if(get(node.left) instanceof ArrayLiteralNode){
+                left_arr= get(node.left);
+            }
+        }catch (Exception e){
+            System.out.println("exception");
+        }
+        try{
+            if(get(node.left) instanceof ArrayLiteralNode){
+                right_arr= get(node.left);
+            }
+        }catch (Exception e){
+            System.out.println("exception");
+        }
+        /*if (node.left instanceof  ParenthesizedNode){
             ArrayLiteralNode result = (ArrayLiteralNode) binaryExpression((BinaryExpressionNode) ((ParenthesizedNode) node.left).expression);
             left_arr = result;
         }
@@ -319,14 +334,17 @@ public final class Interpreter
         }
         if (node.right instanceof BinaryExpressionNode){
             right_arr = (ArrayLiteralNode) binaryExpression((BinaryExpressionNode) node.right);
-        }
+        }*/
         FunDeclarationNode currFunction = null;//(FunDeclarationNode) scope.lookup(currentFunctionName).declaration;//(FunDeclarationNode) curr_scope.declarations.get(currentFunctionName);
         Scope curr_scope =null;//(Scope)reactor.get(scope.declarations.get(left_name),"scope");
         ArrayLiteralNode[] parameter_arrays = new ArrayLiteralNode[2]; //store left and right arrays
         if (scope != null && currentFunctionName != null) {
-            currFunction = (FunDeclarationNode) scope.lookup(currentFunctionName).declaration;//(FunDeclarationNode) curr_scope.declarations.get(currentFunctionName);
-            if (scope.declarations.get(left_name) != null)
-                curr_scope= (Scope) reactor.get(scope.declarations.get(left_name), "scope");
+            //TODO
+            if (scope.lookup(currentFunctionName).declaration instanceof FunDeclarationNode) {
+                currFunction = (FunDeclarationNode) scope.lookup(currentFunctionName).declaration;//(FunDeclarationNode) curr_scope.declarations.get(currentFunctionName);
+
+            }if (scope.declarations.get(left_name) != null)
+                curr_scope= reactor.get(scope.declarations.get(left_name), "scope");
         }
         if (currFunction != null) {
             int param_index = 0;
@@ -406,7 +424,7 @@ public final class Interpreter
         //type check
         if (left_arr.components.size() != right_arr.components.size()){
 
-            throw  new Error(format(" Operation between arrays of different length: %s (%d) and %s (%d)",left_arr.components.toString(), left_arr.components.size(), right_arr.components.toString(),right_arr.components.size()));
+            throw  new Error(format(" Operation between arrays of different length: %s (%d) and %s (%d)", left_arr.components, left_arr.components.size(), right_arr.components,right_arr.components.size()));
         }
 
 
@@ -422,9 +440,17 @@ public final class Interpreter
                 boolean floating = isFloat(ret_types[0],ret_types[1]);
                 switch (node.array_operator) {
                     case OR:
+                        if (!(ret_types[0] instanceof BoolType)||!(ret_types[1] instanceof BoolType)){
+                            throw new Error(format("using  boolean operator @(%s) between non boolean array elements : %s and %s",
+                                node.array_operator, new_node.left, new_node.right ));
+                        }
                         result.add(new ReferenceNode(null, String.valueOf(booleanOp(new_node, false))));
                         break;
                     case AND:
+                        if (!(ret_types[0] instanceof BoolType)||!(ret_types[1] instanceof BoolType)){
+                            throw new Error(format("using  boolean operator @(%s) between non boolean array elements : %s and %s",
+                                node.array_operator, new_node.left,new_node.right ));
+                        }
                         result.add(new ReferenceNode(null, String.valueOf(booleanOp(new_node, true))));
                         break;
                     case GREATER :
@@ -459,8 +485,7 @@ public final class Interpreter
 
 
         }//TODO Span
-        ArrayLiteralNode resultNode = new ArrayLiteralNode(null,result);
-        return resultNode;
+        return new ArrayLiteralNode(null,result);
 
 
 

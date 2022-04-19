@@ -114,14 +114,18 @@ public final class SemanticAnalysis
 
     /**Template[]
      *  = set with authorized operations between strings **/
-    private HashSet<BinaryOperator> string_op = new HashSet<BinaryOperator>();
+    private HashSet<BinaryOperator> string_op = new HashSet<>();
+    private HashSet<BinaryOperator> bool_op = new HashSet<>();
     HashMap<String,List<HashMap<String,ArrayLiteralNode>>> param_arrays = new HashMap<>();
     // ---------------------------------------------------------------------------------------------
 
     private SemanticAnalysis(Reactor reactor) {
         this.R = reactor;
-        BinaryOperator[] op ={ADD,GREATER,GREATER_EQUAL,LOWER,LOWER_EQUAL,EQUALITY,NOT_EQUALS};
-        this.string_op.addAll(Arrays.asList(op));
+        BinaryOperator[] sop ={ADD,GREATER,GREATER_EQUAL,LOWER,LOWER_EQUAL,EQUALITY,NOT_EQUALS};
+        this.string_op.addAll(Arrays.asList(sop));
+        BinaryOperator[] bop ={AND,OR,EQUALITY,NOT_EQUALS};
+        this.bool_op.addAll(Arrays.asList(bop));
+
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -821,6 +825,9 @@ public final class SemanticAnalysis
     private boolean isArrayOp (BinaryOperator op){
         return op == ARRAY_OP;
     }
+    private boolean isBoolOp(BinaryOperator op){
+        return op == AND || op == OR;
+    }
 
     // ---------------------------------------------------------------------------------------------
 
@@ -957,7 +964,7 @@ public final class SemanticAnalysis
 
     private void set_array_type(Rule r, BinaryExpressionNode node, Type left, boolean temp){
         ArrayType arrayType = (ArrayType) left;
-        if (isComparison(node.array_operator) || isEquality(node.array_operator)){
+        if (isComparison(node.array_operator) || isEquality(node.array_operator) || isBoolOp(node.array_operator)){
             if (temp){
                 r.set(0,new ArrayType(BoolType.INSTANCE,"Template[]"));
             }
@@ -989,13 +996,24 @@ public final class SemanticAnalysis
         if (node.right instanceof ReferenceNode){
             right_name=((ReferenceNode) node.right).name;
         }
-        Boolean left_template = ((ArrayType) left).templateName!=null;
-        Boolean right_template = ((ArrayType) right).templateName!=null;
+        Boolean left_template = ((ArrayType) left).templateName != null;//((ArrayType) left).templateName == null ? false : ((ArrayType) left).templateName.equals("Template");
+        Boolean right_template = ((ArrayType) right).templateName != null;//((ArrayType) right).templateName == null ? false : ((ArrayType) right).templateName.equals("Template");
         boolean temp = left_template || right_template;
-
-        if (! temp && ((ArrayType) left).componentType instanceof StringType && ((ArrayType) right).componentType instanceof StringType){
+        /*System.out.println(((ArrayType) left).componentType instanceof StringType);
+        System.out.println(((ArrayType) right).componentType instanceof StringType);
+        System.out.println(!temp);
+        System.out.println(((ArrayType) left).templateName);
+        System.out.println(((ArrayType) right).templateName);*/
+        if ( !temp && ((ArrayType) left).componentType instanceof StringType && ((ArrayType) right).componentType instanceof StringType){
             if (! string_op.contains(node.array_operator)) {
                 r.error(format("Trying to use %s between arrays of String type",node.array_operator),node);
+                return;
+            }
+        }
+
+        if ( !temp && ((ArrayType) left).componentType instanceof BoolType && ((ArrayType) right).componentType instanceof BoolType){
+            if (! bool_op.contains(node.array_operator)) {
+                r.error(format("Trying to use %s between arrays of Bool type",node.array_operator),node);
                 return;
             }
         }
@@ -1027,7 +1045,7 @@ public final class SemanticAnalysis
             }
         }
         set_array_type(r,node,left,temp);
-        return;
+
         /*
         DeclarationNode left_decl =(((Scope) R.get(node.left,"scope")).declarations.get(left_name));
         DeclarationNode right_decl=(((Scope) R.get(node.right,"scope")).declarations.get(right_name));

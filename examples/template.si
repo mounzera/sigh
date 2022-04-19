@@ -171,16 +171,34 @@ loop<Float>(4.7)*/
 print(test("2"))
 test("3")*/
 
+//Array operation test
+/*var arr10 : Int[] = [1,2]
+var arr20 : Float[]= [2.0, 3.0]
+var arr30: Bool[]=arr10@(>)arr20
+print("111" + arr10)
+print("222" + arr30)*/
+/*var arr10 : Bool[] = [true]
+var arr20 : Bool[]= [false]
+var arr30: Bool[]=arr10@(&&)arr20
+print("111" + arr10)
+print("222" + arr30)*/
 
 //Template array test
 /*var arr10 : Template[] = [1.0, "Hello"]
 var arr20 : Template[]= [2, " everybody"]
-var arr30: Template[]=arr10@(+)arr20
+var arr30: Template[]=arr10@(>)arr20
 print("111" + arr10)
-print("222" + arr30)
+print("222" + arr30)*/
+/*var arr10 : Template[] = [1.0, "Hello"]
+var arr20 : Template[]= [2, " everybody"]
+var arr40 : Template[] = [3, " !"]
+var arr30: Template[]=arr10@(+)arr20@(+)arr40
+print("111" + arr10)
+print("222" + arr30)*/
+
 
 //Template array assignment test
-print("" + arr10)
+/*print("" + arr10)
 arr10=["hello"]
 print("10 " + arr10)
 //print("" + arr30)
@@ -275,3 +293,10 @@ fun listTest2(a: T[]): T{
 var l: Int[] = [2, 5]
 //listTest<Int[]>(l)
 listTest2<Int>(l)
+/*fun add (a: String[], b: String[]): String[] { return a@(-)b }
+add(["h"], ["ello"])*/
+
+/*fun add (a: Template[], b: Template[]): Template[] { return a@(&&)b }
+var a : Template[] = [4.0,"h"]
+var b: Template[] =[2,"ello"]
+print(""+add(a,b))*/

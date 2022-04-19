@@ -41,6 +41,8 @@ type of the last call and thus only this type will be used in the assignement ch
 - stuct with template
 - prevent from declaring twice the same func or var
 - verify that func return is assignable
+- template[]
+- no call
 
 Question:
 - Working with struct ??

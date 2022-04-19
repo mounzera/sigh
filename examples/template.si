@@ -235,9 +235,9 @@ var c: Template[] = [1.0,2.0,2.0]//"bye"]
 var g: Int[] = [2,3,4]
 //print(""+a)
 var d: Template[] = f<Template, Template>(c,b,a) //[3,3,3]
-var e: Template[] = f<Int, Int>(d,[2,2,2],d)*/
+var e: Template[] = f<Int, Int>(d,[2,2,2],d)
 print(""+d)
-print(""+e)
+print(""+e)*/
 //var a: Int = (1+2)+3
 //print(""+a)
 //print("" +f<Float[], Int[]>(c,a,b))
@@ -285,7 +285,7 @@ print(""+x.length)*/
 
 
 //list as type in template function
-template <typename T>
+/*template <typename T>
 fun listTest2(a: T[]): T{
     var b: Int = a[0]
     return b
@@ -293,6 +293,10 @@ fun listTest2(a: T[]): T{
 var l: Int[] = [2, 5]
 //listTest<Int[]>(l)
 listTest2<Int>(l)
+fun listTest2(a: Int[]): T{
+    var b: Int = a[0]
+    return b
+}*/
 /*fun add (a: String[], b: String[]): String[] { return a@(-)b }
 add(["h"], ["ello"])*/
 

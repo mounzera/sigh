@@ -117,6 +117,10 @@ public final class SemanticAnalysis
     private HashSet<BinaryOperator> string_op = new HashSet<>();
     private HashSet<BinaryOperator> bool_op = new HashSet<>();
     HashMap<String,List<HashMap<String,ArrayLiteralNode>>> param_arrays = new HashMap<>();
+
+    /**Avoid mutiple declarations with same name**/
+    private List<String> declaredFunNames = new ArrayList<>();
+    private List<String> declaredVarNames = new ArrayList<>();
     // ---------------------------------------------------------------------------------------------
 
     private SemanticAnalysis(Reactor reactor) {
@@ -467,10 +471,12 @@ public final class SemanticAnalysis
                         HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
                         type = typeList != null ? typeList.get(i) : type;
                         type = templateFromVarLeft == null ? type : localHashmap.get(templateFromVarLeft);
+
                         if (type instanceof ArrayType){
                             typeToSet.add(((ArrayType) type).componentType);
                         }
                     }
+
                     r.set(0, typeToSet);
                 }
                 else if (type instanceof ArrayType){
@@ -612,7 +618,10 @@ public final class SemanticAnalysis
                             returnTemplateDic.get(node.function.contents()).add(template);
                     }
                     templateParametersDictionnary.put(templateName.name, template);
-                    templateParametersDictionnary.put(templateName.name+"[]", new ArrayType(template, null));
+                    //here
+                    //System.out.println(templateName.name);
+                    //System.out.println(globalTypeDictionary + ""+variableToTemplate+""+ temp);
+                    templateParametersDictionnary.put(templateName.name+"[]", new ArrayType(template, "Template[]"));
                     tempIdx++;
                 }
                 if (globalTypeDictionary.get(node.function.contents()) == null){
@@ -1412,6 +1421,11 @@ public final class SemanticAnalysis
 
     private void varDecl (VarDeclarationNode node)
     {
+        /*if (declaredVarNames.contains(node.name())){
+            R.error(new SemanticError("Try to declare variable with already existing function name",null,node));
+        }else {
+            declaredVarNames.add(node.name());
+        }*/
         this.inferenceContext = node;
 
         final FunDeclarationNode scopeFunc = currentFunction();
@@ -1477,6 +1491,7 @@ public final class SemanticAnalysis
                             actual = (actualList != null && actualList.size()!=0)? actualList.get(i): actual;
                             expected = templateFromVarLeft == null ? expected : localHashmap.get(templateFromVarLeft);
                             actual = templateFromVarRight == null ? actual : localHashmap.get(templateFromVarRight);
+                            System.out.println(localHashmap + " "+ templateFromVarRight);
                             if (!isAssignableTo(actual, expected)) {
                                 r.error(format(
                                         "incompatible initializer type provided for variable `%s`: expected %s but got %s",
@@ -1557,9 +1572,20 @@ public final class SemanticAnalysis
     private void funDecl (FunDeclarationNode node)
     {
         //scope = new Scope(node, scope);
+
         scope.declare(node.name, node);
         scope = new Scope(node, scope);
+
         R.set(node, "scope", scope);
+        System.out.println("fun declaration "+ node.name + declaredFunNames.contains(node.name));
+        if (declaredFunNames.contains(node.name())){
+            System.out.println("in error");
+            R.error(new SemanticError("Try to declare function with already existing function name",null,node));
+            System.out.println("after");
+            return;
+        }else {
+            declaredFunNames.add(node.name());
+        }
         variableToTemplate.put(node.name, new HashMap<>());
         HashMap<String, String> tempVariableToTemplate = variableToTemplate.get(node.name);
         for (ParameterNode param : node.parameters){

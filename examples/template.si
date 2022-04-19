@@ -235,9 +235,9 @@ var c: Template[] = [1.0,2.0,2.0]//"bye"]
 var g: Int[] = [2,3,4]
 //print(""+a)
 var d: Template[] = f<Template, Template>(c,b,a) //[3,3,3]
-var e: Template[] = f<Int, Int>(d,[2,2,2],d)
+var e: Template[] = f<Int, Int>(d,[2,2,2],d)*/
 print(""+d)
-print(""+e)*/
+print(""+e)
 //var a: Int = (1+2)+3
 //print(""+a)
 //print("" +f<Float[], Int[]>(c,a,b))

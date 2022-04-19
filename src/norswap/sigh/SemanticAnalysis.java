@@ -1428,7 +1428,6 @@ public final class SemanticAnalysis
                 variableToTemplate.put(scopeFunc.name, temp);
             }
         } // TODO when var is declared with template in fun add it to variable template to be able to recognize it -> done but not checked !
-
         scope.declare(node.name, node);
         R.set(node, "scope", scope);
         R.rule(node, "type")

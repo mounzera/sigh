@@ -43,7 +43,6 @@ type of the last call and thus only this type will be used in the assignement ch
 - verify that func return is assignable
 
 Question:
-- Working with struct ??
 
 
 Questions séance de tp

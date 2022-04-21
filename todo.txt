@@ -37,9 +37,9 @@ type of the last call and thus only this type will be used in the assignement ch
 - && and  || -> done
 - tests -> some need to be fixed -> done
 
-- Arrays with template in func
+- Arrays with template in func -> done (err in interpretor)
 - stuct with template
-- prevent from declaring twice the same func or var
+- prevent from declaring twice the same func or var -> done
 - verify that func return is assignable
 - template[]
 - no call
@@ -48,7 +48,6 @@ Question:
 
 
 Questions séance de tp
-- funCall<Int> doit renvoyer une erreur si pas de template specified -> how to return an error not in the rules but using the reactor?
 
 Important files:
 - semantic analysis

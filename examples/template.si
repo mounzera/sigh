@@ -311,11 +311,10 @@ print(""+add(a,b))*/
 
 //Template structures
 
-/*template<typename T>
+template<typename T>
 struct Pair {
     var a: T
     var b: T
 }
 
-var type: Type = Pair <Int>
-print("" + type)*/
+var type: Type = Pair{Int, Int}

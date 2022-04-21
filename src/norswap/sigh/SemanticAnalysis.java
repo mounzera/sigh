@@ -603,7 +603,6 @@ public final class SemanticAnalysis
                             templateNameIdx++;
                             break;
                         case "Template":
-                            System.out.println("set");
                             template = new ArrayType(TemplateType.INSTANCE,"Template[]");//TemplateType.INSTANCE;
                             templateNameIdx++;
                             break;
@@ -627,7 +626,13 @@ public final class SemanticAnalysis
                     //here
                     //System.out.println(templateName.name);
                     //System.out.println(globalTypeDictionary + ""+variableToTemplate+""+ temp);
-                    templateParametersDictionnary.put(templateName.name+"[]", new ArrayType(template, null));
+                    if (! (template instanceof ArrayType)){
+                        templateParametersDictionnary.put(templateName.name, template);
+                        templateParametersDictionnary.put(templateName.name+"[]", new ArrayType(template, null));
+                    }else {// template[]
+                        templateParametersDictionnary.put(templateName.name, TemplateType.INSTANCE);
+                        templateParametersDictionnary.put(templateName.name+"[]", template);//new ArrayType(template, null));
+                    }
                     tempIdx++;
                 }
                 if (globalTypeDictionary.get(node.function.contents()) == null){
@@ -985,6 +990,7 @@ public final class SemanticAnalysis
         }
         if (isComparison(node.array_operator) || isEquality(node.array_operator) || isBoolOp(node.array_operator)){
             if (temp){
+                typeToSet.add(new ArrayType(BoolType.INSTANCE,"Template[]"));
                 r.set(0,new ArrayType(BoolType.INSTANCE,"Template[]"));
             }else{
                 typeToSet.add(new ArrayType(BoolType.INSTANCE,null));
@@ -993,6 +999,7 @@ public final class SemanticAnalysis
         }
         else{
             if (temp){
+                typeToSet.add(new ArrayType(TemplateType.INSTANCE,"Template[]"));
                 r.set(0,new ArrayType(TemplateType.INSTANCE,"Template[]"));
             }else{
                 typeToSet.add(new ArrayType(arrayType.componentType,null));
@@ -1357,18 +1364,38 @@ public final class SemanticAnalysis
      */
     private static boolean isAssignableTo (Type a, Type b)
     {
+        /*if (a==null && b==null){
+            System.out.println("null");
+            return true;
+        }*/
+        if (a==null ||b==null)
+            return false;
         if (a instanceof VoidType || b instanceof VoidType)
             return false;
 
         if (a instanceof IntType && b instanceof FloatType)
             return true;
-
-        if (a instanceof ArrayType){
+        if (a instanceof ArrayType && ((ArrayType) a).templateName!= null ){//&& ((ArrayType)a).templateName.equals("Template[]")){
             if (b.name().equals("Template[]")){
                 return true;
             }
+
             return b instanceof ArrayType
                 && isAssignableTo(((ArrayType)a).componentType, ((ArrayType)b).componentType);
+        }
+        //System.out.println("b "+ ((ArrayType)b).templateName);
+        if (b instanceof TemplateType){
+            return true;
+        }
+        if (b instanceof ArrayType && ((ArrayType) b).templateName != null &&((ArrayType)b).templateName.equals("Template[]")){//TypeType){
+            if (a instanceof TemplateType)
+                return true;
+            else
+                return false;
+        }
+        if (a instanceof TemplateType){//TypeType){
+            System.out.println("WARNING : trying to attribute type to Template array element");
+            return true;
         }
         return a instanceof NullType && b.isReference() || a.equals(b);
     }
@@ -1440,6 +1467,7 @@ public final class SemanticAnalysis
 
     private void varDecl (VarDeclarationNode node)
     {
+
         this.inferenceContext = node;
 
         final FunDeclarationNode scopeFunc = currentFunction();
@@ -1608,7 +1636,6 @@ public final class SemanticAnalysis
         scope = new Scope(node, scope);
 
         R.set(node, "scope", scope);
-        System.out.println("fun declaration "+ node.name + declaredFunNames.contains(node.name));
         if (declaredFunNames.contains(node.name())){
             R.error(new SemanticError("Try to declare function with already existing name: "  + node.name(),null,node));
             return;

@@ -31,7 +31,6 @@ public class FunDeclarationNode extends DeclarationNode
             ? new SimpleTypeNode(new Span(span.start, span.start), "Void")
             : Util.cast(returnType, TypeNode.class);
         this.block = Util.cast(block, BlockNode.class);
-        System.out.println("fun declaration node" );
 
     }
 

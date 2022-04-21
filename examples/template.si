@@ -286,19 +286,17 @@ print(""+x.length)*/
 
 //list as type in template function
 template <typename T>
-fun listTest2(a: T[]): T[]{
-    //var b: Template = a[0]
-    return a
+fun listTest2(a: T[], b: T[]): T{
+    var d : Int[] = [3, 5]
+    var c : Int[] = d@(*)a
+    return 0
 }
-//var l: Int[] = [2, 5]
-var l: Int = [2, 5]
-//listTest<Int[]>(l)
-//listTest2<Int>(l)
-listTest2<Template>(l)
-/*fun listTest2(a: Int[]): T{
-    var b: Int = a[0]
-    return b
-}*/
+var l: Int[] = [2, 4]
+var l2: Int[] = [3, 4]
+listTest2<Int>(l, l2)
+
+
+
 /*fun add (a: String[], b: String[]): String[] { return a@(-)b }
 add(["h"], ["ello"])*/
 

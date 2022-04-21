@@ -119,8 +119,8 @@ public final class SemanticAnalysis
     HashMap<String,List<HashMap<String,ArrayLiteralNode>>> param_arrays = new HashMap<>();
 
     /**Avoid mutiple declarations with same name**/
-    private List<String> declaredFunNames = new ArrayList<>();
-    private List<String> declaredVarNames = new ArrayList<>();
+    private HashSet<String> declaredFunNames = new HashSet<>();
+    private HashSet<String> declaredVarNames = new HashSet<>();
     // ---------------------------------------------------------------------------------------------
 
     private SemanticAnalysis(Reactor reactor) {
@@ -444,6 +444,7 @@ public final class SemanticAnalysis
 
     private void arrayAccess (ArrayAccessNode node)
     {
+        System.out.println("access "+ node.array);
         R.rule()
             .using(node.index, "type")
             .by(r -> {
@@ -476,6 +477,7 @@ public final class SemanticAnalysis
                             typeToSet.add(((ArrayType) type).componentType);
                         }
                     }
+                    System.out.println("typetoset "+typeToSet);
 
                     r.set(0, typeToSet);
                 }
@@ -491,6 +493,7 @@ public final class SemanticAnalysis
 
     private void funCall (FunCallNode node)
     {
+        System.out.println("fun call "+ node);
         //Template arrays
         String fun_name = node.function.contents();
         if (fun_name.equals("print")){
@@ -583,7 +586,7 @@ public final class SemanticAnalysis
                 int templateNameIdx = 0;
                 for (TemplateParameterNode templateName : currFun.getTemplateParameters()) {
                     Type template;
-
+                    System.out.println("switch "+node.templateArgs.get(tempIdx).contents());
                     switch (node.templateArgs.get(tempIdx).contents()){
                         case "Int":
                             template = IntType.INSTANCE;
@@ -601,6 +604,11 @@ public final class SemanticAnalysis
                             template = BoolType.INSTANCE;
                             templateNameIdx++;
                             break;
+                        case "Template":
+                            System.out.println("set");
+                            template = new ArrayType(TemplateType.INSTANCE,"Template[]");//TemplateType.INSTANCE;
+                            templateNameIdx++;
+                            break;
                         /*case "Array":
                             TODO
                          */
@@ -609,6 +617,7 @@ public final class SemanticAnalysis
                             template = null;
                     }
                     String returnnName = currFun.returnType.contents();
+                    System.out.println("template name "+ templateName.name);
                     if (returnnName.equals("T") || returnnName.charAt(0) == ('T') && Character.isDigit(returnnName.charAt(1))){
                         if (returnTemplateDic.get(node.function.contents()) == null){
                             returnTemplateDic.put(node.function.contents(), new ArrayList<>());
@@ -621,7 +630,10 @@ public final class SemanticAnalysis
                     //here
                     //System.out.println(templateName.name);
                     //System.out.println(globalTypeDictionary + ""+variableToTemplate+""+ temp);
-                    templateParametersDictionnary.put(templateName.name+"[]", new ArrayType(template, "Template[]"));
+                    System.out.println(" template "+ template);
+                    ArrayType test = new ArrayType(template,null);
+                    System.out.println(" test "+ test.componentType.getClass());
+                    templateParametersDictionnary.put(templateName.name+"[]", new ArrayType(template, null));
                     tempIdx++;
                 }
                 if (globalTypeDictionary.get(node.function.contents()) == null){
@@ -1343,13 +1355,28 @@ public final class SemanticAnalysis
 
         if (a instanceof IntType && b instanceof FloatType)
             return true;
-
-        if (a instanceof ArrayType){
+        System.out.println(((ArrayType)a).templateName);
+        if (a instanceof ArrayType && ((ArrayType) a).templateName!= null){
+            System.out.println("hello");
             if (b.name().equals("Template[]")){
                 return true;
             }
             return b instanceof ArrayType
                 && isAssignableTo(((ArrayType)a).componentType, ((ArrayType)b).componentType);
+        }
+        if (b instanceof ArrayType && ((ArrayType)b).templateName.equals("Template[]")){//TypeType){
+            System.out.println("here1 " + a.getClass());
+            if (a instanceof TemplateType)
+                return true;
+            else
+                return false;
+        }
+        if (a instanceof TemplateType){//TypeType){
+            System.out.println("here2 "+ b.getClass());
+            if (b instanceof TemplateType){
+                System.out.println("here2");
+
+            }
         }
         return a instanceof NullType && b.isReference() || a.equals(b);
     }
@@ -1421,11 +1448,7 @@ public final class SemanticAnalysis
 
     private void varDecl (VarDeclarationNode node)
     {
-        /*if (declaredVarNames.contains(node.name())){
-            R.error(new SemanticError("Try to declare variable with already existing function name",null,node));
-        }else {
-            declaredVarNames.add(node.name());
-        }*/
+
         this.inferenceContext = node;
 
         final FunDeclarationNode scopeFunc = currentFunction();
@@ -1450,6 +1473,12 @@ public final class SemanticAnalysis
             .by(Rule::copyFirst);
         Scope s = scope;
 
+        /*if (declaredVarNames.contains(node.name())){
+            R.error(new SemanticError("Try to declare variable with already existing function name",null,node));
+        }else {
+            declaredVarNames.add(node.name());
+        }*/
+
         R.rule()
             .using(node.type.attr("value"), node.initializer.attr("type"))
             .by(r -> {
@@ -1460,6 +1489,7 @@ public final class SemanticAnalysis
                     actualList = r.get(1);
                 else
                     actual = r.get(1);
+                System.out.println("expected "+expected.getClass() + " content "+ node.type.contents());
                 String templateFromVarLeft = expected instanceof TemplateType? node.type.contents(): null;
                 String templateFromVarRight = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.initializer.contents()): null;
                 String funName = scopeFunc != null ? scopeFunc.name: null;
@@ -1470,6 +1500,7 @@ public final class SemanticAnalysis
                 if (templateFromVarRight != null || templateFromVarLeft != null || actualList != null){
                     if (globalTypeDictionary.size() == 0)
                         return;
+                    System.out.println("left"+templateFromVarLeft);
                     if(node.initializer instanceof FunCallNode){
                         //TODO OK ou pas ?
                         if (returnCounterFunction.size()==0){
@@ -1490,9 +1521,13 @@ public final class SemanticAnalysis
                         for (int i = 0; i < globalTypeDictionary.get(funName).size(); i++) {
                             HashMap<String, Type> localHashmap = globalTypeDictionary.get(funName).get(i);
                             actual = (actualList != null && actualList.size()!=0)? actualList.get(i): actual;
-                            expected = templateFromVarLeft == null ? expected : localHashmap.get(templateFromVarLeft);
+                            System.out.println("expected "+expected);
+                            expected = (templateFromVarLeft == null )? expected : localHashmap.get(templateFromVarLeft);
                             actual = templateFromVarRight == null ? actual : localHashmap.get(templateFromVarRight);
-                            System.out.println(localHashmap + " "+ templateFromVarRight);
+                            System.out.println("expected "+expected);
+                            System.out.println(localHashmap);
+                            System.out.println(templateFromVarLeft);
+                            System.out.println(globalTypeDictionary);
                             if (!isAssignableTo(actual, expected)) {
                                 r.error(format(
                                         "incompatible initializer type provided for variable `%s`: expected %s but got %s",
@@ -1578,11 +1613,8 @@ public final class SemanticAnalysis
         scope = new Scope(node, scope);
 
         R.set(node, "scope", scope);
-        System.out.println("fun declaration "+ node.name + declaredFunNames.contains(node.name));
         if (declaredFunNames.contains(node.name())){
-            System.out.println("in error");
             R.error(new SemanticError("Try to declare function with already existing function name",null,node));
-            System.out.println("after");
             return;
         }else {
             declaredFunNames.add(node.name());
@@ -1772,7 +1804,10 @@ public final class SemanticAnalysis
                     String templateFromVarLeft = null;
                     if (subname.equals("T") || subname.charAt(0) == ('T') && Character.isDigit(subname.charAt(1)))
                         templateFromVarLeft = name;
+                    System.out.println("content "+ node.expression.contents() + " var to temp "+ variableToTemplate);
                     String templateFromVarRight = variableToTemplate.get(scopeFunc.name).get(node.expression.contents());
+                    System.out.println("name "+ name + " subname "+ subname + " right " + templateFromVarRight + " left "+ templateFromVarLeft );
+                    System.out.println("formal " + formal + " actual " + actual);
                     if (formal instanceof VoidType)
                         r.error("Return with value in a Void function.", node);
                     else if (templateFromVarRight != null || templateFromVarLeft != null || actualList != null){
@@ -1780,9 +1815,13 @@ public final class SemanticAnalysis
                             return;
                         for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
                             HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
+                            System.out.println("global " + globalTypeDictionary);
+                            System.out.println("formal " + formal + " actual " + actual);
                             actual = (actualList != null && actualList.size()!=0)? actualList.get(i): actual;
                             formal = templateFromVarLeft == null ? formal : localHashmap.get(templateFromVarLeft);
                             actual = templateFromVarRight == null ? actual : localHashmap.get(templateFromVarRight);
+                            System.out.println("formal " + formal +" "+ formal.getClass() +" "+ " actual " + actual+" "+ actual.getClass());
+                            System.out.println(((ArrayType) formal).templateName +" "+((ArrayType) actual).templateName);
                             if (!isAssignableTo(actual, formal))
                                 r.error(format(
                                     "Incompatible return type, expected %s but got %s", formal, actual),

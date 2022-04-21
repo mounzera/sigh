@@ -15,12 +15,17 @@ public final class VarDeclarationNode extends DeclarationNode
     public final TypeNode type;
     public final ExpressionNode initializer;
     public String context;
+    public final List<TypeNode> templateArgs;
 
-    public VarDeclarationNode (Span span, Object name, Object type, Object initializer) {
+
+    public VarDeclarationNode (Span span, Object name, Object type, Object initializer, Object templateArgs) {
         super(span);
         this.name = Util.cast(name, String.class);
         this.type = Util.cast(type, TypeNode.class);
         this.initializer = Util.cast(initializer, ExpressionNode.class);
+        System.out.println(name+" "+ templateArgs);
+        this.templateArgs = templateArgs==null ? null : Util.cast(templateArgs,List.class);
+
         /*System.out.println(span);
         System.out.println(this.name);
         System.out.println(((ArrayTypeNode)this.type).componentType);

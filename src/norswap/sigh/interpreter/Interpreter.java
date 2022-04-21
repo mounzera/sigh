@@ -294,6 +294,7 @@ public final class Interpreter
 
         // Array Binary expression
         Scope scope = reactor.get(node.left, "scope");
+        // TODO merge les deux scope pour etre sur de ne rater aucune var ?
         /*String left_name = ((ReferenceNode) node.left).name;
         String right_name =((ReferenceNode) node.right).name;*/
         String left_name = null;
@@ -381,12 +382,13 @@ public final class Interpreter
                         }else {
                             array_decl = (VarDeclarationNode) (curr_scope.declarations.get(param_name));
                         }
-
-                        if (array_decl.initializer instanceof FunCallNode){
-                            parameter_arrays[1] = (ArrayLiteralNode) currentFunctionValue.value;
-                        }
-                        else {
-                            parameter_arrays[1] = (ArrayLiteralNode) (array_decl.initializer);
+                        if (array_decl != null){
+                            if (array_decl.initializer instanceof FunCallNode){
+                                parameter_arrays[1] = (ArrayLiteralNode) currentFunctionValue.value;
+                            }
+                            else {
+                                parameter_arrays[1] = (ArrayLiteralNode) (array_decl.initializer);
+                            }
                         }
                     }
                 }
@@ -411,6 +413,7 @@ public final class Interpreter
         if (node.right instanceof ReferenceNode) {
             right_arr = parameter_arrays[1];//(ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(right_name)).initializer);
             if (right_arr == null) { // arrays is a declaration
+                System.out.println(scope + " " + right_name);
                 right_arr = (ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(right_name)).initializer);
             }
         }

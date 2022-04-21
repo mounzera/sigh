@@ -254,7 +254,6 @@ public class SighGrammar extends Grammar
         .push($ -> new BlockNode($.span(), $.$[0]));
 
     //Template C++
-    //To add -> posibility to make T1, T2 (add number to name of param)
     public rule identifierCap =
             identifier(seq(choice(alphaCap, '_'), id_part.at_least(0)))
                     .push($ -> $.str());

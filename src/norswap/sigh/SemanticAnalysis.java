@@ -980,6 +980,9 @@ public final class SemanticAnalysis
 
     private void set_array_type(Rule r, BinaryExpressionNode node, Type left, boolean temp, List<Type> typeToSet){
         ArrayType arrayType = (ArrayType) left;
+        if (typeToSet==null){
+            typeToSet = new ArrayList<>();
+        }
         if (isComparison(node.array_operator) || isEquality(node.array_operator) || isBoolOp(node.array_operator)){
             if (temp){
                 r.set(0,new ArrayType(BoolType.INSTANCE,"Template[]"));

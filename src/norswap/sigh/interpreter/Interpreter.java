@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import static java.lang.String.format;
 import static norswap.sigh.ast.BinaryOperator.*;
@@ -294,6 +295,15 @@ public final class Interpreter
 
         // Array Binary expression
         Scope scope = reactor.get(node.left, "scope");
+        Scope scoper = reactor.get(node.right, "scope");
+        //HashMap<String,DeclarationNode> scope = null;
+        HashMap<String,DeclarationNode> mapr = null;
+        if (scoper!= null){
+            for(Entry<String, DeclarationNode> decl : scoper.declarations.entrySet()){
+                scope.declare(decl.getKey(),decl.getValue());
+            }
+        }
+
         // TODO merge les deux scope pour etre sur de ne rater aucune var ?
         /*String left_name = ((ReferenceNode) node.left).name;
         String right_name =((ReferenceNode) node.right).name;*/
@@ -346,6 +356,16 @@ public final class Interpreter
 
             }if (scope.declarations.get(left_name) != null)
                 curr_scope= reactor.get(scope.declarations.get(left_name), "scope");
+            if (scope.declarations.get(right_name) != null){
+                 Scope curr_scoper= reactor.get(scope.declarations.get(right_name), "scope");
+                 if (curr_scope==null){
+                     curr_scope = curr_scoper;
+                 }else if (curr_scoper!=null){
+                     for (Entry<String , DeclarationNode> e : curr_scoper.declarations.entrySet()){
+                         curr_scope.declare(e.getKey(),e.getValue());
+                     }
+                 }
+            }
         }
         if (currFunction != null) {
             int param_index = 0;
@@ -413,8 +433,11 @@ public final class Interpreter
         if (node.right instanceof ReferenceNode) {
             right_arr = parameter_arrays[1];//(ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(right_name)).initializer);
             if (right_arr == null) { // arrays is a declaration
-                System.out.println(scope + " " + right_name);
-                right_arr = (ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(right_name)).initializer);
+                SighNode n = scope.declarations.get(right_name);
+                if (n instanceof VarDeclarationNode){
+                    right_arr = (ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(right_name)).initializer);
+                }
+
             }
         }
         if (node.right instanceof ArrayLiteralNode){

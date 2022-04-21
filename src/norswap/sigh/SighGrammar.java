@@ -98,10 +98,18 @@ public class SighGrammar extends Grammar
         .push($ -> $.str());
     
     // ==== SYNTACTIC =========================================================
-    //Structures
+
+    public rule reference =
+        identifier
+        .push($ -> new ReferenceNode($.span(), $.$[0]));
+
+    public rule constructor =
+        seq(DOLLAR, reference)
+        .push($ -> new ConstructorNode($.span(), $.$[0]));
+
     public rule simple_type =
         identifier
-            .push($ -> new SimpleTypeNode($.span(), $.$[0]));
+        .push($ -> new SimpleTypeNode($.span(), $.$[0]));
 
     public rule array_type = left_expression()
         .left(simple_type)
@@ -110,16 +118,6 @@ public class SighGrammar extends Grammar
 
     public rule type =
         seq(array_type);
-    public rule template_args = seq(LANGLE, seq(type).at_least(1).sep(0, COMMA).as_list(TypeNode.class) ,RANGLE).or_push_null();
-    public rule reference =
-        seq(identifier,opt(template_args))
-        .push($ -> new ReferenceNode($.span(), $.$[0]));
-
-    public rule constructor =
-        seq(DOLLAR, reference)
-        .push($ -> new ConstructorNode($.span(), $.$[0]));
-    
-
 
     public rule paren_expression = lazy(() ->
         seq(LPAREN, this.expression, RPAREN)
@@ -133,7 +131,6 @@ public class SighGrammar extends Grammar
         seq(LSQUARE, expressions, RSQUARE)
         .push($ -> new ArrayLiteralNode($.span(), $.$[0]));
 
-
     public rule basic_expression = choice(
         constructor,
         reference,
@@ -143,7 +140,7 @@ public class SighGrammar extends Grammar
         paren_expression,
         array);
     //C++ templates add opt call func
-
+    public rule template_args = seq(LANGLE, seq(type).at_least(1).sep(0, COMMA).as_list(TypeNode.class) ,RANGLE).or_push_null();
     public rule function_args =
         seq(opt(template_args), LPAREN, expressions, RPAREN);
 
@@ -267,11 +264,9 @@ public class SighGrammar extends Grammar
 
     public rule template = seq(_template, LANGLE, templateParameters, RANGLE).or_push_null();
 
-    public rule template_args_struct = seq(seq(type).at_least(1).sep(0, COMMA).as_list(TypeNode.class)).or_push_null();
-
     public rule var_decl =
-        seq(_var, identifier, COLON, type, EQUALS, expression,opt(seq(LANGLE,template_args_struct,RANGLE)) )
-        .push($ -> new VarDeclarationNode($.span(), $.$[0], $.$[1], $.$[2], $.$[3]));
+        seq(_var, identifier, COLON, type, EQUALS, expression)
+        .push($ -> new VarDeclarationNode($.span(), $.$[0], $.$[1], $.$[2]));
 
     public rule parameter =
         seq(identifier, COLON, type)
@@ -298,8 +293,8 @@ public class SighGrammar extends Grammar
         seq(LBRACE, field_decl.at_least(0).as_list(DeclarationNode.class), RBRACE);
 
     public rule struct_decl =
-        seq(opt(template),_struct, identifier, struct_body)
-        .push($ -> new StructDeclarationNode($.span(), $.$[0], $.$[1],$.$[2]));
+        seq(_struct, identifier, struct_body)
+        .push($ -> new StructDeclarationNode($.span(), $.$[0], $.$[1]));
 
     public rule if_stmt =
         seq(_if, expression, statement, seq(_else, statement).or_push_null())

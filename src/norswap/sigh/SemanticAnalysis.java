@@ -1375,8 +1375,10 @@ public final class SemanticAnalysis
 
         if (a instanceof IntType && b instanceof FloatType)
             return true;
-        if (a instanceof ArrayType && ((ArrayType) a).templateName!= null ){//&& ((ArrayType)a).templateName.equals("Template[]")){
-            if (b.name().equals("Template[]")){
+        //System.out.println("assign " + (a instanceof ArrayType) +" "+( ((ArrayType) a).templateName!= null));
+        if (a instanceof ArrayType ){//&& ((ArrayType)a).templateName.equals("Template[]")){
+            if (((ArrayType) a).templateName != null && b.name().equals("Template[]")){ // Template array
+
                 return true;
             }
 

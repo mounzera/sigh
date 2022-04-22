@@ -285,18 +285,18 @@ print(""+x.length)*/
 
 
 //list as type in template function
-template <typename T>
+/*template <typename T>
 fun listTest2(a: T[], b: T[]): T[]{
     //var d : Int[] = [3, 5]
-    //var c : Template[] = a@(*)d
-    return a
-}
+    var c : Template[] = a@(*)b
+    return c
+}*/
 /*var l: Int[] = [2, 4]
 var l2: Int[] = [3, 4]
 listTest2<Template>(l, l2)*/
-var l: Template[] = [2, 4]{}
+/*var l: Template[] = [2, 4]
 var l2: Template[] = [3, 4]
-listTest2<Template>(l, l2)
+listTest2<Template>(l, l2)*/
 
 
 
@@ -311,10 +311,10 @@ print(""+add(a,b))*/
 
 //Template structures
 
-/*template<typename T>
+template<typename T>
 struct Pair {
     var a: T
     var b: T
 }
 
-var type: Type = Pair{Int, Int}*/
+var type: Type = Pair{Int, Int}

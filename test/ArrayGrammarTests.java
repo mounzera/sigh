@@ -30,10 +30,10 @@ public class ArrayGrammarTests extends AutumnTestFixture {
         rule = grammar.statement;
         successExpect("var a:Template[]=[]", new VarDeclarationNode(null,"a",
             new ArrayTypeNode(null,new SimpleTypeNode(null, "Template")),
-            new ArrayLiteralNode(null,asList())));
+            new ArrayLiteralNode(null,asList()), null));
         successExpect("var a:Template[]=[true, 1,\"a\", 1.0]", new VarDeclarationNode(null,"a",
             new ArrayTypeNode(null,new SimpleTypeNode(null, "Template")),
-            new ArrayLiteralNode(null,asList(new ReferenceNode(null,"true"),intlit(1),stringlit("a"),floatlit(1.0)))));
+            new ArrayLiteralNode(null,asList(new ReferenceNode(null,"true"),intlit(1),stringlit("a"),floatlit(1.0))), null));
 
     }
 

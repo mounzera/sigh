@@ -93,14 +93,14 @@ public class GrammarTests extends AutumnTestFixture {
         rule = grammar.statement;
 
         successExpect("var x: Int = 1", new VarDeclarationNode(null, "x",
-            new SimpleTypeNode(null, "Int"),intlit(1)));
+            new SimpleTypeNode(null, "Int"),intlit(1), null));
 
-        successExpect("struct P {}", new StructDeclarationNode(null, "P", asList()));
+        successExpect("struct P {}", new StructDeclarationNode(null, "P", asList(), null));
 
         successExpect("struct P { var x: Int; var y: Int }",
             new StructDeclarationNode(null, "P", asList(
                 new FieldDeclarationNode(null, "x", new SimpleTypeNode(null, "Int")),
-                new FieldDeclarationNode(null, "y", new SimpleTypeNode(null, "Int")))));
+                new FieldDeclarationNode(null, "y", new SimpleTypeNode(null, "Int"))), null));
 
         successExpect("fun f (x: Int): Int { return 1 }",
             new FunDeclarationNode(null, null, "f",

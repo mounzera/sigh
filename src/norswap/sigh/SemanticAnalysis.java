@@ -1620,10 +1620,12 @@ public final class SemanticAnalysis
                         for (int i = 0; i < globalTypeDictionary.get(funName).size(); i++) {
                             HashMap<String, Type> localHashmap = globalTypeDictionary.get(funName).get(i);
                             actual = (actualList != null && actualList.size()!=0)? actualList.get(i): actual;
-                            System.out.println("actual "+actual +" "+ actualList);
-                            expected = templateFromVarLeft == null ? expected : localHashmap.get(templateFromVarLeft);
+                            System.out.println("actual "+actual +" "+ actualList + " "+ expected+" "+expected.name().equals("Template"));
+                            expected = templateFromVarLeft == null || expected.name().equals("Template") ? expected : localHashmap.get(templateFromVarLeft);
+                            System.out.println("temp left "+ expected + " " +templateFromVarLeft.equals("Template"));
                             expected = templateFromVarLeft == null || templateFromVarLeft.equals("Template") ? expected : localHashmap.get(templateFromVarLeft);
                             actual = templateFromVarRight == null ? actual : localHashmap.get(templateFromVarRight);
+                            System.out.println("actual " + actual + " expected "+ expected);
                             if (!isAssignableTo(actual, expected)) {
                                 System.out.println("global "+globalTypeDictionary);
                                 System.out.println("temp "+ templateFromVarLeft+" "+templateFromVarRight);

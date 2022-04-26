@@ -112,7 +112,7 @@ public final class SemanticAnalysis
 
     /** structDeclarationMap for function
      * = hashmap with key */
-    private HashMap<String, List<Type>> structDeclarationMap = new HashMap<>();
+    private HashMap<String, String> structDeclarationMap = new HashMap<>();
 
     /** Return type
      * */
@@ -726,9 +726,8 @@ public final class SemanticAnalysis
                 for (int i = 0; i<params.length; i++){
                     if (params[i] instanceof TemplateType){
                         String paramName = ((TemplateType) params[i]).getParamName(node.function.contents(), templateNameIdx);
-                        System.out.println(paramName);
-                        System.out.println(templateParametersDictionnary);
                         Type actualType = templateParametersDictionnary.get(paramName);
+                        System.out.println(templateParametersDictionnary + " " + paramName);
                         templateNameIdx++;
                         paramsToChange[i] = actualType;
                         idx++;
@@ -824,7 +823,9 @@ public final class SemanticAnalysis
                     right = r.get(1);
                 String templateFromVarLeft = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.left.contents()) : null;
                 String templateFromVarRight = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.right.contents()): null;
-                if (scopeFunc == null || (templateFromVarLeft == null && templateFromVarRight == null && leftList == null && rightList == null)){
+                templateFromVarLeft = scopeFunc == null && node.left instanceof FieldAccessNode ? variableToTemplate.get(structDeclarationMap.get(((FieldAccessNode) node.left).stem.contents())).get(((FieldAccessNode) node.left).fieldName): templateFromVarLeft;
+                templateFromVarRight = scopeFunc == null && node.right instanceof FieldAccessNode ? variableToTemplate.get(structDeclarationMap.get(((FieldAccessNode) node.right).stem.contents())).get(((FieldAccessNode) node.right).fieldName): templateFromVarRight;
+                if ((scopeFunc == null && !(node.left instanceof FieldAccessNode) && !(node.right instanceof FieldAccessNode)) || (templateFromVarLeft == null && templateFromVarRight == null && leftList == null && rightList == null)){
                     if (node.operator == ADD && (left instanceof StringType || right instanceof StringType))
                         r.set(0, StringType.INSTANCE);
                     else if (isArithmetic(node.operator)){
@@ -844,8 +845,14 @@ public final class SemanticAnalysis
                         r.set(0, typesToSet);
                         return;
                     }
-                    for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
-                        HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
+
+                    String toSearch;
+                    if(scopeFunc != null)
+                        toSearch = scopeFunc.name;
+                    else
+                        toSearch = structDeclarationMap.get(((FieldAccessNode) node.left).stem.contents());
+                    for (int i = 0; i < globalTypeDictionary.get(toSearch).size(); i++) {
+                        HashMap<String, Type> localHashmap = globalTypeDictionary.get(toSearch).get(i);
                         left = leftList != null ? leftList.get(i): left;
                         right = rightList != null ? rightList.get(i): right;
                         left = templateFromVarLeft == null ? left : localHashmap.get(templateFromVarLeft);
@@ -1537,7 +1544,9 @@ public final class SemanticAnalysis
                 variableToTemplate.put(scopeFunc.name, temp);
             }
         }// TODO when var is declared with template in fun add it to variable template to be able to recognize it -> done but not checked !
-
+        if (node.initializer instanceof FunCallNode){
+            structDeclarationMap.put(node.name, ((FunCallNode) node.initializer).function.contents());
+        }
         scope.declare(node.name, node);
         R.set(node, "scope", scope);
         R.rule(node, "type")
@@ -1771,9 +1780,13 @@ public final class SemanticAnalysis
             return;
         }
         globalTypeDictionary.put("$"+node.name, new ArrayList<>());
+        HashMap<String, String> tempHashmap = new HashMap<>();
         for (FieldDeclarationNode field : node.fields){
-            TemplateType.INSTANCE.pushParamName("$"+node.name, field.name);
+            TemplateType.INSTANCE.pushParamName("$"+node.name, field.type.contents());
+            tempHashmap.put(field.name, field.type.contents());
         }
+        variableToTemplate.put("$"+node.name, tempHashmap);
+
     }
 
     // endregion

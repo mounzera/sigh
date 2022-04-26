@@ -10,7 +10,6 @@ public class ConstructorNode extends ExpressionNode
     public ConstructorNode (Span span, Object ref) {
         super(span);
         this.ref = Util.cast(ref, ReferenceNode.class);
-        System.out.println(ref + " " );
 
     }
 

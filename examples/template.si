@@ -317,8 +317,8 @@ struct Pair {
     var b: T
 }
 
-var type: Pair = $Pair<Int>(2,3)
-print("" + (type.a + type.b))
+var pair: Pair = $Pair<Int>(2,3)
+print("" + (pair.a + pair.b))
 
 /*fun sum_pair (pair: Pair): Int {
     return pair.a + pair.b

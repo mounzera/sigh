@@ -99,13 +99,18 @@ public final class SemanticAnalysis
     private int argumentIndex;
 
 
-    /**Test for template C++
-     * globalTypeDictionary = hashmap with key = function name, value = hashmap with key = paramater, value = real type*/
+    /**template C++
+     * globalTypeDictionary for function
+     * = hashmap with key = function name, value = hashmap with key = paramater, value = real type*/
     private HashMap<String, List<HashMap<String, Type>>> globalTypeDictionary = new HashMap<>();
 
-    /** variableToTemplate
+    /** variableToTemplate for function
      * = hashmap with key = function name, value = hashmap with key = parameter, value = type templateParameter */
     private HashMap<String, HashMap<String, String>> variableToTemplate = new HashMap<>();
+
+    /** structDeclarationMap for function
+     * = hashmap with key */
+    private HashMap<String, List<Type>> structDeclarationMap = new HashMap<>();
 
     /** Return type
      * */
@@ -1469,7 +1474,6 @@ public final class SemanticAnalysis
     {
 
         this.inferenceContext = node;
-
         final FunDeclarationNode scopeFunc = currentFunction();
         String paramTypeName = node.type.contents();
         if (paramTypeName.contains("[]"))
@@ -1478,13 +1482,25 @@ public final class SemanticAnalysis
             if(variableToTemplate.containsKey(scopeFunc.name)){
                 HashMap<String, String> temp = variableToTemplate.get(scopeFunc.name);
                 temp.put(node.name, node.type.contents());
-            }else{
+            }
+            else{
                 HashMap<String, String> temp = new HashMap<>();
                 temp.put(node.name, node.type.contents());
                 variableToTemplate.put(scopeFunc.name, temp);
             }
-        } // TODO when var is declared with template in fun add it to variable template to be able to recognize it -> done but not checked !
-
+        }// TODO when var is declared with template in fun add it to variable template to be able to recognize it -> done but not checked !
+        if(structDeclarationMap.containsKey(node.initializer.contents())){
+            List<Type> tempList = new ArrayList<>();
+            for (TypeNode typeOfArg : node.templateArgs){
+                switch (typeOfArg.contents()){
+                    case "Int":
+                        tempList.add(IntType.INSTANCE);
+                    default:
+                        break;
+                }
+            }
+            structDeclarationMap.put(node.initializer.contents(), tempList);
+        }
         scope.declare(node.name, node);
         R.set(node, "scope", scope);
         R.rule(node, "type")
@@ -1521,6 +1537,7 @@ public final class SemanticAnalysis
                     actual = r.get(1);
                 String templateFromVarLeft = expected instanceof TemplateType? node.type.contents(): null;
                 String templateFromVarRight = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.initializer.contents()): null;
+                System.out.println(templateFromVarLeft);
                 String funName = scopeFunc != null ? scopeFunc.name: null;
                 if(node.initializer instanceof FunCallNode){
                     templateFromVarRight = "FunCall";
@@ -1549,7 +1566,7 @@ public final class SemanticAnalysis
                         for (int i = 0; i < globalTypeDictionary.get(funName).size(); i++) {
                             HashMap<String, Type> localHashmap = globalTypeDictionary.get(funName).get(i);
                             actual = (actualList != null && actualList.size()!=0)? actualList.get(i): actual;
-                            expected = templateFromVarLeft == null ? expected : localHashmap.get(templateFromVarLeft);
+                            expected = templateFromVarLeft == null || templateFromVarLeft.equals("Template") ? expected : localHashmap.get(templateFromVarLeft);
                             actual = templateFromVarRight == null ? actual : localHashmap.get(templateFromVarRight);
                             if (!isAssignableTo(actual, expected)) {
                                 r.error(format(
@@ -1713,6 +1730,11 @@ public final class SemanticAnalysis
         scope.declare(node.name, node);
         R.set(node, "type", TypeType.INSTANCE);
         R.set(node, "declared", new StructType(node));
+        if (structDeclarationMap.containsKey(node.name)){
+            R.error(new SemanticError("Try to declare struct with already existing name: "  + node.name(),null,node));
+            return;
+        }
+        structDeclarationMap.put(node.name, new ArrayList<>());
     }
 
     // endregion

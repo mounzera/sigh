@@ -318,10 +318,10 @@ struct Pair {
 }
 
 var pair: Pair = $Pair<Int>(2,3)
-print("" + (pair.a + pair.b))
+print("" + ((pair.a+2) + pair.b))
 
 /*fun sum_pair (pair: Pair): Int {
-    return pair.a + pair.b
+    return (pair.a + 2) + pair.b
 }
 sum_pair($Pair<Int>(2,3))*/
 

@@ -849,8 +849,12 @@ public final class SemanticAnalysis
                     String toSearch;
                     if(scopeFunc != null)
                         toSearch = scopeFunc.name;
-                    else
-                        toSearch = structDeclarationMap.get(((FieldAccessNode) node.left).stem.contents());
+                    else{
+                        if (node.left instanceof FieldAccessNode)
+                            toSearch = structDeclarationMap.get(((FieldAccessNode) node.left).stem.contents());
+                        else
+                            toSearch = structDeclarationMap.get(((FieldAccessNode) node.right).stem.contents());
+                    }
                     for (int i = 0; i < globalTypeDictionary.get(toSearch).size(); i++) {
                         HashMap<String, Type> localHashmap = globalTypeDictionary.get(toSearch).get(i);
                         left = leftList != null ? leftList.get(i): left;

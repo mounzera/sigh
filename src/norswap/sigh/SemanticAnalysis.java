@@ -1,7 +1,9 @@
 package norswap.sigh;
 
 //import jdk.nashorn.internal.objects.Global;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import norswap.sigh.ast.*;
+import norswap.sigh.interpreter.Constructor;
 import norswap.sigh.scopes.DeclarationContext;
 import norswap.sigh.scopes.DeclarationKind;
 import norswap.sigh.scopes.RootScope;
@@ -574,20 +576,42 @@ public final class SemanticAnalysis
             dependencies[i + 1] = arg.attr("type");
             R.set(arg, "index", i);
         });
-        FunDeclarationNode tempCurrFun = null;
+        DeclarationNode tempCurrFun = null;
         if (scope.declarations.get(node.function.contents()) instanceof FunDeclarationNode){
             tempCurrFun = ((FunDeclarationNode) scope.declarations.get(node.function.contents()));
+        }else if (scope.declarations.get(node.function.contents().substring(1, node.function.contents().length())) instanceof StructDeclarationNode){
+            tempCurrFun = scope.declarations.get(node.function.contents().substring(1, node.function.contents().length()));
         }
-        final FunDeclarationNode currFun = tempCurrFun;
+
+        final DeclarationNode toCheckFun = tempCurrFun;
+        StructDeclarationNode currStruct = null;
+        FunDeclarationNode currFun = null;
+        if (node.function instanceof ConstructorNode){
+            currStruct = (StructDeclarationNode) toCheckFun;
+        }
+        else{
+            currFun = (FunDeclarationNode) toCheckFun;
+        }
+
         /*if (currFun.templateParameters == null && node.templateArgs != null){
             R.error("Try to give types as argument but no template parameter was declared", node, node);
         } -> TODO add it to prevent funCall<Int> without template has been specified*/
         HashMap<String, Type> templateParametersDictionnary = new HashMap<>();
-        if (currFun != null && node.templateArgs != null) {
-            if (node.templateArgs.size() != 0 && currFun.getTemplateParameters() != null && node.templateArgs.size() == currFun.getTemplateParameters().size()) {
+        if ((toCheckFun != null && node.templateArgs != null)) {
+
+
+            Boolean checkfun = currFun != null && node.templateArgs.size() != 0 && currFun.getTemplateParameters() != null && node.templateArgs.size() == currFun.getTemplateParameters().size();
+            Boolean checkstruct = currStruct != null && node.templateArgs.size() != 0 && currStruct.getTemplateParameters() != null && node.templateArgs.size() == currStruct.getTemplateParameters().size();
+
+            if (checkfun || checkstruct) {
                 int tempIdx = 0;
                 int templateNameIdx = 0;
-                for (TemplateParameterNode templateName : currFun.getTemplateParameters()) {
+                List<TemplateParameterNode> toIter;
+                if (checkfun)
+                    toIter = currFun.getTemplateParameters();
+                else
+                    toIter = currStruct.getTemplateParameters();
+                for (TemplateParameterNode templateName : toIter) {
                     Type template;
 
                     switch (node.templateArgs.get(tempIdx).contents()){
@@ -618,14 +642,16 @@ public final class SemanticAnalysis
                             //r.errorFor(format("This type %s is not allowed for the Template function", actualType), node);
                             template = null;
                     }
-                    String returnnName = currFun.returnType.contents();
-                    if (returnnName.equals("T") || returnnName.charAt(0) == ('T') && Character.isDigit(returnnName.charAt(1))){
-                        if (returnTemplateDic.get(node.function.contents()) == null){
-                            returnTemplateDic.put(node.function.contents(), new ArrayList<>());
-                            returnCounterFunction.put(node.function.contents(), 0);
+                    if (currFun != null){
+                        String returnnName = currFun.returnType.contents();
+                        if (returnnName.equals("T") || returnnName.charAt(0) == ('T') && Character.isDigit(returnnName.charAt(1))){
+                            if (returnTemplateDic.get(node.function.contents()) == null){
+                                returnTemplateDic.put(node.function.contents(), new ArrayList<>());
+                                returnCounterFunction.put(node.function.contents(), 0);
+                            }
+                            if (templateName.name.equals(returnnName))
+                                returnTemplateDic.get(node.function.contents()).add(template);
                         }
-                        if (templateName.name.equals(returnnName))
-                            returnTemplateDic.get(node.function.contents()).add(template);
                     }
                     templateParametersDictionnary.put(templateName.name, template);
                     //here
@@ -649,6 +675,8 @@ public final class SemanticAnalysis
                 }
             }
         }
+        FunDeclarationNode finalCurrFun = currFun;
+        StructDeclarationNode finalCurrStruct = currStruct;
         R.rule(node, "type")
             .using(dependencies)
             .by(r -> {
@@ -657,20 +685,38 @@ public final class SemanticAnalysis
                     r.error("trying to call a non-function expression: " + node.function.contents(), node.function);
                     return;
                 }
-                if (currFun != null && currFun.getTemplateParameters() != null) {
+                //function check
+                if (finalCurrFun != null && finalCurrFun.getTemplateParameters() != null) {
                     if (node.templateArgs != null && node.templateArgs.size() != 0) {
-                        if(node.templateArgs.size() != currFun.getTemplateParameters().size()){
-                            r.error(format("Wrong number of template arguments in %s: expected %d but got %d", node.function.contents(), currFun.getTemplateParameters().size(), node.templateArgs.size()), node.function);
+                        if(node.templateArgs.size() != finalCurrFun.getTemplateParameters().size()){
+                            r.error(format("Wrong number of template arguments in %s: expected %d but got %d", node.function.contents(), finalCurrFun.getTemplateParameters().size(), node.templateArgs.size()), node.function);
                             return;
                         }
                     }else{
                         r.error("Trying to call template function without giving any types in arg: " + node.function.contents(), node.function);
                         return;
                     }
-                }else if(currFun != null && node.templateArgs != null  && node.templateArgs.size() != 0){
+                }else if(finalCurrFun != null && node.templateArgs != null  && node.templateArgs.size() != 0){
                     r.error("Trying to use template that were not declared: " + node.function.contents(), node.function);
                     return;
                 }
+
+                //struct check
+                if (finalCurrStruct != null && finalCurrStruct.getTemplateParameters() != null) {
+                    if (node.templateArgs != null && node.templateArgs.size() != 0) {
+                        if(node.templateArgs.size() != finalCurrStruct.getTemplateParameters().size()){
+                            r.error(format("Wrong number of template arguments in %s: expected %d but got %d", node.function.contents(), finalCurrStruct.getTemplateParameters().size(), node.templateArgs.size()), node.function);
+                            return;
+                        }
+                    }else{
+                        r.error("Trying to call template function without giving any types in arg: " + node.function.contents(), node.function);
+                        return;
+                    }
+                }else if(finalCurrStruct != null && node.templateArgs != null  && node.templateArgs.size() != 0){
+                    r.error("Trying to use template that were not declared: " + node.function.contents(), node.function);
+                    return;
+                }
+
                 FunType funType = cast(maybeFunType);
                 r.set(0, funType.returnType);
                 Type[] params = funType.paramTypes;
@@ -680,6 +726,8 @@ public final class SemanticAnalysis
                 for (int i = 0; i<params.length; i++){
                     if (params[i] instanceof TemplateType){
                         String paramName = ((TemplateType) params[i]).getParamName(node.function.contents(), templateNameIdx);
+                        System.out.println(paramName);
+                        System.out.println(templateParametersDictionnary);
                         Type actualType = templateParametersDictionnary.get(paramName);
                         templateNameIdx++;
                         paramsToChange[i] = actualType;
@@ -1489,18 +1537,7 @@ public final class SemanticAnalysis
                 variableToTemplate.put(scopeFunc.name, temp);
             }
         }// TODO when var is declared with template in fun add it to variable template to be able to recognize it -> done but not checked !
-        if(structDeclarationMap.containsKey(node.initializer.contents())){
-            List<Type> tempList = new ArrayList<>();
-            for (TypeNode typeOfArg : node.templateArgs){
-                switch (typeOfArg.contents()){
-                    case "Int":
-                        tempList.add(IntType.INSTANCE);
-                    default:
-                        break;
-                }
-            }
-            structDeclarationMap.put(node.initializer.contents(), tempList);
-        }
+
         scope.declare(node.name, node);
         R.set(node, "scope", scope);
         R.rule(node, "type")
@@ -1537,7 +1574,6 @@ public final class SemanticAnalysis
                     actual = r.get(1);
                 String templateFromVarLeft = expected instanceof TemplateType? node.type.contents(): null;
                 String templateFromVarRight = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.initializer.contents()): null;
-                System.out.println(templateFromVarLeft);
                 String funName = scopeFunc != null ? scopeFunc.name: null;
                 if(node.initializer instanceof FunCallNode){
                     templateFromVarRight = "FunCall";
@@ -1734,7 +1770,10 @@ public final class SemanticAnalysis
             R.error(new SemanticError("Try to declare struct with already existing name: "  + node.name(),null,node));
             return;
         }
-        structDeclarationMap.put(node.name, new ArrayList<>());
+        globalTypeDictionary.put("$"+node.name, new ArrayList<>());
+        for (FieldDeclarationNode field : node.fields){
+            TemplateType.INSTANCE.pushParamName("$"+node.name, field.name);
+        }
     }
 
     // endregion

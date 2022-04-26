@@ -472,11 +472,12 @@ public final class SemanticAnalysis
                         HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
                         type = typeList != null ? typeList.get(i) : type;
                         type = templateFromVarLeft == null ? type : localHashmap.get(templateFromVarLeft);
-
+                        System.out.println("type "+((ArrayType) type).componentType);
                         if (type instanceof ArrayType){
                             typeToSet.add(((ArrayType) type).componentType);
                         }
                     }
+                    System.out.println("type to set "+ typeToSet);
 
                     r.set(0, typeToSet);
                 }
@@ -1368,6 +1369,7 @@ public final class SemanticAnalysis
             System.out.println("null");
             return true;
         }*/
+        System.out.println(a + " "+b);
         if (a==null ||b==null)
             return false;
         if (a instanceof VoidType || b instanceof VoidType)
@@ -1521,6 +1523,7 @@ public final class SemanticAnalysis
                     actualList = r.get(1);
                 else
                     actual = r.get(1);
+                System.out.println("node type "+ variableToTemplate + " "+ scopeFunc);
                 String templateFromVarLeft = expected instanceof TemplateType? node.type.contents(): null;
                 String templateFromVarRight = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.initializer.contents()): null;
                 String funName = scopeFunc != null ? scopeFunc.name: null;
@@ -1551,9 +1554,12 @@ public final class SemanticAnalysis
                         for (int i = 0; i < globalTypeDictionary.get(funName).size(); i++) {
                             HashMap<String, Type> localHashmap = globalTypeDictionary.get(funName).get(i);
                             actual = (actualList != null && actualList.size()!=0)? actualList.get(i): actual;
+                            System.out.println("actual "+actual +" "+ actualList);
                             expected = templateFromVarLeft == null ? expected : localHashmap.get(templateFromVarLeft);
                             actual = templateFromVarRight == null ? actual : localHashmap.get(templateFromVarRight);
                             if (!isAssignableTo(actual, expected)) {
+                                System.out.println("global "+globalTypeDictionary);
+                                System.out.println("temp "+ templateFromVarLeft+" "+templateFromVarRight);
                                 r.error(format(
                                         "incompatible initializer type provided for variable `%s`: expected %s but got %s",
                                         node.name, expected, actual),

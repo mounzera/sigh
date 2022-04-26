@@ -15,7 +15,7 @@ public final class VarDeclarationNode extends DeclarationNode
     public final TypeNode type;
     public final ExpressionNode initializer;
     public String context;
-    public final List<TypeNode> templateArgs;
+    public final List templateArgs;
 
 
     public VarDeclarationNode (Span span, Object name, Object type, Object initializer, Object templateArgs) {

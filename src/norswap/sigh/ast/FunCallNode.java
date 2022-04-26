@@ -21,9 +21,9 @@ public final class FunCallNode extends ExpressionNode
         }else{
             this.templateArgs = null;
         }
-
         this.function = Util.cast(function, ExpressionNode.class);
         this.arguments = Util.cast(arguments, List.class);
+
     }
 
     public HashMap<String, TypeNode> getTemplateParametersDictionnary () {

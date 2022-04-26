@@ -44,14 +44,13 @@ fun validate5 (value: Int)
         print("It's just right.")
 }
 validate5(2)
-template <typename T>
 struct Pair {
-    var a: T
-    var b: T
+    var a: Int
+    var b: Int
 }
 
-var type: Type = Pair<Int>
-print("" + type)
+/*var type: Type = Pair
+print("" + type)*/
 
 fun sum_pair (pair: Pair): Int {
     return pair.a + pair.b

@@ -1,7 +1,9 @@
 package norswap.sigh;
 
 //import jdk.nashorn.internal.objects.Global;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import norswap.sigh.ast.*;
+import norswap.sigh.interpreter.Constructor;
 import norswap.sigh.scopes.DeclarationContext;
 import norswap.sigh.scopes.DeclarationKind;
 import norswap.sigh.scopes.RootScope;
@@ -99,13 +101,18 @@ public final class SemanticAnalysis
     private int argumentIndex;
 
 
-    /**Test for template C++
-     * globalTypeDictionary = hashmap with key = function name, value = hashmap with key = paramater, value = real type*/
+    /**template C++
+     * globalTypeDictionary for function
+     * = hashmap with key = function name, value = hashmap with key = paramater, value = real type*/
     private HashMap<String, List<HashMap<String, Type>>> globalTypeDictionary = new HashMap<>();
 
-    /** variableToTemplate
+    /** variableToTemplate for function
      * = hashmap with key = function name, value = hashmap with key = parameter, value = type templateParameter */
     private HashMap<String, HashMap<String, String>> variableToTemplate = new HashMap<>();
+
+    /** structDeclarationMap for function
+     * = hashmap with key */
+    private HashMap<String, String> structDeclarationMap = new HashMap<>();
 
     /** Return type
      * */
@@ -570,20 +577,42 @@ public final class SemanticAnalysis
             dependencies[i + 1] = arg.attr("type");
             R.set(arg, "index", i);
         });
-        FunDeclarationNode tempCurrFun = null;
+        DeclarationNode tempCurrFun = null;
         if (scope.declarations.get(node.function.contents()) instanceof FunDeclarationNode){
             tempCurrFun = ((FunDeclarationNode) scope.declarations.get(node.function.contents()));
+        }else if (scope.declarations.get(node.function.contents().substring(1, node.function.contents().length())) instanceof StructDeclarationNode){
+            tempCurrFun = scope.declarations.get(node.function.contents().substring(1, node.function.contents().length()));
         }
-        final FunDeclarationNode currFun = tempCurrFun;
+
+        final DeclarationNode toCheckFun = tempCurrFun;
+        StructDeclarationNode currStruct = null;
+        FunDeclarationNode currFun = null;
+        if (node.function instanceof ConstructorNode){
+            currStruct = (StructDeclarationNode) toCheckFun;
+        }
+        else{
+            currFun = (FunDeclarationNode) toCheckFun;
+        }
+
         /*if (currFun.templateParameters == null && node.templateArgs != null){
             R.error("Try to give types as argument but no template parameter was declared", node, node);
         } -> TODO add it to prevent funCall<Int> without template has been specified*/
         HashMap<String, Type> templateParametersDictionnary = new HashMap<>();
-        if (currFun != null && node.templateArgs != null) {
-            if (node.templateArgs.size() != 0 && currFun.getTemplateParameters() != null && node.templateArgs.size() == currFun.getTemplateParameters().size()) {
+        if ((toCheckFun != null && node.templateArgs != null)) {
+
+
+            Boolean checkfun = currFun != null && node.templateArgs.size() != 0 && currFun.getTemplateParameters() != null && node.templateArgs.size() == currFun.getTemplateParameters().size();
+            Boolean checkstruct = currStruct != null && node.templateArgs.size() != 0 && currStruct.getTemplateParameters() != null && node.templateArgs.size() == currStruct.getTemplateParameters().size();
+
+            if (checkfun || checkstruct) {
                 int tempIdx = 0;
                 int templateNameIdx = 0;
-                for (TemplateParameterNode templateName : currFun.getTemplateParameters()) {
+                List<TemplateParameterNode> toIter;
+                if (checkfun)
+                    toIter = currFun.getTemplateParameters();
+                else
+                    toIter = currStruct.getTemplateParameters();
+                for (TemplateParameterNode templateName : toIter) {
                     Type template;
 
                     switch (node.templateArgs.get(tempIdx).contents()){
@@ -614,14 +643,16 @@ public final class SemanticAnalysis
                             //r.errorFor(format("This type %s is not allowed for the Template function", actualType), node);
                             template = null;
                     }
-                    String returnnName = currFun.returnType.contents();
-                    if (returnnName.equals("T") || returnnName.charAt(0) == ('T') && Character.isDigit(returnnName.charAt(1))){
-                        if (returnTemplateDic.get(node.function.contents()) == null){
-                            returnTemplateDic.put(node.function.contents(), new ArrayList<>());
-                            returnCounterFunction.put(node.function.contents(), 0);
+                    if (currFun != null){
+                        String returnnName = currFun.returnType.contents();
+                        if (returnnName.equals("T") || returnnName.charAt(0) == ('T') && Character.isDigit(returnnName.charAt(1))){
+                            if (returnTemplateDic.get(node.function.contents()) == null){
+                                returnTemplateDic.put(node.function.contents(), new ArrayList<>());
+                                returnCounterFunction.put(node.function.contents(), 0);
+                            }
+                            if (templateName.name.equals(returnnName))
+                                returnTemplateDic.get(node.function.contents()).add(template);
                         }
-                        if (templateName.name.equals(returnnName))
-                            returnTemplateDic.get(node.function.contents()).add(template);
                     }
                     templateParametersDictionnary.put(templateName.name, template);
                     //here
@@ -645,6 +676,8 @@ public final class SemanticAnalysis
                 }
             }
         }
+        FunDeclarationNode finalCurrFun = currFun;
+        StructDeclarationNode finalCurrStruct = currStruct;
         R.rule(node, "type")
             .using(dependencies)
             .by(r -> {
@@ -653,20 +686,38 @@ public final class SemanticAnalysis
                     r.error("trying to call a non-function expression: " + node.function.contents(), node.function);
                     return;
                 }
-                if (currFun != null && currFun.getTemplateParameters() != null) {
+                //function check
+                if (finalCurrFun != null && finalCurrFun.getTemplateParameters() != null) {
                     if (node.templateArgs != null && node.templateArgs.size() != 0) {
-                        if(node.templateArgs.size() != currFun.getTemplateParameters().size()){
-                            r.error(format("Wrong number of template arguments in %s: expected %d but got %d", node.function.contents(), currFun.getTemplateParameters().size(), node.templateArgs.size()), node.function);
+                        if(node.templateArgs.size() != finalCurrFun.getTemplateParameters().size()){
+                            r.error(format("Wrong number of template arguments in %s: expected %d but got %d", node.function.contents(), finalCurrFun.getTemplateParameters().size(), node.templateArgs.size()), node.function);
                             return;
                         }
                     }else{
                         r.error("Trying to call template function without giving any types in arg: " + node.function.contents(), node.function);
                         return;
                     }
-                }else if(currFun != null && node.templateArgs != null  && node.templateArgs.size() != 0){
+                }else if(finalCurrFun != null && node.templateArgs != null  && node.templateArgs.size() != 0){
                     r.error("Trying to use template that were not declared: " + node.function.contents(), node.function);
                     return;
                 }
+
+                //struct check
+                if (finalCurrStruct != null && finalCurrStruct.getTemplateParameters() != null) {
+                    if (node.templateArgs != null && node.templateArgs.size() != 0) {
+                        if(node.templateArgs.size() != finalCurrStruct.getTemplateParameters().size()){
+                            r.error(format("Wrong number of template arguments in %s: expected %d but got %d", node.function.contents(), finalCurrStruct.getTemplateParameters().size(), node.templateArgs.size()), node.function);
+                            return;
+                        }
+                    }else{
+                        r.error("Trying to call template function without giving any types in arg: " + node.function.contents(), node.function);
+                        return;
+                    }
+                }else if(finalCurrStruct != null && node.templateArgs != null  && node.templateArgs.size() != 0){
+                    r.error("Trying to use template that were not declared: " + node.function.contents(), node.function);
+                    return;
+                }
+
                 FunType funType = cast(maybeFunType);
                 r.set(0, funType.returnType);
                 Type[] params = funType.paramTypes;
@@ -772,7 +823,9 @@ public final class SemanticAnalysis
                     right = r.get(1);
                 String templateFromVarLeft = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.left.contents()) : null;
                 String templateFromVarRight = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.right.contents()): null;
-                if (scopeFunc == null || (templateFromVarLeft == null && templateFromVarRight == null && leftList == null && rightList == null)){
+                templateFromVarLeft = scopeFunc == null && node.left instanceof FieldAccessNode ? variableToTemplate.get(structDeclarationMap.get(((FieldAccessNode) node.left).stem.contents())).get(((FieldAccessNode) node.left).fieldName): templateFromVarLeft;
+                templateFromVarRight = scopeFunc == null && node.right instanceof FieldAccessNode ? variableToTemplate.get(structDeclarationMap.get(((FieldAccessNode) node.right).stem.contents())).get(((FieldAccessNode) node.right).fieldName): templateFromVarRight;
+                if ((scopeFunc == null && !(node.left instanceof FieldAccessNode) && !(node.right instanceof FieldAccessNode)) || (templateFromVarLeft == null && templateFromVarRight == null && leftList == null && rightList == null)){
                     if (node.operator == ADD && (left instanceof StringType || right instanceof StringType))
                         r.set(0, StringType.INSTANCE);
                     else if (isArithmetic(node.operator)){
@@ -792,8 +845,18 @@ public final class SemanticAnalysis
                         r.set(0, typesToSet);
                         return;
                     }
-                    for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
-                        HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
+
+                    String toSearch;
+                    if(scopeFunc != null)
+                        toSearch = scopeFunc.name;
+                    else{
+                        if (node.left instanceof FieldAccessNode)
+                            toSearch = structDeclarationMap.get(((FieldAccessNode) node.left).stem.contents());
+                        else
+                            toSearch = structDeclarationMap.get(((FieldAccessNode) node.right).stem.contents());
+                    }
+                    for (int i = 0; i < globalTypeDictionary.get(toSearch).size(); i++) {
+                        HashMap<String, Type> localHashmap = globalTypeDictionary.get(toSearch).get(i);
                         left = leftList != null ? leftList.get(i): left;
                         right = rightList != null ? rightList.get(i): right;
                         left = templateFromVarLeft == null ? left : localHashmap.get(templateFromVarLeft);
@@ -1482,13 +1545,16 @@ public final class SemanticAnalysis
             if(variableToTemplate.containsKey(scopeFunc.name)){
                 HashMap<String, String> temp = variableToTemplate.get(scopeFunc.name);
                 temp.put(node.name, node.type.contents());
-            }else{
+            }
+            else{
                 HashMap<String, String> temp = new HashMap<>();
                 temp.put(node.name, node.type.contents());
                 variableToTemplate.put(scopeFunc.name, temp);
             }
-        } // TODO when var is declared with template in fun add it to variable template to be able to recognize it -> done but not checked !
-
+        }// TODO when var is declared with template in fun add it to variable template to be able to recognize it -> done but not checked !
+        if (node.initializer instanceof FunCallNode){
+            structDeclarationMap.put(node.name, ((FunCallNode) node.initializer).function.contents());
+        }
         scope.declare(node.name, node);
         R.set(node, "scope", scope);
         R.rule(node, "type")
@@ -1556,6 +1622,7 @@ public final class SemanticAnalysis
                             actual = (actualList != null && actualList.size()!=0)? actualList.get(i): actual;
                             System.out.println("actual "+actual +" "+ actualList);
                             expected = templateFromVarLeft == null ? expected : localHashmap.get(templateFromVarLeft);
+                            expected = templateFromVarLeft == null || templateFromVarLeft.equals("Template") ? expected : localHashmap.get(templateFromVarLeft);
                             actual = templateFromVarRight == null ? actual : localHashmap.get(templateFromVarRight);
                             if (!isAssignableTo(actual, expected)) {
                                 System.out.println("global "+globalTypeDictionary);

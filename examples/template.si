@@ -318,3 +318,27 @@ struct Pair {
 }
 
 var type: Type = Pair{Int, Int}*/
+var pair: Pair = $Pair<Int>(2,3)
+// TODO
+pair.a = "hey" -> should fail
+
+//TODO
+var c : Int = pair.a
+var c : String = pair.a -> shoudl fail
+
+//TODO
+if(pair.a > 3){
+    print("hey")
+}
+//TODO
+while(pair.a < 3){
+    print("hey")
+    pair.a = 6
+}
+
+//TODO CHECK FIELD ACCESS
+/*fun sum_pair (pair: Pair): Int {
+    return (pair.a + 2) + pair.b
+}
+sum_pair($Pair<Int>(2,3))*/
+

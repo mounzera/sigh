@@ -264,11 +264,9 @@ public class SighGrammar extends Grammar
 
     public rule template = seq(_template, LANGLE, templateParameters, RANGLE).or_push_null();
 
-    public rule braces_args = seq(LBRACE, seq(type).at_least(1).sep(0, COMMA).as_list(TypeNode.class) ,RBRACE).or_push_null();
-
     public rule var_decl =
-        seq(_var, identifier, COLON, type, EQUALS, expression, opt(braces_args))
-        .push($ -> new VarDeclarationNode($.span(), $.$[0], $.$[1], $.$[2], $.$[3]));
+        seq(_var, identifier, COLON, type, EQUALS, expression)
+        .push($ -> new VarDeclarationNode($.span(), $.$[0], $.$[1], $.$[2]));
 
     public rule parameter =
         seq(identifier, COLON, type)

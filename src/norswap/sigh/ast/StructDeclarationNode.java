@@ -22,6 +22,10 @@ public class StructDeclarationNode extends DeclarationNode
         return name;
     }
 
+    public List<TemplateParameterNode> getTemplateParameters () {
+        return templateParameters;
+    }
+
     @Override public String contents () {
         return "struct " + name;
     }

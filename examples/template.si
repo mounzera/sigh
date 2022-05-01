@@ -317,16 +317,16 @@ struct Pair {
     var b: T
 }
 
-var pair: Pair = $Pair<Int>(2,3)
+var pair: Pair = $Pair<String>("hey","ho")
 // TODO
-pair.a = "hey"
+//pair.a = "ha"
 
 //TODO
-/*var c : Int = pair.a
-var c : String = pair.a -> shoudl fail
+var c : String = pair.a
+var d : String = c
 
 //TODO
-if(pair.a > 3){
+/*if(pair.a > 3){
     print("hey")
 }
 //TODO

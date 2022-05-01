@@ -1598,6 +1598,8 @@ public final class SemanticAnalysis
                     actual = r.get(1);
                 String templateFromVarLeft = expected instanceof TemplateType? node.type.contents(): null;
                 String templateFromVarRight = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.initializer.contents()): null;
+                //templateFromVarLeft = scopeFunc == null && node.left instanceof FieldAccessNode ? variableToTemplate.get(structDeclarationMap.get(((FieldAccessNode) node.left).stem.contents())).get(((FieldAccessNode) node.left).fieldName): templateFromVarLeft;
+                templateFromVarRight = scopeFunc == null && node.initializer instanceof FieldAccessNode ? variableToTemplate.get(structDeclarationMap.get(((FieldAccessNode) node.initializer).stem.contents())).get(((FieldAccessNode) node.initializer).fieldName): templateFromVarRight;
                 String funName = scopeFunc != null ? scopeFunc.name: null;
                 if(node.initializer instanceof FunCallNode){
                     templateFromVarRight = "FunCall";
@@ -1622,9 +1624,14 @@ public final class SemanticAnalysis
                                 node.initializer);
                         }
                     }else{
-
-                        for (int i = 0; i < globalTypeDictionary.get(funName).size(); i++) {
-                            HashMap<String, Type> localHashmap = globalTypeDictionary.get(funName).get(i);
+                        String toSearch;
+                        if(scopeFunc != null)
+                            toSearch = scopeFunc.name;
+                        else{
+                            toSearch = structDeclarationMap.get(((FieldAccessNode) node.initializer).stem.contents());
+                        }
+                        for (int i = 0; i < globalTypeDictionary.get(toSearch).size(); i++) {
+                            HashMap<String, Type> localHashmap = globalTypeDictionary.get(toSearch).get(i);
                             actual = (actualList != null && actualList.size()!=0)? actualList.get(i): actual;
                             expected = templateFromVarLeft == null || templateFromVarLeft.equals("Template") ? expected : localHashmap.get(templateFromVarLeft);
                             actual = templateFromVarRight == null ? actual : localHashmap.get(templateFromVarRight);

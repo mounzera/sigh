@@ -326,9 +326,9 @@ var pair: Pair = $Pair<Int>(1,3)
 //var d : String = c
 
 //TODO
-if(pair.a){
+/*if(pair.a){
     print("hey")
-}
+}*/
 //TODO
 /*while(pair.a < 3){
     print("hey")
@@ -337,7 +337,7 @@ if(pair.a){
 
 //TODO CHECK FIELD ACCESS
 /*fun sum_pair (pair: Pair): Int {
-    return (pair.a + 2) + pair.b
+    return 2 + pair.b
 }
 sum_pair($Pair<Int>(2,3))*/
 

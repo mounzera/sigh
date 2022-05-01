@@ -1830,8 +1830,6 @@ public final class SemanticAnalysis
                 String templateFromVar = scopeFunc != null && node.condition.contents().length() == 3 ? variableToTemplate.get(scopeFunc.name).get(node.condition.contents().substring(1,2)): null;
                 String[] potentialStruct = node.condition.contents().substring(1, node.condition.contents().length()-1).split("[.]");
                 templateFromVar = scopeFunc == null && structDeclarationMap.get(potentialStruct[0]).contains(potentialStruct[1]) ? variableToTemplate.get(structDeclarationMap.get(potentialStruct[0])).get(potentialStruct[1]): templateFromVar;
-
-                System.out.println(templateFromVar);
                 if (templateFromVar != null || typeList != null){
                     if (globalTypeDictionary.size() == 0)
                         return;
@@ -1885,11 +1883,27 @@ public final class SemanticAnalysis
                 else
                     type = r.get(0);
                 String templateFromVar = scopeFunc != null && node.condition.contents().length() == 3 ? variableToTemplate.get(scopeFunc.name).get(node.condition.contents().substring(1,2)): null;
+                String[] potentialStruct = node.condition.contents().substring(1, node.condition.contents().length()-1).split("[.]");
+                templateFromVar = scopeFunc == null && structDeclarationMap.get(potentialStruct[0]).contains(potentialStruct[1]) ? variableToTemplate.get(structDeclarationMap.get(potentialStruct[0])).get(potentialStruct[1]): templateFromVar;
                 if (templateFromVar != null || typeList != null){
                     if(globalTypeDictionary.size() == 0)
                         return;
-                    for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
-                        HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
+                    String toSearch;
+                    if(scopeFunc != null)
+                        toSearch = scopeFunc.name;
+                    else if(structDeclarationMap.get(potentialStruct[0]).contains(potentialStruct[1])){
+                        toSearch = structDeclarationMap.get(potentialStruct[0]);
+                    }else{
+                        for (Type cond : typeList){
+                            if (!(cond instanceof BoolType)) {
+                                r.error("If statement with a non-boolean condition of type: " + cond,
+                                    node.condition);
+                            }
+                        }
+                        return;
+                    }
+                    for (int i = 0; i < globalTypeDictionary.get(toSearch).size(); i++) {
+                        HashMap<String, Type> localHashmap = globalTypeDictionary.get(toSearch).get(i);
                         type = typeList != null? typeList.get(i): type;
                         type = templateFromVar == null ? type : localHashmap.get(templateFromVar);
                         if (!(type instanceof BoolType)) {

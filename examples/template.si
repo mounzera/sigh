@@ -317,20 +317,20 @@ struct Pair {
     var b: T
 }
 
-var pair: Pair = $Pair<String>("hey","ho")
+var pair: Pair = $Pair<Int>(1,3)
 // TODO
 //pair.a = "ha"
 
 //TODO
-var c : String = pair.a
-var d : String = c
+//var c : String = pair.a
+//var d : String = c
 
 //TODO
-/*if(pair.a > 3){
+if(pair.a){
     print("hey")
 }
 //TODO
-while(pair.a < 3){
+/*while(pair.a < 3){
     print("hey")
     pair.a = 6
 }*/

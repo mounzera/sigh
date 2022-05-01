@@ -1325,13 +1325,24 @@ public final class SemanticAnalysis
                     right = r.get(1);
                 String templateFromVarLeft = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.left.contents()): null;
                 String templateFromVarRight = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.right.contents()): null;
+                templateFromVarLeft = scopeFunc == null && node.left instanceof FieldAccessNode ? variableToTemplate.get(structDeclarationMap.get(((FieldAccessNode) node.left).stem.contents())).get(((FieldAccessNode) node.left).fieldName): templateFromVarLeft;
+                templateFromVarRight = scopeFunc == null && node.right instanceof FieldAccessNode ? variableToTemplate.get(structDeclarationMap.get(((FieldAccessNode) node.right).stem.contents())).get(((FieldAccessNode) node.right).fieldName): templateFromVarRight;
                 if (templateFromVarRight != null || templateFromVarLeft != null|| rightList != null){
                     if (globalTypeDictionary.size() == 0){
                         r.set(0, left);
                         return;
                     }
-                    for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
-                        HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
+                    String toSearch;
+                    if(scopeFunc != null)
+                        toSearch = scopeFunc.name;
+                    else{
+                        if (node.left instanceof FieldAccessNode)
+                            toSearch = structDeclarationMap.get(((FieldAccessNode) node.left).stem.contents());
+                        else
+                            toSearch = structDeclarationMap.get(((FieldAccessNode) node.right).stem.contents());
+                    }
+                    for (int i = 0; i < globalTypeDictionary.get(toSearch).size(); i++) {
+                        HashMap<String, Type> localHashmap = globalTypeDictionary.get(toSearch).get(i);
                         right = rightList != null ? rightList.get(i): right;
                         left = templateFromVarLeft == null ? left : localHashmap.get(templateFromVarLeft);
                         right = templateFromVarRight == null ? right : localHashmap.get(templateFromVarRight);

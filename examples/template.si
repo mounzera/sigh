@@ -319,10 +319,10 @@ struct Pair {
 
 var pair: Pair = $Pair<Int>(2,3)
 // TODO
-pair.a = "hey" -> should fail
+pair.a = "hey"
 
 //TODO
-var c : Int = pair.a
+/*var c : Int = pair.a
 var c : String = pair.a -> shoudl fail
 
 //TODO
@@ -333,7 +333,7 @@ if(pair.a > 3){
 while(pair.a < 3){
     print("hey")
     pair.a = 6
-}
+}*/
 
 //TODO CHECK FIELD ACCESS
 /*fun sum_pair (pair: Pair): Int {

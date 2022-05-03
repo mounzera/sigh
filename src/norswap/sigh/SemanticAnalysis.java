@@ -1453,7 +1453,6 @@ public final class SemanticAnalysis
 
                 return true;
             }
-
             return b instanceof ArrayType
                 && isAssignableTo(((ArrayType)a).componentType, ((ArrayType)b).componentType);
         }
@@ -1500,7 +1499,7 @@ public final class SemanticAnalysis
                 return false;
         }
         if (a instanceof TemplateType){//TypeType){
-            System.out.println("WARNING : trying to attribute type to Template array element");
+            //System.out.println("WARNING : trying to attribute type to Template array element");
             return true;
         }
         return a instanceof NullType && b.isReference() || a.equals(b);
@@ -1668,6 +1667,7 @@ public final class SemanticAnalysis
                             expected = templateFromVarLeft == null || expected.name().equals("Template") ? expected : localHashmap.get(templateFromVarLeft);
                             expected = (templateFromVarLeft == null||(templateFromVarLeft!=null && templateFromVarLeft.equals("Template"))  )? expected : localHashmap.get(templateFromVarLeft);
                             actual = templateFromVarRight == null ? actual : localHashmap.get(templateFromVarRight);
+
                             if (!isAssignableTo(actual, expected)) {
                                 r.error(format(
                                         "incompatible initializer type provided for variable `%s`: expected %s but got %s",

@@ -632,11 +632,15 @@ public final class SemanticAnalysis
                             templateNameIdx++;
                             break;
                         case "Template[]":
+                            System.out.println("switch []");
                             template = new ArrayType(TemplateType.INSTANCE,"Template[]");//TemplateType.INSTANCE;
                             templateNameIdx++;
                             break;
                         case "Template":
+                          //  System.out.println("switch ");
                             template = TemplateType.INSTANCE;
+                            templateNameIdx++;
+                            break;
                         /*case "Array":
                             TODO
                          */
@@ -1444,15 +1448,17 @@ public final class SemanticAnalysis
             System.out.println("null");
             return true;
         }*/
-        if (a instanceof ArrayType && ((ArrayType) a).templateName!= null ){//&& ((ArrayType)a).templateName.equals("Template[]")){
-            if (b.name().equals("Template[]")){
+        if (a instanceof ArrayType ){//&& ((ArrayType)a).templateName.equals("Template[]")){
+            if (((ArrayType) a).templateName != null && b.name().equals("Template[]")){ // Template array
+
                 return true;
             }
 
             return b instanceof ArrayType
                 && isAssignableTo(((ArrayType)a).componentType, ((ArrayType)b).componentType);
         }
-        if (a.toString().contains("[]") && b.toString().contains("[]")){
+        //System.out.println(a);
+        if (a != null && b != null && a.toString().contains("[]") && b.toString().contains("[]")){
             switch (a.toString().substring(0, a.toString().length() -2)){
                 case "Int":
                     a = IntType.INSTANCE;
@@ -1482,15 +1488,7 @@ public final class SemanticAnalysis
         if (a instanceof IntType && b instanceof FloatType)
             return true;
         //System.out.println("assign " + (a instanceof ArrayType) +" "+( ((ArrayType) a).templateName!= null));
-        if (a instanceof ArrayType ){//&& ((ArrayType)a).templateName.equals("Template[]")){
-            if (((ArrayType) a).templateName != null && b.name().equals("Template[]")){ // Template array
 
-                return true;
-            }
-
-            return b instanceof ArrayType
-                && isAssignableTo(((ArrayType)a).componentType, ((ArrayType)b).componentType);
-        }
         //System.out.println("b "+ ((ArrayType)b).templateName);
         if (b instanceof TemplateType){
             return true;
@@ -1670,9 +1668,11 @@ public final class SemanticAnalysis
                         for (int i = 0; i < globalTypeDictionary.get(toSearch).size(); i++) {
                             HashMap<String, Type> localHashmap = globalTypeDictionary.get(toSearch).get(i);
                             actual = (actualList != null && actualList.size()!=0)? actualList.get(i): actual;
+                            System.out.println(actual);
+
                             System.out.println("actual "+actual +" "+ actualList + " "+ expected+" "+expected.name().equals("Template"));
                             expected = templateFromVarLeft == null || expected.name().equals("Template") ? expected : localHashmap.get(templateFromVarLeft);
-                            System.out.println("temp left "+ expected + " " +templateFromVarLeft);
+                            System.out.println("temp left "+ expected + " " +templateFromVarLeft );
                             expected = (templateFromVarLeft == null||(templateFromVarLeft!=null && templateFromVarLeft.equals("Template"))  )? expected : localHashmap.get(templateFromVarLeft);
                             actual = templateFromVarRight == null ? actual : localHashmap.get(templateFromVarRight);
                             if (!isAssignableTo(actual, expected)) {

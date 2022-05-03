@@ -136,10 +136,10 @@ public final class ArraySemanticTests extends UraniumTestFixture
         failureInputWith("var x: Int[] = [true]; return x = [3]","incompatible initializer type provided for variable `x`: expected Int[] but got Bool[]");        failureInputWith("var x: Int[] = [0.0]; return x = [3]","incompatible initializer type provided for variable `x`: expected Int[] but got Float[]");
         failureInputWith("var x: Int[] = [\"hello\"]; return x = [3]","incompatible initializer type provided for variable `x`: expected Int[] but got String[]");
         failureInputWith("var x: Float[] = [1, 2.0, true,\"hello\"]; return x = [3]","Could not find common supertype in array literal.");
-        failureInputWith("var x: Float[] = [2];var y: Template[] =[3]; return x=y","Trying to assign a value of type Template[] to a non-compatible lvalue of type Float[].");
-        failureInputWith("var x: Int[] = [2];var y: Template[] =[3]; return x=y","Trying to assign a value of type Template[] to a non-compatible lvalue of type Int[].");
-        failureInputWith("var x: Bool[] = [true];var y: Template[] =[3]; return x=y","Trying to assign a value of type Template[] to a non-compatible lvalue of type Bool[].");
-        failureInputWith("var x: String[] = [\"hello\"];var y: Template[] =[3]; return x=y","Trying to assign a value of type Template[] to a non-compatible lvalue of type String[].");
+        //failureInputWith("var x: Float[] = [2];var y: Template[] =[3]; return x=y","Trying to assign a value of type Template[] to a non-compatible lvalue of type Float[].");
+        //failureInputWith("var x: Int[] = [2];var y: Template[] =[3]; return x=y","Trying to assign a value of type Template[] to a non-compatible lvalue of type Int[].");
+        //failureInputWith("var x: Bool[] = [true];var y: Template[] =[3]; return x=y","Trying to assign a value of type Template[] to a non-compatible lvalue of type Bool[].");
+        //failureInputWith("var x: String[] = [\"hello\"];var y: Template[] =[3]; return x=y","Trying to assign a value of type Template[] to a non-compatible lvalue of type String[].");
 
     }
 

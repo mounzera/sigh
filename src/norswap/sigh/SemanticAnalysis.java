@@ -632,12 +632,10 @@ public final class SemanticAnalysis
                             templateNameIdx++;
                             break;
                         case "Template[]":
-                            System.out.println("switch []");
                             template = new ArrayType(TemplateType.INSTANCE,"Template[]");//TemplateType.INSTANCE;
                             templateNameIdx++;
                             break;
                         case "Template":
-                          //  System.out.println("switch ");
                             template = TemplateType.INSTANCE;
                             templateNameIdx++;
                             break;
@@ -1448,6 +1446,8 @@ public final class SemanticAnalysis
             System.out.println("null");
             return true;
         }*/
+        if ((a instanceof ArrayType && (!(b instanceof ArrayType))) || (b instanceof ArrayType && !(a instanceof ArrayType)))
+            return false;
         if (a instanceof ArrayType ){//&& ((ArrayType)a).templateName.equals("Template[]")){
             if (((ArrayType) a).templateName != null && b.name().equals("Template[]")){ // Template array
 
@@ -1632,7 +1632,7 @@ public final class SemanticAnalysis
                 //templateFromVarLeft = scopeFunc == null && node.left instanceof FieldAccessNode ? variableToTemplate.get(structDeclarationMap.get(((FieldAccessNode) node.left).stem.contents())).get(((FieldAccessNode) node.left).fieldName): templateFromVarLeft;
                 templateFromVarRight = scopeFunc == null && node.initializer instanceof FieldAccessNode && structDeclarationMap.containsKey(((FieldAccessNode) node.initializer).stem.contents()) ? variableToTemplate.get(structDeclarationMap.get(((FieldAccessNode) node.initializer).stem.contents())).get(((FieldAccessNode) node.initializer).fieldName): templateFromVarRight;
                 String funName = scopeFunc != null ? scopeFunc.name: null;
-                if(node.initializer instanceof FunCallNode){
+                if(node.initializer instanceof FunCallNode && ((FunCallNode) node.initializer).templateArgs != null){
                     templateFromVarRight = "FunCall";
                     funName = ((FunCallNode) node.initializer).function.contents();
                 }
@@ -1640,16 +1640,13 @@ public final class SemanticAnalysis
                     if (globalTypeDictionary.size() == 0)
                         return;
                     if(node.initializer instanceof FunCallNode && !(((FunCallNode) node.initializer).function instanceof ConstructorNode)){
-                        System.out.println(((FunCallNode) node.initializer).function);
                         //TODO OK ou pas ?
                         if (returnCounterFunction.size()==0){
                             return;
                         }
                         int iter = returnCounterFunction.get(funName);
                         actual = returnTemplateDic.get(funName).get(iter);
-                        System.out.println("dic "+ returnTemplateDic + " "+ funName + " "+ iter);
                         expected = templateFromVarLeft == null || expected.name().equals("Template") ? expected : globalTypeDictionary.get(funName).get(iter).get(templateFromVarLeft);
-                        System.out.println("left "+templateFromVarLeft);
                         //expected = templateFromVarLeft == null || expected.name().equals("Template") ? expected : localHashmap.get(templateFromVarLeft);
                         returnCounterFunction.put(funName, iter+1);
                         if (!isAssignableTo(actual, expected)) {
@@ -1668,11 +1665,7 @@ public final class SemanticAnalysis
                         for (int i = 0; i < globalTypeDictionary.get(toSearch).size(); i++) {
                             HashMap<String, Type> localHashmap = globalTypeDictionary.get(toSearch).get(i);
                             actual = (actualList != null && actualList.size()!=0)? actualList.get(i): actual;
-                            System.out.println(actual);
-
-                            System.out.println("actual "+actual +" "+ actualList + " "+ expected+" "+expected.name().equals("Template"));
                             expected = templateFromVarLeft == null || expected.name().equals("Template") ? expected : localHashmap.get(templateFromVarLeft);
-                            System.out.println("temp left "+ expected + " " +templateFromVarLeft );
                             expected = (templateFromVarLeft == null||(templateFromVarLeft!=null && templateFromVarLeft.equals("Template"))  )? expected : localHashmap.get(templateFromVarLeft);
                             actual = templateFromVarRight == null ? actual : localHashmap.get(templateFromVarRight);
                             if (!isAssignableTo(actual, expected)) {

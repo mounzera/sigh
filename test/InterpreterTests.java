@@ -237,7 +237,7 @@ public final class InterpreterTests extends TestFixture {
 
         check(
             "var x: Int = 1;" +
-            "{ print(\"\" + x); var x: Int = 2; print(\"\" + x) }" +
+            "{ print(\"\" + x); var x2: Int = 2; print(\"\" + x2) }" +
             "print(\"\" + x)",
             null, "1\n2\n1\n");
     }

@@ -632,10 +632,12 @@ public final class SemanticAnalysis
                             template = BoolType.INSTANCE;
                             templateNameIdx++;
                             break;
-                        case "Template":
+                        case "Template[]":
                             template = new ArrayType(TemplateType.INSTANCE,"Template[]");//TemplateType.INSTANCE;
                             templateNameIdx++;
                             break;
+                        case "Template":
+                            template = TemplateType.INSTANCE;
                         /*case "Array":
                             TODO
                          */
@@ -645,13 +647,24 @@ public final class SemanticAnalysis
                     }
                     if (currFun != null){
                         String returnnName = currFun.returnType.contents();
+                        System.out.println("currfunc "+ returnnName +" "+node.templateArgs);
+
                         if (returnnName.equals("T") || returnnName.charAt(0) == ('T') && Character.isDigit(returnnName.charAt(1))){
                             if (returnTemplateDic.get(node.function.contents()) == null){
+                                System.out.println("hereret "+node.templateArgs + " "+ node.function.contents());
                                 returnTemplateDic.put(node.function.contents(), new ArrayList<>());
                                 returnCounterFunction.put(node.function.contents(), 0);
                             }
-                            if (templateName.name.equals(returnnName))
+                            if (templateName.name.equals(returnnName)){
+                                System.out.println("else "+ template + " "+ templateName.name  + " " + returnnName);
+                                ;
+                                //System.out.println(template.name().substring( template.name().length()-2, template.name().length()));
+                                //if (templateName.name.length()<2|| templateName.name.length()>1 && !templateName.name.substring( templateName.name.length()-2, templateName.name.length()).equals("[]")){
+                                    //System.out.println(" else" + template.getClass());
+                                    //template.name()=template.name().substring(0, (template.name()).length()-2);
+                                //}
                                 returnTemplateDic.get(node.function.contents()).add(template);
+                            }
                         }
                     }
                     templateParametersDictionnary.put(templateName.name, template);
@@ -1607,7 +1620,10 @@ public final class SemanticAnalysis
                         }
                         int iter = returnCounterFunction.get(funName);
                         actual = returnTemplateDic.get(funName).get(iter);
-                        expected = templateFromVarLeft == null ? expected : globalTypeDictionary.get(funName).get(iter).get(templateFromVarLeft);
+                        System.out.println("dic "+ returnTemplateDic + " "+ funName + " "+ iter);
+                        expected = templateFromVarLeft == null || expected.name().equals("Template") ? expected : globalTypeDictionary.get(funName).get(iter).get(templateFromVarLeft);
+                        System.out.println("left "+templateFromVarLeft);
+                        //expected = templateFromVarLeft == null || expected.name().equals("Template") ? expected : localHashmap.get(templateFromVarLeft);
                         returnCounterFunction.put(funName, iter+1);
                         if (!isAssignableTo(actual, expected)) {
                             r.error(format(
@@ -1622,8 +1638,8 @@ public final class SemanticAnalysis
                             actual = (actualList != null && actualList.size()!=0)? actualList.get(i): actual;
                             System.out.println("actual "+actual +" "+ actualList + " "+ expected+" "+expected.name().equals("Template"));
                             expected = templateFromVarLeft == null || expected.name().equals("Template") ? expected : localHashmap.get(templateFromVarLeft);
-                            System.out.println("temp left "+ expected + " " +templateFromVarLeft.equals("Template"));
-                            expected = templateFromVarLeft == null || templateFromVarLeft.equals("Template") ? expected : localHashmap.get(templateFromVarLeft);
+                            System.out.println("temp left "+ expected + " " +templateFromVarLeft);
+                            expected = (templateFromVarLeft == null||(templateFromVarLeft!=null && templateFromVarLeft.equals("Template"))  )? expected : localHashmap.get(templateFromVarLeft);
                             actual = templateFromVarRight == null ? actual : localHashmap.get(templateFromVarRight);
                             System.out.println("actual " + actual + " expected "+ expected);
                             if (!isAssignableTo(actual, expected)) {
@@ -1915,9 +1931,10 @@ public final class SemanticAnalysis
                             actual = (actualList != null && actualList.size()!=0)? actualList.get(i): actual;
                             formal = templateFromVarLeft == null ? formal : localHashmap.get(templateFromVarLeft);
                             actual = templateFromVarRight == null ? actual : localHashmap.get(templateFromVarRight);
+                            System.out.println("act " +globalTypeDictionary.keySet());
                             if (!isAssignableTo(actual, formal))
                                 r.error(format(
-                                    "Incompatible return type, expected %s but got %s", formal, actual),
+                                    " Incompatible return type, expected %s but got %s", formal, actual),
                                     node.expression);
                         }
                     }

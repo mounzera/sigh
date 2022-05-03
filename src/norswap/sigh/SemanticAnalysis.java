@@ -1,7 +1,7 @@
 package norswap.sigh;
 
 //import jdk.nashorn.internal.objects.Global;
-import com.sun.org.apache.xpath.internal.operations.Bool;
+//import com.sun.org.apache.xpath.internal.operations.Bool;
 import norswap.sigh.ast.*;
 import norswap.sigh.interpreter.Constructor;
 import norswap.sigh.scopes.DeclarationContext;
@@ -233,12 +233,8 @@ public final class SemanticAnalysis
     {
         final Scope scope = this.scope;
 
-        /*if (!node.name.equals("print") && (!node.name.equals("true"))){
-            System.out.println("ref "+ node.name + " "+ ( (VarDeclarationNode) scope.declarations.get(node.name)).initializer);
-        }*/
 
 
-        //System.out.println(scope.declarations.get());
 
 
         // Try to lookup immediately. This must succeed for variables, but not necessarily for
@@ -351,8 +347,6 @@ public final class SemanticAnalysis
         }
 
         boolean notTemplateArray = templateArray;
-        //String name = ((VarDeclarationNode)this.inferenceContext).name;
-        //array_components.put(name,node.components);
         Attribute[] dependencies =
             node.components.stream().map(it -> it.attr("type")).toArray(Attribute[]::new);
 
@@ -525,47 +519,8 @@ public final class SemanticAnalysis
                 R.set(p,"scope",scope);
             }
         }
-        //R.set(fun_decl.parameters.get(0),"scope",scope);
-        //fun_decl.parameters.get(0).id++;//.array= (ArrayLiteralNode) node.arguments.get(0);
-        /*ArrayList<String> param_names = new ArrayList<>();
-        if (fun_decl !=null){
-            for (ParameterNode param_name : fun_decl.parameters){
-                param_names.add(param_name.name);
-            }
-        }
 
-        List<ExpressionNode> current_params = node.arguments;
-        HashMap<String,ArrayLiteralNode> local_param_arrays=null;
-        int param_index=0;
-        for (ExpressionNode possible_array : current_params){
-            if (possible_array instanceof ArrayLiteralNode){
-                if (local_param_arrays == null){
-                    local_param_arrays = new HashMap<>();
-                }
-                local_param_arrays.put(param_names.get(param_index),(ArrayLiteralNode) possible_array);
-            }else if (possible_array instanceof ReferenceNode){
-                String param_name = ((ReferenceNode) possible_array).name;
-                VarDeclarationNode array_decl = null;
-                if(scope.declarations.get(param_name) instanceof  VarDeclarationNode){
-                    array_decl =(VarDeclarationNode) (scope.declarations.get(param_name));
-                }
-                if (array_decl != null){
-                    if (array_decl.initializer instanceof ArrayLiteralNode){
-                        if (local_param_arrays == null){
-                            local_param_arrays = new HashMap<>();
-                        }
-                        local_param_arrays.put(param_names.get(param_index),(ArrayLiteralNode) array_decl.initializer);
-                    }
-                }
-            }
-            param_index++;
-        }
-        if (local_param_arrays!=null ){
-            if (!param_arrays.containsKey(fun_name)){
-                param_arrays.put(fun_name, new ArrayList<>());
-            }
-            param_arrays.get(fun_name).add(local_param_arrays);
-        }*/
+
         // end Template arrays
 
         this.inferenceContext = node;
@@ -669,9 +624,6 @@ public final class SemanticAnalysis
                         }
                     }
                     templateParametersDictionnary.put(templateName.name, template);
-                    //here
-                    //System.out.println(templateName.name);
-                    //System.out.println(globalTypeDictionary + ""+variableToTemplate+""+ temp);
                     if (! (template instanceof ArrayType)){
                         templateParametersDictionnary.put(templateName.name, template);
                         templateParametersDictionnary.put(templateName.name+"[]", new ArrayType(template, null));
@@ -755,7 +707,6 @@ public final class SemanticAnalysis
 
                     }
                 }
-                //TemplateType.INSTANCE.templateList = new HashMap<>();
                 List<ExpressionNode> args = node.arguments;
                 List<TypeNode> templateArgs = node.templateArgs;
                 if (params.length != args.size())
@@ -876,7 +827,6 @@ public final class SemanticAnalysis
                         left = templateFromVarLeft == null ? left : localHashmap.get(templateFromVarLeft);
                         right = templateFromVarRight == null ? right : localHashmap.get(templateFromVarRight);
                         if (node.operator == ADD && (left instanceof StringType || right instanceof StringType))
-                            //r.set(0, StringType.INSTANCE);
                             typesToSet.add(StringType.INSTANCE);
                         else if (isArithmetic(node.operator))
                             binaryArithmetic(r, node, left, right, typesToSet);
@@ -948,15 +898,7 @@ public final class SemanticAnalysis
             else{
                 r.error(arithmeticError(node,left,right),node);
             }
-        //String left_name = ((ReferenceNode) node.left).name;
-        //String right_name =((ReferenceNode) node.right).name;
-        //IntLiteralNode left_node = (IntLiteralNode) ((VarDeclarationNode) (((Scope) R.get(node.left,"scope")).declarations.get(left_name))).initializer;
-        //List left_array = left_node.components;
-        //IntLiteralNode right_node = (IntLiteralNode) ((VarDeclarationNode) (((Scope) R.get(node.right,"scope")).declarations.get(right_name))).initializer;
-        //List right_array = right_node.components;
-        //System.out.println("arr ar " +left_name +" " + left_node);
-        //System.out.println("arr ar " +right_name +" " + right_node);
-        //System.out.println("bin ar");
+
         if (left instanceof IntType)
             if (right instanceof IntType)
                 r.set(0, IntType.INSTANCE);
@@ -1090,7 +1032,6 @@ public final class SemanticAnalysis
     private void arrayArithmetic (Rule r, BinaryExpressionNode node, Type left, Type right,BinaryOperator op, List<Type> typeToSet)
     {
         Scope curr_scope = R.get(inferenceContext,"scope");
-        //R.set(node,"scope",curr_scope);
         if (!(left instanceof ArrayType) || !(right instanceof ArrayType)){
             r.errorFor("Trying to use @ between non ArrayTypes", node);
             set_array_type(r,node,left,false, typeToSet);
@@ -1108,11 +1049,6 @@ public final class SemanticAnalysis
         Boolean left_template = ((ArrayType) left).templateName != null && ((ArrayType) left).templateName.equals("Template[]");
         Boolean right_template = ((ArrayType) right).templateName != null && ((ArrayType) right).templateName.equals("Template[]");
         boolean temp = left_template || right_template;
-        /*System.out.println(((ArrayType) left).componentType instanceof StringType);
-        System.out.println(((ArrayType) right).componentType instanceof StringType);
-        System.out.println(!temp);
-        System.out.println(((ArrayType) left).templateName);
-        System.out.println(((ArrayType) right).templateName);*/
         if ( !temp && ((ArrayType) left).componentType instanceof StringType && ((ArrayType) right).componentType instanceof StringType){
             if (! string_op.contains(node.array_operator)) {
                 set_array_type(r,node,left,false, typeToSet);
@@ -1128,11 +1064,7 @@ public final class SemanticAnalysis
                 return;
             }
         }
-        //String fun_name =((ExpressionNode)((FunCallNode )inferenceContext).function).contents();
-        /*if (!(left_template && right_template)){
-            System.out.println("not");
-            System.out.println(((ArrayType) left).templateName);
-        } //&& (((ArrayType) left).templateName)[0]=="T")*/
+
 
 
 
@@ -1158,168 +1090,6 @@ public final class SemanticAnalysis
             }
         }
         set_array_type(r,node,left,temp, typeToSet);
-
-        /*
-        DeclarationNode left_decl =(((Scope) R.get(node.left,"scope")).declarations.get(left_name));
-        DeclarationNode right_decl=(((Scope) R.get(node.right,"scope")).declarations.get(right_name));
-        ArrayLiteralNode left_node = null;
-        List<HashMap<String, ArrayLiteralNode>> left_nodes = null;
-        ParameterNode left_param_node =null;
-        if (left_decl instanceof VarDeclarationNode){
-            System.out.println("left vardelc");
-            left_node = (ArrayLiteralNode) (((VarDeclarationNode) left_decl).initializer);
-        }else if (left_decl instanceof ParameterNode){
-            System.out.println("left param");
-            //String fun_name =((ExpressionNode)((FunCallNode )inferenceContext).function).contents();
-            if (fun_name.equals("print")){
-                String ref_name =((BinaryExpressionNode)((FunCallNode)inferenceContext).arguments.get(0)).right.contents();
-                String ref_fun_name =((FunCallNode)((VarDeclarationNode)curr_scope.declarations.get(ref_name)).initializer).function.contents();
-
-                left_nodes = param_arrays.get(ref_fun_name);
-            }else {
-                System.out.println("left else " + fun_name);
-                left_nodes = param_arrays.get(fun_name);
-            }
-
-        }
-
-        //System.out.println((VarDeclarationNode) (((Scope) R.get(node.right,"scope")).declarations.get(right_name)));
-        ArrayLiteralNode right_node = null;//(ArrayLiteralNode) ((VarDeclarationNode) (((Scope) R.get(node.right,"scope")).declarations.get(right_name))).initializer;
-        List<HashMap> right_nodes =null;
-        ParameterNode right_param_node=null;
-        if (right_decl instanceof VarDeclarationNode){
-            right_node = (ArrayLiteralNode) ((VarDeclarationNode) (((Scope) R.get(node.right,"scope")).declarations.get(right_name))).initializer;
-        }else if (right_decl instanceof ParameterNode){
-            //right_param_node = (ParameterNode) right_decl;
-            //String fun_name =((ExpressionNode)((FunCallNode )inferenceContext).function).contents();
-            if (fun_name.equals("print")){
-                String ref_name =((BinaryExpressionNode)((FunCallNode)inferenceContext).arguments.get(0)).right.contents();
-                String ref_fun_name =((FunCallNode)((VarDeclarationNode)curr_scope.declarations.get(ref_name)).initializer).function.contents();
-                left_nodes = param_arrays.get(ref_fun_name);
-            }else {
-                left_nodes = param_arrays.get(fun_name);
-            }
-        }
-        System.out.println(right_node+" "+ right_nodes+" "+left_node+" "+left_nodes);
-        System.out.println(param_arrays);
-
-        //normal arrays
-        if (right_node != null && left_node != null){
-            if (check_arrays(r,left_node.components, right_node.components,temp, node, op)){
-
-                set_array_type(r,node,left,temp);
-                return;
-            }
-
-        }else if (right_node==null && left_node==null){ //parameter array
-            //String fun_name =((ExpressionNode)((FunCallNode )inferenceContext).function).contents();
-            System.out.println("here1");
-            if (right_nodes!= null && left_nodes!= null){
-
-                int len = param_arrays.get(fun_name).size();
-                List right_check;
-                List left_check;
-                for (int i=0; i< len; i++){
-                    right_check = param_arrays.get(fun_name).get(i).get(right_name).components;
-                    left_check=param_arrays.get(fun_name).get(i).get(left_name).components;
-                    check_arrays(r,left_check,right_check,temp,node,op);
-                }
-                set_array_type(r,node,left,temp);
-                return;
-            }
-            else if (right_nodes ==null && left_nodes ==null){
-
-                System.out.println(left_name+" "+((Scope) R.get(node.left,"scope")).declarations.get(left_name));
-                ArrayLiteralNode left_n = (ArrayLiteralNode) ((VarDeclarationNode) (((Scope) R.get(node.left,"scope")).declarations.get(left_name))).initializer;
-                List left_array = left_n.components;
-                //System.out.println((VarDeclarationNode) (((Scope) R.get(node.right,"scope")).declarations.get(right_name)));
-                ArrayLiteralNode right_n= (ArrayLiteralNode) ((VarDeclarationNode) (((Scope) R.get(node.right,"scope")).declarations.get(right_name))).initializer;
-                List right_array = right_n.components;
-                //List left_arr = new ArrayList();
-                //left_arr.add();//(ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(left_name)).initializer));
-                //List right_arr= new ArrayList();
-                //right_arr.add((ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(right_name)).initializer));
-                check_arrays(r,left_array,right_array,temp,node,op);
-                set_array_type(r,node,left,temp);
-                return;
-            }
-
-        }if (right_node ==null || left_node == null){
-
-            List to_check;
-            if (right_node==null){
-                System.out.println("here2");
-                if (!fun_name.equals("print")){
-                    System.out.println("here 22");
-                    int len = param_arrays.get(fun_name).size();
-                    for (int i=0; i<len; i++){
-                        System.out.println(fun_name+" "+ right_name+" " + param_arrays);
-                        System.out.println(param_arrays.get(fun_name).get(i));
-                        to_check = param_arrays.get(fun_name).get(i).get(right_name).components;
-                        if (left_node != null){
-
-                            check_arrays(r,left_node.components,to_check,temp,node,op);
-                        }
-                    }
-                }
-
-            }else {
-                System.out.println("here3");
-                int len = param_arrays.get(fun_name).size();
-                for (int i=0; i<len; i++){
-                    to_check = param_arrays.get(fun_name).get(i).get(left_name).components;
-                    check_arrays(r,to_check,right_node.components,temp,node,op);
-                }
-            }
-            set_array_type(r,node,left,temp);
-        }*/
-
-
-
-        /*List left_array = left_node.components;
-        List right_array = right_node.components;*/
-        //System.out.println("arr ar " +left_name +" " + left_array);
-        //System.out.println("arr ar " +right_name +" " + right_array);
-        //System.out.println(((BinaryExpressionNode)(((FunCallNode) inferenceContext).arguments.get(0))).right);
-
-        /*//arrays of different sizes
-        if (left_array.size() != right_array.size()){
-            r.error(format("Trying to use @ between arrays of different lengths : %s and %s", left_array.size(),right_array.size()),node);
-            return;
-        }
-        // types check for template[]
-        if (temp){
-            for (int i=0; i < left_array.size(); i++){
-
-                boolean left_numeric = (leftsys_array.get(i) instanceof IntLiteralNode || left_array.get(i) instanceof FloatLiteralNode);
-                boolean right_numeric = (right_array.get(i) instanceof IntLiteralNode || right_array.get(i) instanceof FloatLiteralNode);
-
-                if ((left_numeric != right_numeric) && (left_array.get(i).getClass() != right_array.get(i).getClass())){
-                    r.error("Trying to use @ between template arrays of different types",node);
-                    return;
-                }
-                if (!left_numeric && !(this.string_op.contains(op))){
-                    r.error(format("Trying to use illegal operation %s between strings in template arrays",op),node);
-                    return;
-                }
-            }
-
-        }*/
-
-        /*ArrayType arrayType = (ArrayType) left;
-        if (isComparison(node.array_operator)){
-            if (temp){
-                r.set(0,new ArrayType(BoolType.INSTANCE,"Template"));
-            }
-            r.set(0,new ArrayType(BoolType.INSTANCE,null));
-        }
-        else{
-            if (temp){
-                r.set(0,new ArrayType(arrayType.componentType,"Template"));
-            }
-            r.set(0,new ArrayType(arrayType.componentType,null));
-        }*/
-
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -1453,13 +1223,10 @@ public final class SemanticAnalysis
      */
     private static boolean isAssignableTo (Type a, Type b)
     {
-        /*if (a==null && b==null){
-            System.out.println("null");
-            return true;
-        }*/
+
         if ((a instanceof ArrayType && (!(b instanceof ArrayType))) || (b instanceof ArrayType && !(a instanceof ArrayType)))
             return false;
-        if (a instanceof ArrayType ){//&& ((ArrayType)a).templateName.equals("Template[]")){
+        if (a instanceof ArrayType ){
             if (((ArrayType) a).templateName != null && b.name().equals("Template[]")){ // Template array
 
                 return true;
@@ -1467,7 +1234,6 @@ public final class SemanticAnalysis
             return b instanceof ArrayType
                 && isAssignableTo(((ArrayType)a).componentType, ((ArrayType)b).componentType);
         }
-        //System.out.println(a);
         if (a != null && b != null && a.toString().contains("[]") && b.toString().contains("[]")){
             switch (a.toString().substring(0, a.toString().length() -2)){
                 case "Int":
@@ -1497,19 +1263,17 @@ public final class SemanticAnalysis
 
         if (a instanceof IntType && b instanceof FloatType)
             return true;
-        //System.out.println("assign " + (a instanceof ArrayType) +" "+( ((ArrayType) a).templateName!= null));
 
-        //System.out.println("b "+ ((ArrayType)b).templateName);
         if (b instanceof TemplateType){
             return true;
         }
-        if (b instanceof ArrayType && ((ArrayType) b).templateName != null &&((ArrayType)b).templateName.equals("Template[]")){//TypeType){
+        if (b instanceof ArrayType && ((ArrayType) b).templateName != null &&((ArrayType)b).templateName.equals("Template[]")){
             if (a instanceof TemplateType)
                 return true;
             else
                 return false;
         }
-        if (a instanceof TemplateType){//TypeType){
+        if (a instanceof TemplateType){
             //System.out.println("WARNING : trying to attribute type to Template array element");
             return true;
         }
@@ -1639,7 +1403,6 @@ public final class SemanticAnalysis
                     actual = r.get(1);
                 String templateFromVarLeft = expected instanceof TemplateType? node.type.contents(): null;
                 String templateFromVarRight = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.initializer.contents()): null;
-                //templateFromVarLeft = scopeFunc == null && node.left instanceof FieldAccessNode ? variableToTemplate.get(structDeclarationMap.get(((FieldAccessNode) node.left).stem.contents())).get(((FieldAccessNode) node.left).fieldName): templateFromVarLeft;
                 templateFromVarRight = scopeFunc == null && node.initializer instanceof FieldAccessNode && structDeclarationMap.containsKey(((FieldAccessNode) node.initializer).stem.contents()) ? variableToTemplate.get(structDeclarationMap.get(((FieldAccessNode) node.initializer).stem.contents())).get(((FieldAccessNode) node.initializer).fieldName): templateFromVarRight;
                 String funName = scopeFunc != null ? scopeFunc.name: null;
                 if(node.initializer instanceof FunCallNode && ((FunCallNode) node.initializer).templateArgs != null){
@@ -1657,7 +1420,6 @@ public final class SemanticAnalysis
                         int iter = returnCounterFunction.get(funName);
                         actual = returnTemplateDic.get(funName).get(iter);
                         expected = templateFromVarLeft == null || expected.name().equals("Template") ? expected : globalTypeDictionary.get(funName).get(iter).get(templateFromVarLeft);
-                        //expected = templateFromVarLeft == null || expected.name().equals("Template") ? expected : localHashmap.get(templateFromVarLeft);
                         returnCounterFunction.put(funName, iter+1);
                         if (!isAssignableTo(actual, expected)) {
                             r.error(format(
@@ -1758,7 +1520,6 @@ public final class SemanticAnalysis
 
     private void funDecl (FunDeclarationNode node)
     {
-        //scope = new Scope(node, scope);
 
         scope.declare(node.name, node);
         scope = new Scope(node, scope);
@@ -1782,7 +1543,6 @@ public final class SemanticAnalysis
         dependencies = new Attribute[node.parameters.size() + 1];
         dependencies[0] = node.returnType.attr("value");
         forEachIndexed(node.parameters, (i, param) ->
-            //dependencies[i + 1] = new Attribute(param, "type"));
             dependencies[i + 1] = param.attr("type"));
 
         R.rule(node, "type")
@@ -1820,7 +1580,6 @@ public final class SemanticAnalysis
                 paramTypes = new Type[node.parameters.size()];
                 for (int i = 0; i < paramTypes.length; ++i){
                     paramTypes[i] = r.get(i + 1);
-                    //paramTypes[i] = IntType.INSTANCE;
                 }
                 r.set(0, new FunType(r.get(0), paramTypes));
             });

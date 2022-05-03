@@ -183,7 +183,7 @@ public final class SemanticAnalysisTests extends UraniumTestFixture
 
         successInput(
             "var x: Int = 1;" +
-            "{ print(\"\" + x); var x: Int = 2; print(\"\" + x) }" +
+            "{ print(\"\" + x); var x2: Int = 2; print(\"\" + x2) }" +
             "print(\"\" + x)");
     }
 

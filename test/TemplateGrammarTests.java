@@ -87,5 +87,15 @@ public class TemplateGrammarTests extends AutumnTestFixture {
         failure(" template <typename T> fun max (a: T, b:T); max<double, int>(2.6, 1);");
         failure(" template <typename T> fun max (a: T, b:T2); max<double>(2.6, 1);");
 
+
+        // Struct with template tests
+        successExpect("template <typename T> fun f (x: T) {}",
+            new FunDeclarationNode(null,
+                asList(new TemplateParameterNode(null, "T", new TemplateTypeNode(null, "T"))),
+                "f",
+                asList(new ParameterNode(null, "x", new SimpleTypeNode(null, "T"))),
+                new SimpleTypeNode(null, "Void"),
+                new BlockNode(null, asList())));
+
     }
 }

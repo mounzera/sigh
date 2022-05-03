@@ -93,7 +93,7 @@ public class GrammarTests extends AutumnTestFixture {
         rule = grammar.statement;
 
         successExpect("var x: Int = 1", new VarDeclarationNode(null, "x",
-            new SimpleTypeNode(null, "Int"),intlit(1), null));
+            new SimpleTypeNode(null, "Int"),intlit(1)));
 
         successExpect("struct P {}", new StructDeclarationNode(null, "P", asList(), null));
 

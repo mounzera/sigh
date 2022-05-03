@@ -479,12 +479,11 @@ public final class SemanticAnalysis
                         HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
                         type = typeList != null ? typeList.get(i) : type;
                         type = templateFromVarLeft == null ? type : localHashmap.get(templateFromVarLeft);
-                        System.out.println("type "+((ArrayType) type).componentType);
+
                         if (type instanceof ArrayType){
                             typeToSet.add(((ArrayType) type).componentType);
                         }
                     }
-                    System.out.println("type to set "+ typeToSet);
 
                     r.set(0, typeToSet);
                 }
@@ -646,25 +645,14 @@ public final class SemanticAnalysis
                             template = null;
                     }
                     if (currFun != null){
-                        String returnnName = currFun.returnType.contents();
-                        System.out.println("currfunc "+ returnnName +" "+node.templateArgs);
-
-                        if (returnnName.equals("T") || returnnName.charAt(0) == ('T') && Character.isDigit(returnnName.charAt(1))){
+                        String returnName = currFun.returnType.contents();
+                        if (returnName.equals("T") || returnName.charAt(0) == ('T') && Character.isDigit(returnName.charAt(1))){
                             if (returnTemplateDic.get(node.function.contents()) == null){
-                                System.out.println("hereret "+node.templateArgs + " "+ node.function.contents());
                                 returnTemplateDic.put(node.function.contents(), new ArrayList<>());
                                 returnCounterFunction.put(node.function.contents(), 0);
                             }
-                            if (templateName.name.equals(returnnName)){
-                                System.out.println("else "+ template + " "+ templateName.name  + " " + returnnName);
-                                ;
-                                //System.out.println(template.name().substring( template.name().length()-2, template.name().length()));
-                                //if (templateName.name.length()<2|| templateName.name.length()>1 && !templateName.name.substring( templateName.name.length()-2, templateName.name.length()).equals("[]")){
-                                    //System.out.println(" else" + template.getClass());
-                                    //template.name()=template.name().substring(0, (template.name()).length()-2);
-                                //}
+                            if (templateName.name.equals(returnName))
                                 returnTemplateDic.get(node.function.contents()).add(template);
-                            }
                         }
                     }
                     templateParametersDictionnary.put(templateName.name, template);
@@ -836,8 +824,8 @@ public final class SemanticAnalysis
                     right = r.get(1);
                 String templateFromVarLeft = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.left.contents()) : null;
                 String templateFromVarRight = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.right.contents()): null;
-                templateFromVarLeft = scopeFunc == null && node.left instanceof FieldAccessNode ? variableToTemplate.get(structDeclarationMap.get(((FieldAccessNode) node.left).stem.contents())).get(((FieldAccessNode) node.left).fieldName): templateFromVarLeft;
-                templateFromVarRight = scopeFunc == null && node.right instanceof FieldAccessNode ? variableToTemplate.get(structDeclarationMap.get(((FieldAccessNode) node.right).stem.contents())).get(((FieldAccessNode) node.right).fieldName): templateFromVarRight;
+                templateFromVarLeft = scopeFunc == null && node.left instanceof FieldAccessNode && structDeclarationMap.containsKey(((FieldAccessNode) node.left).stem.contents()) ? variableToTemplate.get(structDeclarationMap.get(((FieldAccessNode) node.left).stem.contents())).get(((FieldAccessNode) node.left).fieldName): templateFromVarLeft;
+                templateFromVarRight = scopeFunc == null && node.right instanceof FieldAccessNode && structDeclarationMap.containsKey(((FieldAccessNode) node.right).stem.contents()) ? variableToTemplate.get(structDeclarationMap.get(((FieldAccessNode) node.right).stem.contents())).get(((FieldAccessNode) node.right).fieldName): templateFromVarRight;
                 if ((scopeFunc == null && !(node.left instanceof FieldAccessNode) && !(node.right instanceof FieldAccessNode)) || (templateFromVarLeft == null && templateFromVarRight == null && leftList == null && rightList == null)){
                     if (node.operator == ADD && (left instanceof StringType || right instanceof StringType))
                         r.set(0, StringType.INSTANCE);
@@ -1338,13 +1326,24 @@ public final class SemanticAnalysis
                     right = r.get(1);
                 String templateFromVarLeft = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.left.contents()): null;
                 String templateFromVarRight = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.right.contents()): null;
+                templateFromVarLeft = scopeFunc == null && node.left instanceof FieldAccessNode && structDeclarationMap.containsKey(((FieldAccessNode) node.left).stem.contents()) ? variableToTemplate.get(structDeclarationMap.get(((FieldAccessNode) node.left).stem.contents())).get(((FieldAccessNode) node.left).fieldName): templateFromVarLeft;
+                templateFromVarRight = scopeFunc == null && node.right instanceof FieldAccessNode && structDeclarationMap.containsKey(((FieldAccessNode) node.right).stem.contents()) ? variableToTemplate.get(structDeclarationMap.get(((FieldAccessNode) node.right).stem.contents())).get(((FieldAccessNode) node.right).fieldName): templateFromVarRight;
                 if (templateFromVarRight != null || templateFromVarLeft != null|| rightList != null){
                     if (globalTypeDictionary.size() == 0){
                         r.set(0, left);
                         return;
                     }
-                    for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
-                        HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
+                    String toSearch;
+                    if(scopeFunc != null)
+                        toSearch = scopeFunc.name;
+                    else{
+                        if (node.left instanceof FieldAccessNode)
+                            toSearch = structDeclarationMap.get(((FieldAccessNode) node.left).stem.contents());
+                        else
+                            toSearch = structDeclarationMap.get(((FieldAccessNode) node.right).stem.contents());
+                    }
+                    for (int i = 0; i < globalTypeDictionary.get(toSearch).size(); i++) {
+                        HashMap<String, Type> localHashmap = globalTypeDictionary.get(toSearch).get(i);
                         right = rightList != null ? rightList.get(i): right;
                         left = templateFromVarLeft == null ? left : localHashmap.get(templateFromVarLeft);
                         right = templateFromVarRight == null ? right : localHashmap.get(templateFromVarRight);
@@ -1445,7 +1444,36 @@ public final class SemanticAnalysis
             System.out.println("null");
             return true;
         }*/
-        System.out.println(a + " "+b);
+        if (a instanceof ArrayType && ((ArrayType) a).templateName!= null ){//&& ((ArrayType)a).templateName.equals("Template[]")){
+            if (b.name().equals("Template[]")){
+                return true;
+            }
+
+            return b instanceof ArrayType
+                && isAssignableTo(((ArrayType)a).componentType, ((ArrayType)b).componentType);
+        }
+        if (a.toString().contains("[]") && b.toString().contains("[]")){
+            switch (a.toString().substring(0, a.toString().length() -2)){
+                case "Int":
+                    a = IntType.INSTANCE;
+                case "Float":
+                    a = FloatType.INSTANCE;
+                case "String":
+                    a = StringType.INSTANCE;
+                case "Bool":
+                    a = BoolType.INSTANCE;
+            }
+            switch (b.toString().substring(0, b.toString().length() -2)){
+                case "Int":
+                    b = IntType.INSTANCE;
+                case "Float":
+                    b = FloatType.INSTANCE;
+                case "String":
+                    b = StringType.INSTANCE;
+                case "Bool":
+                    b = BoolType.INSTANCE;
+            }
+        }
         if (a==null ||b==null)
             return false;
         if (a instanceof VoidType || b instanceof VoidType)
@@ -1549,7 +1577,6 @@ public final class SemanticAnalysis
     {
 
         this.inferenceContext = node;
-
         final FunDeclarationNode scopeFunc = currentFunction();
         String paramTypeName = node.type.contents();
         if (paramTypeName.contains("[]"))
@@ -1565,7 +1592,7 @@ public final class SemanticAnalysis
                 variableToTemplate.put(scopeFunc.name, temp);
             }
         }// TODO when var is declared with template in fun add it to variable template to be able to recognize it -> done but not checked !
-        if (node.initializer instanceof FunCallNode){
+        if (node.initializer instanceof FunCallNode && ((FunCallNode) node.initializer).templateArgs != null){
             structDeclarationMap.put(node.name, ((FunCallNode) node.initializer).function.contents());
         }
         scope.declare(node.name, node);
@@ -1602,9 +1629,10 @@ public final class SemanticAnalysis
                     actualList = r.get(1);
                 else
                     actual = r.get(1);
-                System.out.println("node type "+ variableToTemplate + " "+ scopeFunc);
                 String templateFromVarLeft = expected instanceof TemplateType? node.type.contents(): null;
                 String templateFromVarRight = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.initializer.contents()): null;
+                //templateFromVarLeft = scopeFunc == null && node.left instanceof FieldAccessNode ? variableToTemplate.get(structDeclarationMap.get(((FieldAccessNode) node.left).stem.contents())).get(((FieldAccessNode) node.left).fieldName): templateFromVarLeft;
+                templateFromVarRight = scopeFunc == null && node.initializer instanceof FieldAccessNode && structDeclarationMap.containsKey(((FieldAccessNode) node.initializer).stem.contents()) ? variableToTemplate.get(structDeclarationMap.get(((FieldAccessNode) node.initializer).stem.contents())).get(((FieldAccessNode) node.initializer).fieldName): templateFromVarRight;
                 String funName = scopeFunc != null ? scopeFunc.name: null;
                 if(node.initializer instanceof FunCallNode){
                     templateFromVarRight = "FunCall";
@@ -1613,7 +1641,8 @@ public final class SemanticAnalysis
                 if (templateFromVarRight != null || templateFromVarLeft != null || actualList != null){
                     if (globalTypeDictionary.size() == 0)
                         return;
-                    if(node.initializer instanceof FunCallNode){
+                    if(node.initializer instanceof FunCallNode && !(((FunCallNode) node.initializer).function instanceof ConstructorNode)){
+                        System.out.println(((FunCallNode) node.initializer).function);
                         //TODO OK ou pas ?
                         if (returnCounterFunction.size()==0){
                             return;
@@ -1632,19 +1661,21 @@ public final class SemanticAnalysis
                                 node.initializer);
                         }
                     }else{
-
-                        for (int i = 0; i < globalTypeDictionary.get(funName).size(); i++) {
-                            HashMap<String, Type> localHashmap = globalTypeDictionary.get(funName).get(i);
+                        String toSearch;
+                        if(scopeFunc != null)
+                            toSearch = scopeFunc.name;
+                        else{
+                            toSearch = structDeclarationMap.get(node.name);
+                        }
+                        for (int i = 0; i < globalTypeDictionary.get(toSearch).size(); i++) {
+                            HashMap<String, Type> localHashmap = globalTypeDictionary.get(toSearch).get(i);
                             actual = (actualList != null && actualList.size()!=0)? actualList.get(i): actual;
                             System.out.println("actual "+actual +" "+ actualList + " "+ expected+" "+expected.name().equals("Template"));
                             expected = templateFromVarLeft == null || expected.name().equals("Template") ? expected : localHashmap.get(templateFromVarLeft);
                             System.out.println("temp left "+ expected + " " +templateFromVarLeft);
                             expected = (templateFromVarLeft == null||(templateFromVarLeft!=null && templateFromVarLeft.equals("Template"))  )? expected : localHashmap.get(templateFromVarLeft);
                             actual = templateFromVarRight == null ? actual : localHashmap.get(templateFromVarRight);
-                            System.out.println("actual " + actual + " expected "+ expected);
                             if (!isAssignableTo(actual, expected)) {
-                                System.out.println("global "+globalTypeDictionary);
-                                System.out.println("temp "+ templateFromVarLeft+" "+templateFromVarRight);
                                 r.error(format(
                                         "incompatible initializer type provided for variable `%s`: expected %s but got %s",
                                         node.name, expected, actual),
@@ -1806,6 +1837,19 @@ public final class SemanticAnalysis
         scope.declare(node.name, node);
         R.set(node, "type", TypeType.INSTANCE);
         R.set(node, "declared", new StructType(node));
+        if (structDeclarationMap.containsKey(node.name)){
+            R.error(new SemanticError("Try to declare struct with already existing name: "  + node.name(),null,node));
+            return;
+        }
+        if (node.templateParameters != null){
+            globalTypeDictionary.put("$"+node.name, new ArrayList<>());
+            HashMap<String, String> tempHashmap = new HashMap<>();
+            for (FieldDeclarationNode field : node.fields){
+                TemplateType.INSTANCE.pushParamName("$"+node.name, field.type.contents());
+                tempHashmap.put(field.name, field.type.contents());
+            }
+            variableToTemplate.put("$"+node.name, tempHashmap);
+        }
     }
 
     // endregion
@@ -1825,11 +1869,31 @@ public final class SemanticAnalysis
                 else
                     type = r.get(0);
                 String templateFromVar = scopeFunc != null && node.condition.contents().length() == 3 ? variableToTemplate.get(scopeFunc.name).get(node.condition.contents().substring(1,2)): null;
+                String[] potentialStruct = null;
+                if (node.condition.contents().length() > 2){
+                    potentialStruct = node.condition.contents().substring(1, node.condition.contents().length()-1).split("[.]");
+                    if((potentialStruct != null && potentialStruct.length > 1))
+                        templateFromVar = scopeFunc == null && structDeclarationMap.get(potentialStruct[0]).contains(potentialStruct[1]) ? variableToTemplate.get(structDeclarationMap.get(potentialStruct[0])).get(potentialStruct[1]): templateFromVar;
+                }
                 if (templateFromVar != null || typeList != null){
                     if (globalTypeDictionary.size() == 0)
                         return;
-                    for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
-                        HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
+                    String toSearch;
+                    if(scopeFunc != null)
+                        toSearch = scopeFunc.name;
+                    else if(structDeclarationMap.get(potentialStruct[0]).contains(potentialStruct[1])){
+                        toSearch = structDeclarationMap.get(potentialStruct[0]);
+                    }else{
+                        for (Type cond : typeList){
+                            if (!(cond instanceof BoolType)) {
+                                r.error("If statement with a non-boolean condition of type: " + cond,
+                                    node.condition);
+                            }
+                        }
+                        return;
+                    }
+                    for (int i = 0; i < globalTypeDictionary.get(toSearch).size(); i++) {
+                        HashMap<String, Type> localHashmap = globalTypeDictionary.get(toSearch).get(i);
                         type = typeList != null? typeList.get(i): type;
                         type = templateFromVar == null? type: localHashmap.get(templateFromVar);
                         if (!(type instanceof BoolType)) {
@@ -1864,11 +1928,31 @@ public final class SemanticAnalysis
                 else
                     type = r.get(0);
                 String templateFromVar = scopeFunc != null && node.condition.contents().length() == 3 ? variableToTemplate.get(scopeFunc.name).get(node.condition.contents().substring(1,2)): null;
+                String[] potentialStruct = null;
+                if(node.condition.contents().length()> 2){
+                    potentialStruct = node.condition.contents().substring(1, node.condition.contents().length()-1).split("[.]");
+                    if (potentialStruct != null && potentialStruct.length > 1)
+                        templateFromVar = scopeFunc == null && structDeclarationMap.get(potentialStruct[0]).contains(potentialStruct[1]) ? variableToTemplate.get(structDeclarationMap.get(potentialStruct[0])).get(potentialStruct[1]): templateFromVar;
+                }
                 if (templateFromVar != null || typeList != null){
                     if(globalTypeDictionary.size() == 0)
                         return;
-                    for (int i = 0; i < globalTypeDictionary.get(scopeFunc.name).size(); i++) {
-                        HashMap<String, Type> localHashmap = globalTypeDictionary.get(scopeFunc.name).get(i);
+                    String toSearch;
+                    if(scopeFunc != null)
+                        toSearch = scopeFunc.name;
+                    else if(structDeclarationMap.get(potentialStruct[0]).contains(potentialStruct[1])){
+                        toSearch = structDeclarationMap.get(potentialStruct[0]);
+                    }else{
+                        for (Type cond : typeList){
+                            if (!(cond instanceof BoolType)) {
+                                r.error("If statement with a non-boolean condition of type: " + cond,
+                                    node.condition);
+                            }
+                        }
+                        return;
+                    }
+                    for (int i = 0; i < globalTypeDictionary.get(toSearch).size(); i++) {
+                        HashMap<String, Type> localHashmap = globalTypeDictionary.get(toSearch).get(i);
                         type = typeList != null? typeList.get(i): type;
                         type = templateFromVar == null ? type : localHashmap.get(templateFromVar);
                         if (!(type instanceof BoolType)) {
@@ -1931,10 +2015,9 @@ public final class SemanticAnalysis
                             actual = (actualList != null && actualList.size()!=0)? actualList.get(i): actual;
                             formal = templateFromVarLeft == null ? formal : localHashmap.get(templateFromVarLeft);
                             actual = templateFromVarRight == null ? actual : localHashmap.get(templateFromVarRight);
-                            System.out.println("act " +globalTypeDictionary.keySet());
                             if (!isAssignableTo(actual, formal))
                                 r.error(format(
-                                    " Incompatible return type, expected %s but got %s", formal, actual),
+                                    "Incompatible return type, expected %s but got %s", formal, actual),
                                     node.expression);
                         }
                     }

@@ -1446,6 +1446,8 @@ public final class SemanticAnalysis
             System.out.println("null");
             return true;
         }*/
+        if ((a instanceof ArrayType && (!(b instanceof ArrayType))) || (b instanceof ArrayType && !(a instanceof ArrayType)))
+            return false;
         if (a instanceof ArrayType && ((ArrayType) a).templateName!= null ){//&& ((ArrayType)a).templateName.equals("Template[]")){
             if (b.name().equals("Template[]")){
                 return true;

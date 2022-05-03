@@ -648,13 +648,24 @@ public final class SemanticAnalysis
                     }
                     if (currFun != null){
                         String returnName = currFun.returnType.contents();
+                        Boolean d=  false;
+                        if (returnName.contains("[]")){
+                            returnName = returnName.substring(0, returnName.length()-2);
+                            d=true;
+
+                        }
                         if (returnName.equals("T") || returnName.charAt(0) == ('T') && Character.isDigit(returnName.charAt(1))){
                             if (returnTemplateDic.get(node.function.contents()) == null){
                                 returnTemplateDic.put(node.function.contents(), new ArrayList<>());
                                 returnCounterFunction.put(node.function.contents(), 0);
                             }
-                            if (templateName.name.equals(returnName))
-                                returnTemplateDic.get(node.function.contents()).add(template);
+                            if (templateName.name.equals(returnName)){
+                                if (d){
+                                    returnTemplateDic.get(node.function.contents()).add(new ArrayType(TemplateType.INSTANCE,"Template[]"));
+
+                                }
+                            }
+
                         }
                     }
                     templateParametersDictionnary.put(templateName.name, template);
@@ -1638,7 +1649,7 @@ public final class SemanticAnalysis
                 if (templateFromVarRight != null || templateFromVarLeft != null || actualList != null){
                     if (globalTypeDictionary.size() == 0)
                         return;
-                    if(node.initializer instanceof FunCallNode && !(((FunCallNode) node.initializer).function instanceof ConstructorNode)){
+                    if(node.initializer instanceof FunCallNode){
                         //TODO OK ou pas ?
                         if (returnCounterFunction.size()==0){
                             return;

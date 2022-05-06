@@ -1405,14 +1405,14 @@ public final class SemanticAnalysis
                 String templateFromVarRight = scopeFunc != null ? variableToTemplate.get(scopeFunc.name).get(node.initializer.contents()): null;
                 templateFromVarRight = scopeFunc == null && node.initializer instanceof FieldAccessNode && structDeclarationMap.containsKey(((FieldAccessNode) node.initializer).stem.contents()) ? variableToTemplate.get(structDeclarationMap.get(((FieldAccessNode) node.initializer).stem.contents())).get(((FieldAccessNode) node.initializer).fieldName): templateFromVarRight;
                 String funName = scopeFunc != null ? scopeFunc.name: null;
-                if(node.initializer instanceof FunCallNode && ((FunCallNode) node.initializer).templateArgs != null){
+                if(node.initializer instanceof FunCallNode && ((FunCallNode) node.initializer).templateArgs != null && !node.initializer.contents().contains("$")){
                     templateFromVarRight = "FunCall";
                     funName = ((FunCallNode) node.initializer).function.contents();
                 }
                 if (templateFromVarRight != null || templateFromVarLeft != null || actualList != null){
                     if (globalTypeDictionary.size() == 0)
                         return;
-                    if(node.initializer instanceof FunCallNode){
+                    if(node.initializer instanceof FunCallNode && !node.initializer.contents().contains("$")){
                         //TODO OK ou pas ?
                         if (returnCounterFunction.size()==0){
                             return;
@@ -1432,20 +1432,39 @@ public final class SemanticAnalysis
                         if(scopeFunc != null)
                             toSearch = scopeFunc.name;
                         else{
-                            toSearch = structDeclarationMap.get(node.name);
-                        }
-                        for (int i = 0; i < globalTypeDictionary.get(toSearch).size(); i++) {
-                            HashMap<String, Type> localHashmap = globalTypeDictionary.get(toSearch).get(i);
-                            actual = (actualList != null && actualList.size()!=0)? actualList.get(i): actual;
-                            expected = templateFromVarLeft == null || expected.name().equals("Template") ? expected : localHashmap.get(templateFromVarLeft);
-                            expected = (templateFromVarLeft == null||(templateFromVarLeft!=null && templateFromVarLeft.equals("Template"))  )? expected : localHashmap.get(templateFromVarLeft);
-                            actual = templateFromVarRight == null ? actual : localHashmap.get(templateFromVarRight);
+                            if (structDeclarationMap.containsKey(node.name))
+                                toSearch = structDeclarationMap.get(node.name);
+                            else
+                                toSearch = structDeclarationMap.get(node.initializer.contents().split("[.]")[0]);
 
-                            if (!isAssignableTo(actual, expected)) {
-                                r.error(format(
-                                        "incompatible initializer type provided for variable `%s`: expected %s but got %s",
-                                        node.name, expected, actual),
-                                    node.initializer);
+                        }
+                        if (toSearch == null){
+                            if (actualList != null){
+                                for (int i = 0; i < actualList.size(); i++) {
+                                    actual = actualList.get(i);
+                                    if (!isAssignableTo(actual, expected)) {
+                                        r.error(format(
+                                            "incompatible initializer type provided for variable `%s`: expected %s but got %s",
+                                            node.name, expected, actual),
+                                            node.initializer);
+                                    }
+                                }
+                            }
+
+                        }else{
+                            for (int i = 0; i < globalTypeDictionary.get(toSearch).size(); i++) {
+                                HashMap<String, Type> localHashmap = globalTypeDictionary.get(toSearch).get(i);
+                                actual = (actualList != null && actualList.size()!=0)? actualList.get(i): actual;
+                                expected = templateFromVarLeft == null || expected.name().equals("Template") ? expected : localHashmap.get(templateFromVarLeft);
+                                expected = (templateFromVarLeft == null||(templateFromVarLeft!=null && templateFromVarLeft.equals("Template"))  )? expected : localHashmap.get(templateFromVarLeft);
+                                actual = templateFromVarRight == null ? actual : localHashmap.get(templateFromVarRight);
+
+                                if (!isAssignableTo(actual, expected)) {
+                                    r.error(format(
+                                            "incompatible initializer type provided for variable `%s`: expected %s but got %s",
+                                            node.name, expected, actual),
+                                        node.initializer);
+                                }
                             }
                         }
                     }
@@ -1605,6 +1624,25 @@ public final class SemanticAnalysis
             return;
         }
         if (node.templateParameters != null){
+            List<String> templateParamNames = new ArrayList<>();
+            for (TemplateParameterNode t : node.templateParameters)
+                templateParamNames.add(t.name);
+            for (FieldDeclarationNode toCheck : node.fields){
+                String type = toCheck.type.contents();
+                if ((type.equals("T") || type.charAt(0) == ('T') && Character.isDigit(type.charAt(1))) && !templateParamNames.contains(type)){
+                    R.error(new SemanticError("Trying to use a non declared template parameters in the type of field " + toCheck.name + " in " + node.name, null, node));
+                }
+            }
+        }else{
+            for (FieldDeclarationNode toCheck : node.fields){
+                String type = toCheck.type.contents();
+                if ((type.equals("T") || type.charAt(0) == ('T') && Character.isDigit(type.charAt(1)))){
+                    R.error(new SemanticError("Trying to use template type in field while struct not declared as template in " + node.name, null, node));
+                }
+            }
+        }
+
+        if (node.templateParameters != null){
             globalTypeDictionary.put("$"+node.name, new ArrayList<>());
             HashMap<String, String> tempHashmap = new HashMap<>();
             for (FieldDeclarationNode field : node.fields){
@@ -1636,7 +1674,7 @@ public final class SemanticAnalysis
                 if (node.condition.contents().length() > 2){
                     potentialStruct = node.condition.contents().substring(1, node.condition.contents().length()-1).split("[.]");
                     if((potentialStruct != null && potentialStruct.length > 1))
-                        templateFromVar = scopeFunc == null && structDeclarationMap.get(potentialStruct[0]).contains(potentialStruct[1]) ? variableToTemplate.get(structDeclarationMap.get(potentialStruct[0])).get(potentialStruct[1]): templateFromVar;
+                        templateFromVar = scopeFunc == null && structDeclarationMap.containsKey(potentialStruct[0]) && variableToTemplate.get(structDeclarationMap.get(potentialStruct[0])).containsKey(potentialStruct[1]) ? variableToTemplate.get(structDeclarationMap.get(potentialStruct[0])).get(potentialStruct[1]): templateFromVar;
                 }
                 if (templateFromVar != null || typeList != null){
                     if (globalTypeDictionary.size() == 0)
@@ -1644,7 +1682,7 @@ public final class SemanticAnalysis
                     String toSearch;
                     if(scopeFunc != null)
                         toSearch = scopeFunc.name;
-                    else if(structDeclarationMap.get(potentialStruct[0]).contains(potentialStruct[1])){
+                    else if(variableToTemplate.get(structDeclarationMap.get(potentialStruct[0])).containsKey(potentialStruct[1])){
                         toSearch = structDeclarationMap.get(potentialStruct[0]);
                     }else{
                         for (Type cond : typeList){
@@ -1695,7 +1733,7 @@ public final class SemanticAnalysis
                 if(node.condition.contents().length()> 2){
                     potentialStruct = node.condition.contents().substring(1, node.condition.contents().length()-1).split("[.]");
                     if (potentialStruct != null && potentialStruct.length > 1)
-                        templateFromVar = scopeFunc == null && structDeclarationMap.get(potentialStruct[0]).contains(potentialStruct[1]) ? variableToTemplate.get(structDeclarationMap.get(potentialStruct[0])).get(potentialStruct[1]): templateFromVar;
+                        templateFromVar = scopeFunc == null && structDeclarationMap.containsKey(potentialStruct[0]) && variableToTemplate.get(structDeclarationMap.get(potentialStruct[0])).containsKey(potentialStruct[1]) ? variableToTemplate.get(structDeclarationMap.get(potentialStruct[0])).get(potentialStruct[1]): templateFromVar;
                 }
                 if (templateFromVar != null || typeList != null){
                     if(globalTypeDictionary.size() == 0)
@@ -1703,7 +1741,7 @@ public final class SemanticAnalysis
                     String toSearch;
                     if(scopeFunc != null)
                         toSearch = scopeFunc.name;
-                    else if(structDeclarationMap.get(potentialStruct[0]).contains(potentialStruct[1])){
+                    else if(variableToTemplate.get(structDeclarationMap.get(potentialStruct[0])).containsKey(potentialStruct[1])){
                         toSearch = structDeclarationMap.get(potentialStruct[0]);
                     }else{
                         for (Type cond : typeList){

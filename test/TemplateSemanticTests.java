@@ -94,6 +94,18 @@ public final class TemplateSemanticTests extends UraniumTestFixture
         successInput("template <typename T> fun ifStmtThree (x: T): Int {if(x){return 0};else{return 1}}");
         successInput("template <typename T> fun whileStmt (x: T) {while(x){}}");
         successInput("template <typename T> fun whileStmtTwo (x: T) {while(x + 2 < 6){}}");
+
+        // struct declaration
+        successInput("template <typename T> struct PairClassic {}");
+        successInput("template <typename T> struct PairClassic2 {var a: T}");
+
+
+        failureInputWith("template <typename T> struct PairClassicFailure {var a: T1}", "Trying to use a non declared template parameters in the type of field a in PairClassicFailure");
+        failureInputWith("struct PairClassicFailure2 {var a: T}", "Trying to use template type in field while struct not declared as template in PairClassicFailure2");
+
+
+
+
     }
 
 
@@ -121,6 +133,16 @@ public final class TemplateSemanticTests extends UraniumTestFixture
         //test double calls
         successInput("template <typename T> fun doubleCalls (x: T) {} ; doubleCalls<String> (\"hey\"); doubleCalls<Int> (2)");
         successInput("template <typename T, typename T1> fun doubleCalls2 (x: T1, y: T) {} ; doubleCalls2<Int, Int> (2, 2); doubleCalls2<Int, String> (\"hey\", 2)");
+
+        //structure calls
+        successInput("template <typename T> struct oneStringStruct{var a: T} ; var pair: oneStringStruct = $oneStringStruct<String>(\"hey\"); var pair2: oneStringStruct = $oneStringStruct<String>(\"hey\")");
+        successInput("template <typename T, typename T1> struct oneStringStruct2{var a: T; var b : T1} ; var pair: oneStringStruct2 = $oneStringStruct2<String, Int>(\"hey\", 3)");
+
+        failureInputWith("template<typename T, typename T1> struct oneStringStructFailure2{var a: T1; var b: T1} ; var pair2: oneStringStructFailure2 = $oneStringStructFailure2<String, Int>(\"hey\", 3)", "incompatible argument provided for argument 0: expected Int but got String");
+        failureInputWith("template <typename T> struct oneStringStructFailure{var a: T} ; var pair3: oneStringStructFailure = $oneStringStructFailure<String, Int>(\"hey\")", "Wrong number of template arguments in $oneStringStructFailure: expected 1 but got 2");
+        failureInputWith("template <typename T> struct oneStringStructFailure3{var a: T} ; var pair4: oneStringStructFailure3 = $oneStringStructFailure3<Int>(4, 3)", "wrong number of arguments, expected 1 but got 2");
+
+
     }
 
     @Test public void testBinaryExpression() {
@@ -152,6 +174,13 @@ public final class TemplateSemanticTests extends UraniumTestFixture
 
         //test double calls
         successInput("template <typename T> fun basicOperationDouble (x: T): T {return x + 1} ; basicOperationDouble<Int> (2); basicOperationDouble<String> (\"hey\")");
+
+        //struct
+        successInput("template <typename T> struct binaryStruct{var a: T} ; var pair: binaryStruct = $binaryStruct<Int>(2); var res: Int = pair.a + 3");
+        successInput("template <typename T> struct binaryStruct2{var a: T} ; var pair: binaryStruct2 = $binaryStruct2<String>(\"hey\"); var res: String = pair.a + \"hey\"");
+        failureInputWith("template <typename T> struct binaryStructFail{var a: T} ; var pair: binaryStructFail = $binaryStructFail<String>(\"hey\"); print(pair.a - 3 + \"\")", "Trying to subtract String with Int");
+
+
     }
 
     @Test public void testVarDeclAndAssignement() {
@@ -164,6 +193,14 @@ public final class TemplateSemanticTests extends UraniumTestFixture
 
         //test double calls
         successInput("template <typename T> fun basicVarDeclDouble (x: T) {var a : T = x} ; basicVarDeclDouble<Int> (2); basicVarDeclDouble<String> (\"hey\")");
+
+        // struct
+        successInput("template <typename T> struct binaryStructDecl{var a: T} ; var pair: binaryStructDecl = $binaryStructDecl<Int>(2); var res: Int = pair.a; pair.a = 6; res = pair.a");
+        successInput("template <typename T, typename T1> struct binaryStructDecl{var a: T; var b : T1} ; var pair: binaryStructDecl = $binaryStructDecl<Int, Int>(2, 5); pair.a = pair.b;");
+
+        failureInputWith("template <typename T, typename T1> struct binaryStructDeclFail2{var a: T; var b : T1} ; var pair: binaryStructDeclFail2 = $binaryStructDeclFail2<Int, String>(2, \"hey\"); pair.a = pair.b;", "Trying to assign a value of type String to a non-compatible lvalue of type Int");
+        failureInputWith("template <typename T> struct binaryStructDeclFail{var a: T} ; var pair: binaryStructDeclFail = $binaryStructDeclFail<Int>(2); pair.a = true", "Trying to assign a value of type Bool to a non-compatible lvalue of type Int");
+
 
     }
 
@@ -193,6 +230,18 @@ public final class TemplateSemanticTests extends UraniumTestFixture
 
         //test double calls
         successInput("template <typename T> fun ifTestDouble (x: T) {if(x > 3){}} ; ifTestDouble<Int> (2) ; ifTestDouble<Float> (2.6)");
+
+        // struct
+        successInput("template <typename T> struct ifTestStruct{var a: T} ; var pair: ifTestStruct = $ifTestStruct<Int>(2); if(pair.a < 3){pair.a = pair.a + 1}");
+        successInput("template <typename T> struct ifTestStruct2{var a: T} ; var pair: ifTestStruct2 = $ifTestStruct2<Bool>(true); if(pair.a){pair.a = false}");
+
+        failureInputWith("template <typename T> struct ifTestStructFail{var a: T} ; var pair: ifTestStructFail = $ifTestStructFail<Int>(2); if(pair.a){pair.a = 8}", "If statement with a non-boolean condition of type: Int");
+
+        successInput("template <typename T> struct WhileTestStruct{var a: T} ; var pair: WhileTestStruct = $WhileTestStruct<Int>(2); while(pair.a < 3){pair.a = pair.a + 1}");
+        successInput("template <typename T> struct WhileTestStruct2{var a: T} ; var pair: WhileTestStruct2 = $WhileTestStruct2<Bool>(true); while(pair.a){pair.a = false}");
+
+        failureInputWith("template <typename T> struct WhileTestStructFail{var a: T} ; var pair: WhileTestStructFail = $WhileTestStructFail<Int>(2); while(pair.a){pair.a = 8}", "While statement with a non-boolean condition of type: Int");
+
 
     }
 

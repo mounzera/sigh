@@ -103,6 +103,13 @@ public final class TemplateSemanticTests extends UraniumTestFixture
         failureInputWith("template <typename T> struct PairClassicFailure {var a: T1}", "Trying to use a non declared template parameters in the type of field a in PairClassicFailure");
         failureInputWith("struct PairClassicFailure2 {var a: T}", "Trying to use template type in field while struct not declared as template in PairClassicFailure2");
 
+        //check error if two elements has the same name
+        failureInputWith("fun same_name_fun(){}; fun same_name_fun(){}", "Try to declare function with already existing name: same_name_fun");
+        failureInputWith("var same_name_var : Int = 2; var same_name_var: Bool = false", "Try to declare variable with already existing name: same_name_var");
+        failureInputWith("struct same_name_struct{}; struct same_name_struct{}", "Try to declare struct with already existing name: same_name_struct");
+
+
+
 
 
 

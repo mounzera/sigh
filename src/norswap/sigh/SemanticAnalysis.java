@@ -128,6 +128,8 @@ public final class SemanticAnalysis
     /**Avoid mutiple declarations with same name**/
     private HashSet<String> declaredFunNames = new HashSet<>();
     private HashMap<String, HashSet<String>> declaredVarNames = new HashMap<>();
+    private HashSet<String> declaredStruct = new HashSet<>();
+
     // ---------------------------------------------------------------------------------------------
 
     private SemanticAnalysis(Reactor reactor) {
@@ -1619,9 +1621,11 @@ public final class SemanticAnalysis
         scope.declare(node.name, node);
         R.set(node, "type", TypeType.INSTANCE);
         R.set(node, "declared", new StructType(node));
-        if (structDeclarationMap.containsKey(node.name)){
+        if (declaredStruct.contains(node.name)){
             R.error(new SemanticError("Try to declare struct with already existing name: "  + node.name(),null,node));
             return;
+        }else{
+            declaredStruct.add(node.name);
         }
         if (node.templateParameters != null){
             List<String> templateParamNames = new ArrayList<>();

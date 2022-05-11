@@ -181,3 +181,5 @@ while(pair.a < 3){
     pair.a = 6
 }
 
+
+var checknull : Int[] = null

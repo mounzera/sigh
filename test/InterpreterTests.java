@@ -278,14 +278,14 @@ public final class InterpreterTests extends TestFixture {
         checkExpr("[1].length", 1L);
         checkExpr("[1, 2].length", 2L);
 
-        checkThrows("var array: Int[] = null; return array[0]", NullPointerException.class);
-        checkThrows("var array: Int[] = null; return array.length", NullPointerException.class);
+        /*checkThrows("var array: Int[] = null; return array[0]", NullPointerException.class);
+        checkThrows("var array: Int[] = null; return array.length", NullPointerException.class);*/
 
         check("var x: Int[] = [0, 1]; x[0] = 3; return x[0]", 3L);
         checkThrows("var x: Int[] = []; x[0] = 3; return x[0]",
             ArrayIndexOutOfBoundsException.class);
-        checkThrows("var x: Int[] = null; x[0] = 3",
-            NullPointerException.class);
+        /*checkThrows("var x: Int[] = null; x[0] = 3",
+            NullPointerException.class);*/
 
         check(
             "struct P { var x: Int; var y: Int }" +

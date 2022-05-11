@@ -230,7 +230,7 @@ public final class ArraySemanticTests extends UraniumTestFixture
             "fun add (a: Template[], b: Template[]): Bool[] { return a@(||)b } " +
                 "return add([4.0], [\"h\"])");
         successInput(
-            "fun add (a: String[], b: String[]): String[] { return a@(-)b } " +
+            "fun add (a: String[], b: String[]): String[] { return a@(+)b } " +
                 "return add([\"h\"], [\"ello\"])");
 
 

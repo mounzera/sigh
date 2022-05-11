@@ -316,7 +316,7 @@ public final class Interpreter
             right_name=((ReferenceNode) node.right).name;
         }
 
-        ArrayLiteralNode left_arr = null; // retrieve lesft anr right arrays
+        ArrayLiteralNode left_arr = null; // retrieve left anr right arrays
         ArrayLiteralNode right_arr = null;
         try{
             if(get(node.left) instanceof ArrayLiteralNode){
@@ -432,6 +432,7 @@ public final class Interpreter
         }
         if (node.right instanceof ReferenceNode) {
             right_arr = parameter_arrays[1];//(ArrayLiteralNode) (((VarDeclarationNode) scope.declarations.get(right_name)).initializer);
+
             if (right_arr == null) { // arrays is a declaration
                 SighNode n = scope.declarations.get(right_name);
                 if (n instanceof VarDeclarationNode){
@@ -445,7 +446,6 @@ public final class Interpreter
         }
         //}
         //TODO check span
-
 
         //type check
         if (left_arr.components.size() != right_arr.components.size()){

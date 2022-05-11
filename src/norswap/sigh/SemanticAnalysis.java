@@ -126,9 +126,8 @@ public final class SemanticAnalysis
     HashMap<String,List<HashMap<String,ArrayLiteralNode>>> param_arrays = new HashMap<>();
 
     /**Avoid mutiple declarations with same name**/
-    private HashSet<String> declaredFunNames = new HashSet<>();
+    private HashSet<String> declaredNames = new HashSet<>();
     private HashMap<String, HashSet<String>> declaredVarNames = new HashMap<>();
-    private HashSet<String> declaredStruct = new HashSet<>();
 
     // ---------------------------------------------------------------------------------------------
 
@@ -1048,8 +1047,8 @@ public final class SemanticAnalysis
         if (node.right instanceof ReferenceNode){
             right_name=((ReferenceNode) node.right).name;
         }
-        Boolean left_template = ((ArrayType) left).templateName != null && ((ArrayType) left).templateName.equals("Template[]");
-        Boolean right_template = ((ArrayType) right).templateName != null && ((ArrayType) right).templateName.equals("Template[]");
+        Boolean left_template = (((ArrayType) left).templateName != null && ((ArrayType) left).templateName.equals("Template[]") || left.name().equals("Template[]") ) ;
+        Boolean right_template = (((ArrayType) right).templateName != null && ((ArrayType) right).templateName.equals("Template[]") || right.name().equals("Template[]"));
         boolean temp = left_template || right_template;
         if ( !temp && ((ArrayType) left).componentType instanceof StringType && ((ArrayType) right).componentType instanceof StringType){
             if (! string_op.contains(node.array_operator)) {
@@ -1067,14 +1066,10 @@ public final class SemanticAnalysis
             }
         }
 
-
-
-
-
         if (!temp &&! left.name().equals(right.name())){
             if (left_name != null && right_name != null) {
-                boolean left_num = left_name.equals("Int[]") || left_name.equals("Float[]");
-                boolean right_num = right_name.equals("Int[]") || right_name.equals("Float[]");
+                boolean left_num = left.name().equals("Int[]") || left.name().equals("Float[]");
+                boolean right_num = right.name().equals("Int[]") || right.name().equals("Float[]");
                 if (!left_num || !right_num) {
                     set_array_type(r,node,left,false, typeToSet);
                     r.error(format("Trying to use @ between non compatible ArrayTypes %s and %s", left.name(), right.name()), node);
@@ -1546,18 +1541,28 @@ public final class SemanticAnalysis
         scope = new Scope(node, scope);
 
         R.set(node, "scope", scope);
-        if (declaredFunNames.contains(node.name())){
+        if (declaredNames.contains(node.name())){
             R.error(new SemanticError("Try to declare function with already existing name: "  + node.name(),null,node));
             return;
         }else {
-            declaredFunNames.add(node.name());
+            declaredNames.add(node.name());
         }
         variableToTemplate.put(node.name, new HashMap<>());
         HashMap<String, String> tempVariableToTemplate = variableToTemplate.get(node.name);
         for (ParameterNode param : node.parameters){
             String type = param.type.contents();
-            if (type.equals("T") || type.charAt(0) == ('T') && Character.isDigit(type.charAt(1)) || type.contains("[")){
-                tempVariableToTemplate.put(param.name, type);
+            boolean d = false;
+            if (type.contains("[]")){
+                type = type.substring(0, type.length()-2);
+                d = true;
+            }
+            if (type.equals("T") || type.charAt(0) == ('T') && Character.isDigit(type.charAt(1))){
+                if (d){
+                    tempVariableToTemplate.put(param.name, type+"[]");
+
+                }else
+                    tempVariableToTemplate.put(param.name, type);
+
             }
         }
         Attribute[] dependencies;
@@ -1621,11 +1626,11 @@ public final class SemanticAnalysis
         scope.declare(node.name, node);
         R.set(node, "type", TypeType.INSTANCE);
         R.set(node, "declared", new StructType(node));
-        if (declaredStruct.contains(node.name)){
+        if (declaredNames.contains(node.name)){
             R.error(new SemanticError("Try to declare struct with already existing name: "  + node.name(),null,node));
             return;
         }else{
-            declaredStruct.add(node.name);
+            declaredNames.add(node.name);
         }
         if (node.templateParameters != null){
             List<String> templateParamNames = new ArrayList<>();

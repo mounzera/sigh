@@ -1,11 +1,12 @@
 //Basic template param test
-/*template <typename T, typename T1>
-fun check_param (r: T, a: T1, b: Int, c: T){
+template <typename T, typename T1>
+fun check_param (r: T, a: T1, b: Int, c: T): T{
     print(a + "")
+    return c
 }
 check_param<Int, String>(2, "hey", 2, 2);
-check_param<Float, Int>(2.3, 4, 4, 8.4);*/
-/*check_param<Int, String>(2, "hey", 2, 2);
+check_param<Float, Int>(2.3, 4, 4, 8.4);
+check_param<Int, String>(2, "hey", 2, 2);
 
 template <typename T,typename T1>
 fun check_param1 (x: T, y: T1) :T{
@@ -31,46 +32,21 @@ fun check_param_template_not_used ( a: String, c: Int, b: Int){
 template <typename T, typename T1>
 fun check_param_multiple_template( a: T, c: T1, b: Int){
 }
-check_param_multiple_template<String, Int>("hey", 2, 3);*/
-
-/*var intArray: Int[] = [5]
-fun array_print_int(x: Int[]){
-    print("" + x[0])
-}
-array_print_int(intArray)*/
-
-/*template <typename T, typename T1>
-fun array_print(b: T1, a: T){
-
-}
-array_print<Int, Int>(3, 2)*/
-
-/*var tempArray: T1[] = []
-var tempArray: T1[] = [6]*/
-
-/*template<typename T, typename T1>
-fun array_print(x: T, a: T1): T{
-    print(x)
-    print(a)
-    return a
-}
-//var intArray: Int[] = [5]
-array_print<Int, Int>(2, 3)*/
+check_param_multiple_template<String, Int>("hey", 2, 3);
 
 //Test of binary operation with templates
-/*template<typename T1, typename T, typename T2>
-fun array_print2(a: T, x: T1, b: T2, c: Int): String{
-    print("" + x)
+template<typename T1, typename T, typename T2>
+fun binary_print2(a: T, x: T1, b: T2, c: T): String{
+    print("" + (x + 2))
+    print("" + (c && true))
     print("" + b)
     var test: Float = x / b
     print(test + "")
-    print("" + a + c)
+    print("" + (a || c))
     return "" + b
-}*/
-//var stringArr: String[] = ["hey"]
-//array_print2<Float, String, Float>("hey", 3.0, 2.0, 6)
-//print(array_print2<Float>(3.5))
-/*template<typename T, typename T1>
+}
+binary_print2<Float, Bool, Float>(true, 3.0, 2.0, false)
+template<typename T, typename T1>
 fun max(a: T, b: T1): T{
     if(a > b){
         return a
@@ -78,11 +54,10 @@ fun max(a: T, b: T1): T{
         return b
     }
 }
-print("" + max<Float, Int>(4.5, 3))*/
-//var test: Bool = 6 == 4
+print("" + max<Float, Int>(4.5, 3))
 
 //Test of var decl + var assignement
-/*template<typename T, typename T1>
+template<typename T, typename T1>
 fun assign(a: T, b: T1){
     a = 3
     a = a + 1
@@ -90,71 +65,10 @@ fun assign(a: T, b: T1){
     print(a)
 }
 assign<Int, Float>(2, 3.0)
-assign<Float, Int>(4.0, 5)*/
+assign<Float, Int>(4.0, 5)
 
-/*var arr : Template[] = [5, "Marie"]
-var arr2 : Template[]= [5.0, "Hello"]
-var arr3: Template[]=arr@(+)arr2
-print("" + arr3)
-print("" +arr2)*/
-/*var arr: Int[] = [1]
-print("" + arr)
-arr=[3]
-print("" + arr)*/
-
-
-/*var arrInt: Float[] = [5.0,2]
-var arrInt2: Float[] = [2.0,2]
-var arr3: Bool[] = [true]
-
-var arr4: String[] =["hello "]
-var arr5: String[] =["everybody"]
-var res2: String[] = arr4@(+)arr5
-var i1: Int =5
-var i2:Int=1
-print("" + arr5)
-print(""+res2) // print hello everybody2
-print(""+ (i1 +i2)) //print 6
-
-var arr5: String[] =["everybody2"]
-var res3: String[] = arr4@(+)arr5
-var i1: Int = 6
-print(""+arr5)
-print(""+res3) //print hello everybody2
-print(""+(i1+i2))// print 7*/
-
-
-//var res: Bool[] = arrInt@(>=)arrInt2
-/*var a: Int=1
-var b: Int =2
-var res2 : Int = a+b*/
-
-
-//Test of the return stmt with template -> semantic working, not interpretor
-/*template<typename T, typename T1>
-fun ret(a: T, c: T1): T{
-    var b: String = "hey"
-    return a + 1
-}
-ret<Int, String>(2, "hey")*/
-
-
-//Test of if stmt with template
-/*template<typename T>
-fun cond(a: T){*/
-    /*if(a > 6){
-        print(a)
-    }*/
-
-    /*if(a > 6){
-        print("hey")
-    }
-}
-cond<Int>(7)
-cond<Float>(6.6)*/
-
-//Test of while stmt template
-/*template<typename T>
+//Test of while loop with template
+template<typename T>
 fun loop(a: T){
     while(a < 8){
         print(a)
@@ -162,55 +76,45 @@ fun loop(a: T){
     }
 }
 loop<Int>(5)
-loop<Float>(4.7)*/
+loop<Float>(4.7)
 
-
-/*fun test(a: String): String{
-    return a
-}
-print(test("2"))
-test("3")*/
 
 //Array operation test
-/*var arr10 : Int[] = [1,2]
-var arr20 : Float[]= [2.0, 3.0]
+var arr10 : Int[] = [1,2]
+var arr20 : Int[]= [2, 3]
 var arr30: Bool[]=arr10@(>)arr20
 print("111" + arr10)
-print("222" + arr30)*/
-/*var arr10 : Bool[] = [true]
-var arr20 : Bool[]= [false]
-var arr30: Bool[]=arr10@(&&)arr20
-print("111" + arr10)
-print("222" + arr30)*/
+print("222" + arr30)
+var arr80 : Bool[] = [true]
+var arr90 : Bool[] = [false]
+var arr95 : Bool[] = arr80@(&&)arr90
+print("111" + arr80)
+print("222" + arr95)
 
 //Template array test
-/*var arr10 : Template[] = [1.0, "Hello"]
-var arr20 : Template[]= [2, " everybody"]
-var arr30: Template[]=arr10@(>)arr20
-print("111" + arr10)
-print("222" + arr30)*/
-/*var arr10 : Template[] = [1.0, "Hello"]
-var arr20 : Template[]= [2, " everybody"]
-var arr40 : Template[] = [3, " !"]
-var arr30: Template[]=arr10@(+)arr20@(+)arr40
-print("111" + arr10)
-print("222" + arr30)*/
+var arr100 : Template[] = [1.0, "Hello"]
+var arr200 : Template[]= [2, " everybody"]
+var arr300: Template[]=arr100@(>)arr200
+print("111" + arr100)
+print("222" + arr300)
+var arr400 : Template[] = [1.0, "Hello"]
+var arr500 : Template[]= [2, " everybody"]
+var arr600 : Template[] = [3, " !"]
+var arr700: Template[]=arr100@(+)arr200@(+)arr400
+print("111" + arr100)
+print("222" + arr300)
 
 
 //Template array assignment test
-/*print("" + arr10)
-arr10=["hello"]
-print("10 " + arr10)
-//print("" + arr30)
-arr30=arr10
-print("30 " + arr30)
-var arr40: Template[] = arr20
-print("" + arr20)
-//var arr50: String[] = arr10 //NOt working
-//print("" + arr50)*/
+print("" + arr10)
+arr10=[23, 150]
+print("" + arr10)
+print("" + arr30)
+var arr450: Template[] = arr20
+print("" + arr450)
 
 //Template array assignment and operations with variables
-/*var a: Int = 1
+var a: Int = 1
 var b: String ="b"
 var d: Float = 3
 var e: String=" e"
@@ -219,73 +123,24 @@ var f: Template[] = [d,e]
 var g: Template[] = c@(+)f
 print(""+c)
 print(""+f)
-print(""+g)*/
+print(""+g)
 
 //Template array assignment and operations with templates variables
-/*template<typename T, typename T1>
-fun f(arg1: Template[], arg2: T[], arg3:Int[]) : Template[]{
-    var c : Template[] = arg1@(+)arg3@(+)arg2
+template<typename T, typename T1>
+fun farr(arg1: Template[], arg2: T[], arg3:Int[]) : Template[]{
+    var darr : Template[] = arg1@(+)arg3
     //print("" +arg2)
-    return c
+    return darr
 }
-
-var a: Template[] = [1,1,1]//"hello" ]
-var b: Template[] = [2,2,2]//"hi"]
-var c: Template[] = [1.0,2.0,2.0]//"bye"]
-var g: Int[] = [2,3,4]
-//print(""+a)
-var d: Template[] = f<Template, Template>(c,b,a) //[3,3,3]
-var e: Template[] = f<Int, Int>(d,[2,2,2],d)
-print(""+d)
-print(""+e)*/
-//var a: Int = (1+2)+3
-//print(""+a)
-//print("" +f<Float[], Int[]>(c,a,b))
-
-//fun test (x: String):String { return x+" a" }
-//print(test("a"))
-//var x : String = test("a")
-//var y: String = test(x)
-//print(""+x)
+var aarr: Template[] = [1,1,1]
+var barr: Template[] = [2,2,2]
+var carr: Template[] = [1.0,2.0,2.0]
+farr<Template, Template>(carr,barr,aarr)
 
 
 
-//Array operations tests
-/*var arrInt: Float[] = [5.0,2]
-var arrInt2: Float[] = [2.0,2]
-var arr3: Bool[] = [true]*/
-
-//tests
-//var str: String = null; return print(str + 1)
-//print(""+ (true  && true))
-//print(""+(true + 2))
-//fun test (x: String):String { return x }
-//print(test("a"))
-
-//var a:Template[]=[]
-
-//print(""+([1]@(==)[2]))
-//print(""+([1]@(+)[2.0]))
-//print(""+([1]@(+)["ello"]))
-/*var x: Template[] = []
-var a: Template[]= [1,2.0,"hel"]
-var b: Template[] =[1,2.0,"lo"]
-x=a@(+)b
-print(""+x)*/
-//TODO
-/*template <typename T, typename T1>
-fun add (a: T[], b: T1[]): Template[] { return a@(+)b }
-var t: Temlate[]= add<Template,Template>([4.0,"h"], [5,"ello"])
-print(""+t)*/
-/*var x: Template[] = [1,2.0,"hello",true]
-print(""+x[0])
-print(""+x.length)*/
-
-
-
-
-//list as type in template function
-/*template <typename T>
+//test list as type in template function
+template <typename T>
 fun listTest2(a: T[], b: T[]): T[]{
     var d : Template[] = [3, 5]
     var c : Template[] = a@(*)d//d[0]//@(*)d
@@ -293,32 +148,15 @@ fun listTest2(a: T[], b: T[]): T[]{
     return c
 }
 var l: Int[] = [2, 4]
-var l2: Int[] = [3, 4]*/
-//var res : Int =
-//listTest2<Template>(l, l2)
+var l2: Int[] = [3, 4]
+listTest2<Template>(l, l2)
 
-/*var l: Template[] = [2, 4]
-var l2: Template[] = [3, 4]
-//listTest2<Template>(l, l2)*/
-
-//var res : Template[] = listTest2<Template>(l, l2)
-//print(""+res)
-
-//var t: Template[] =[1]
-//listTest2<Template>(t)
+var ltemp: Template[] = [2, 4]
+var ltemp2: Template[] = [3, 4]
+listTest2<Template>(ltemp, ltemp2)
 
 
-
-/*fun add (a: String[], b: String[]): String[] { return a@(-)b }
-add(["h"], ["ello"])*/
-
-/*fun add (a: Template[], b: Template[]): Template[] { return a@(&&)b }
-var a : Template[] = [4.0,"h"]
-var b: Template[] =[2,"ello"]
-print(""+add(a,b))*/
-
-
-//Template structures
+//Test Template structures
 
 template<typename T>
 struct Pair {
@@ -326,30 +164,20 @@ struct Pair {
     var b: T
 }
 
-var pair: Pair = $Pair<Bool>(true,false)
-if(pair.a){
+var pair: Pair = $Pair<Int>(4,5)
+var pair2: Pair= $Pair<Int>(3,5)
+print((pair.a + pair.b) + "")
+if(pair.a > 3){
     print("hey")
 }
-// TODO
-//pair.a = "ha"
+pair.a = 6
 
-//TODO
-//var c : String = pair.a
-//var d : String = c
+// Test assignement structure
+var cpair : Int = pair.a
+var dpair : Int = 8
 
-//TODO
-/*if(pair.a){
-    print("hey")
-}*/
-//TODO
-/*while(pair.a < 3){
+while(pair.a < 3){
     print("hey")
     pair.a = 6
-}*/
-
-//TODO CHECK FIELD ACCESS
-/*fun sum_pair (pair: Pair): Int {
-    return 2 + pair.b
 }
-sum_pair($Pair<Int>(2,3))*/
 
